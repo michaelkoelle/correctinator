@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.ExerciseLabelController">
+    <children>
+        <HBox alignment="CENTER_LEFT" prefHeight="41.0" prefWidth="502.0">
+            <children>
+                <Label fx:id="lbl_exercise_name" text="Exercise Name">
+                    <font>
+                        <Font size="16.0" />
+                    </font>
+                    <HBox.margin>
+                        <Insets left="10.0" right="30.0" />
+                    </HBox.margin>
+                </Label>
+            <Label fx:id="lbl_points" layoutX="241.0" layoutY="18.0" text="Points">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+                <Label text="/">
+                    <font>
+                        <Font size="16.0" />
+                    </font>
+                    <HBox.margin>
+                        <Insets left="10.0" right="10.0" />
+                    </HBox.margin>
+                </Label>
+                <Label fx:id="lbl_max_points" text="Max Points">
+                    <font>
+                        <Font size="16.0" />
+                    </font>
+                </Label>
+            </children>
+        </HBox>
+        <VBox fx:id="vbox_sub" visible="false">
+            <padding>
+                <Insets left="50.0" />
+            </padding>
+        </VBox>
+    </children>
+</VBox>
