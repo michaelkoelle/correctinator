@@ -12,6 +12,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -21,13 +22,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static com.koellemichael.utils.PreferenceKeys.INIT_PREF;
 
 public class Controller{
 
@@ -56,6 +60,7 @@ public class Controller{
     private DoubleBinding progress;
     private ArrayList<File> allFiles;
     private int allFilesPos;
+    private File correctionsDirectory;
 
     public void initialize(Stage primaryStage){
         this.primaryStage = primaryStage;
@@ -85,14 +90,13 @@ public class Controller{
         tc_changed.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
         tc_state.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
 
-
     }
 
     public void onOpenDirectory(ActionEvent actionEvent) {
         boolean first = true;
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Abgaben öffnen");
-        File correctionsDirectory = chooser.showDialog(primaryStage);
+        correctionsDirectory = chooser.showDialog(primaryStage);
 
         if(correctionsDirectory != null){
             File[] correctionDirectories = correctionsDirectory.listFiles((dir, name) -> name.matches("[0-9]+"));
@@ -101,9 +105,9 @@ public class Controller{
                 lbl_directory.setText(correctionsDirectory.getAbsolutePath());
                 lbl_info.setText("Es wurden " + correctionDirectories.length + " Abgaben gefunden!");
 
-
-                int failedParseCount = 0;
-                int notInitializedCount = 0;
+                //TODO keine listen erstellen sondern einfach nach state filtern
+                ObservableList<Correction> failedToParse = FXCollections.observableArrayList();
+                ObservableList<Correction> notInitialized = FXCollections.observableArrayList();
 
                 for (File correctionDirectory : correctionDirectories) {
 
@@ -117,18 +121,18 @@ public class Controller{
                                 c = RatingFileParser.parseFile(rating.getAbsolutePath());
                             } catch (IOException | ParseException e) {
                                 //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
-                                failedParseCount++;
                                 c = new Correction();
                                 c.setState(Correction.CorrectionState.PARSE_ERROR);
                                 c.setPath(rating.getAbsolutePath());
                                 c.setId(correctionDirectory.getName());
+                                failedToParse.add(c);
                             } catch (FileNotInitializedException e) {
                                 //TODO counter + initialisierungsdialog
-                                notInitializedCount++;
                                 c = new Correction();
                                 c.setState(Correction.CorrectionState.NOT_INITIALIZED);
                                 c.setPath(rating.getAbsolutePath());
                                 c.setId(correctionDirectory.getName());
+                                notInitialized.add(c);
                             }
                             corrections.add(c);
                         }
@@ -138,7 +142,7 @@ public class Controller{
                     }
                 }
 
-                lbl_info.setText(lbl_info.getText() + "\n" + failedParseCount + " Dateien konnten nicht vollständig geparsed werden!\n"+ notInitializedCount + " Dateien wurden noch nicht initialisiert!");
+                lbl_info.setText(lbl_info.getText() + "\n" + failedToParse.size() + " Dateien konnten nicht vollständig geparsed werden!\n"+ notInitialized.size() + " Dateien wurden noch nicht initialisiert!");
 
                 //Progress Bar binding
                 if(corrections.size()>0){
@@ -153,7 +157,7 @@ public class Controller{
                     tv_corrections.getSelectionModel().selectFirst();
                 }
 
-                if(notInitializedCount>0){
+                if(!notInitialized.isEmpty()){
                     Alert d = new Alert(Alert.AlertType.WARNING);
                     d.setTitle("Kommentarsektion initialisieren");
                     d.setHeaderText("Einige Dateien wurden noch nicht initialisiert.");
@@ -167,9 +171,85 @@ public class Controller{
                             //TODO open initialisation dialog
                             System.out.println("Initialisierungsdialog");
 
+                            Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
+                            initDialog.setTitle("Initialisierung");
+                            initDialog.setHeaderText("Initialisierung des Kommentarfelds");
+                            initDialog.setContentText("Tragen sie das initiale Aufgabenschema ein:");
+                            initDialog.getButtonTypes().clear();
+                            initDialog.getButtonTypes().add(ButtonType.CANCEL);
+                            initDialog.getButtonTypes().add(ButtonType.FINISH);
+                            TextArea initString = new TextArea();
+                            Preferences preferences = Preferences.userRoot();
+                            initString.setText(preferences.get(INIT_PREF, ""));
+                            initDialog.getDialogPane().setContent(initString);
+                            Optional<ButtonType> b = initDialog.showAndWait();
+                            b.ifPresent(buttonType -> {
+                                if(buttonType==ButtonType.FINISH){
+                                    initString.getText();
+                                    preferences.put(INIT_PREF, initString.getText());
 
+                                    notInitialized.forEach(c-> {
+                                        try {
+                                            RatingFileParser.initializeComments(c,initString.getText());
 
+                                            //TODO liste aktualisieren
+                                            corrections.clear();
+                                            for (File correctionDirectory : correctionDirectories) {
 
+                                                File[] ratings = correctionDirectory.listFiles((dir, name) -> name.matches("bewertung_[0-9]+\\.txt"));
+
+                                                if (ratings != null && ratings.length>0) {
+
+                                                    for (File rating : ratings) {
+                                                        Correction c1;
+                                                        try {
+                                                            c1 = RatingFileParser.parseFile(rating.getAbsolutePath());
+                                                        } catch (IOException | ParseException e) {
+                                                            //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
+                                                            c1 = new Correction();
+                                                            c1.setState(Correction.CorrectionState.PARSE_ERROR);
+                                                            c1.setPath(rating.getAbsolutePath());
+                                                            c1.setId(correctionDirectory.getName());
+                                                            failedToParse.add(c1);
+                                                        } catch (FileNotInitializedException e) {
+                                                            //TODO counter + initialisierungsdialog
+                                                            c1 = new Correction();
+                                                            c1.setState(Correction.CorrectionState.NOT_INITIALIZED);
+                                                            c1.setPath(rating.getAbsolutePath());
+                                                            c1.setId(correctionDirectory.getName());
+                                                            notInitialized.add(c1);
+                                                        }
+                                                        corrections.add(c1);
+                                                    }
+
+                                                }else{
+                                                    errorDialog("Fehler", "Keine Bewertungsdatei für Abgabe " + correctionDirectory.getName() + " gefunden!");
+                                                }
+                                            }
+
+                                            lbl_info.setText(lbl_info.getText() + "\n" + failedToParse.size() + " Dateien konnten nicht vollständig geparsed werden!\n"+ notInitialized.size() + " Dateien wurden noch nicht initialisiert!");
+
+                                            //Progress Bar binding
+                                            if(corrections.size()>0){
+                                                progress = Bindings.createDoubleBinding(()-> corrections.stream().mapToDouble((c1) -> (c1.getState() == Correction.CorrectionState.FINISHED)?1:0).average().getAsDouble(), corrections);
+                                                pb_correction.progressProperty().bind(progress);
+
+                                                tv_corrections.setItems(corrections);
+
+                                                tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
+
+                                                tv_corrections.getSelectionModel().clearSelection();
+                                                tv_corrections.getSelectionModel().selectFirst();
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        } catch (ParseException e) {
+                                            e.printStackTrace();
+                                        }
+                                    });
+
+                                }
+                            });
                         }
                     });
                 }
@@ -222,20 +302,9 @@ public class Controller{
         if(newSelection instanceof Correction){
             Correction c = (Correction) newSelection;
             lbl_current_id.textProperty().bind(c.idProperty());
-
-            /*DoubleBinding ratingBinding = Bindings.createDoubleBinding(() -> c.getExercise().getSubExercises().stream().flatMap(Utils::flatten).mapToDouble(e -> {
-                if(e instanceof ExerciseRating) {
-                    return ((ExerciseRating) e).getRating();
-                } else {
-                    return 0;
-                }
-            }).sum(), c.getExercise().getSubExercises());
-            */
-            //lbl_current_rating.textProperty().bind(Bindings.convert(ratingBinding));
             lbl_current_rating.textProperty().bind(Bindings.convert(c.ratingProperty()));
             lbl_current_max_points.textProperty().bind(Bindings.convert(c.maxPointsProperty()));
             vbox_edit.getChildren().clear();
-
 
             //TODO Liste hierarchisch, nicht flatten benutzen
             if(c.getExercise() != null){
@@ -246,6 +315,7 @@ public class Controller{
                         try {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exercise.fxml"));
                             Pane p = loader.load();
+                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
                             ExerciseRatingController controller = loader.getController();
                             controller.initialize((ExerciseRating)e);
                             vbox_edit.getChildren().add(p);
@@ -256,6 +326,7 @@ public class Controller{
                         try {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exerciselabel.fxml"));
                             Pane p = loader.load();
+                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
                             ExerciseLabelController controller = loader.getController();
                             controller.initialize(e);
                             vbox_edit.getChildren().add(p);
@@ -413,5 +484,69 @@ public class Controller{
         }
     }
 
+    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
+        if (fileToZip.isHidden()) {
+            return;
+        }
+        if (fileToZip.isDirectory()) {
+            if (fileName.endsWith("/")) {
+                zipOut.putNextEntry(new ZipEntry(fileName));
+                zipOut.closeEntry();
+            } else {
+                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+                zipOut.closeEntry();
+            }
+            File[] children = fileToZip.listFiles();
+            for (File childFile : children) {
+                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+            }
+            return;
+        }
+        FileInputStream fis = new FileInputStream(fileToZip);
+        ZipEntry zipEntry = new ZipEntry(fileName);
+        zipOut.putNextEntry(zipEntry);
+        byte[] bytes = new byte[1024];
+        int length;
+        while ((length = fis.read(bytes)) >= 0) {
+            zipOut.write(bytes, 0, length);
+        }
+        fis.close();
+    }
 
+
+    public void onExportAsZIP(ActionEvent actionEvent) {
+        //Correction c = (Correction) tv_corrections.getSelectionModel().getSelectedItem();
+        try {
+            if(correctionsDirectory !=null){
+                File[] directoiesToZip = correctionsDirectory.listFiles();
+                if(directoiesToZip != null){
+                    List<String> directoryPathsToZip = Arrays.stream(directoiesToZip).map((File::getAbsolutePath)).collect(Collectors.toList());
+                    FileOutputStream fos = new FileOutputStream(correctionsDirectory.getAbsolutePath() + ".zip");
+                    ZipOutputStream zipOut = new ZipOutputStream(fos);
+
+                    for (String path:directoryPathsToZip) {
+                        File fileToZip = new File(path);
+                        zipFile(fileToZip, fileToZip.getName(), zipOut);
+                    }
+
+                    zipOut.close();
+                    fos.close();
+                    System.out.println("Saved ZIP to: " + correctionsDirectory.getAbsolutePath() + ".zip");
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void onSaveCorrection(ActionEvent actionEvent) {
+        Correction c = (Correction) tv_corrections.getSelectionModel().getSelectedItem();
+        try {
+            RatingFileParser.saveRatingFile(c);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
