@@ -5,8 +5,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.*;
 
-import java.util.ArrayList;
-
 public class Correction {
 
     public enum CorrectionState {TODO, MARKED_FOR_LATER, FINISHED, NOT_INITIALIZED, PARSE_ERROR};
@@ -49,36 +47,12 @@ public class Correction {
         rating.bind(ratingBinding);
     }
 
-    public double getRatingAlt(){
-        return getExercise().getSubExercises().stream().flatMap(Utils::flatten).mapToDouble(e -> {
-            if(e instanceof ExerciseRating) {
-                return ((ExerciseRating) e).getRating();
-            } else {
-                return 0;
-            }
-        }).sum();
-    }
-
-    public double getRatingAltWorking(){
-        ArrayList<Double> ratings = new ArrayList<>();
-        collectRatings(getExercise(), ratings);
-        return ratings.stream().mapToDouble(v -> v).sum();
-    }
-
     public double getRating(){
         return rating.get();
     }
 
     public ReadOnlyDoubleProperty ratingProperty(){
         return rating.getReadOnlyProperty();
-    }
-
-    public void collectRatings(Exercise e, ArrayList<Double> ratings){
-        if(e instanceof ExerciseRating){
-            ratings.add(((ExerciseRating) e).getRating());
-        }else {
-            e.getSubExercises().forEach(o -> collectRatings(o,ratings));
-        }
     }
 
     public String getId() {
