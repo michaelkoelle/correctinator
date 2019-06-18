@@ -10,7 +10,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
 
-public class ExerciseRatingController implements ChangeListener{
+public class ExerciseRatingController implements ChangeListener {
 
     public Label lbl_exercise_name;
     public Spinner<Double> sp_rating;
@@ -31,15 +31,14 @@ public class ExerciseRatingController implements ChangeListener{
 
         ta_comments.textProperty().bindBidirectional(e.commentProperty());
 
+        //TODO falls die listener weg sind funktioniert das binding nicht mehr richtig weil .asObject vom gc entfernt wird
         e.ratingProperty().addListener(this);
         e.commentProperty().addListener(this);
     }
 
+
     @Override
-    public void changed(ObservableValue observableValue, Object oldVal, Object newVal) {
-        //e.setChanged();
-        //RatingFileParser.saveRatingFile(e.getCorrection());
+    public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+
     }
-
-
 }
