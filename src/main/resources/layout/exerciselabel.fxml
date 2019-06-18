@@ -8,7 +8,7 @@
 
 <VBox alignment="TOP_CENTER" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.ExerciseLabelController">
     <children>
-        <HBox alignment="CENTER_LEFT" prefHeight="41.0" prefWidth="502.0">
+        <HBox alignment="CENTER_LEFT" minHeight="-Infinity" prefHeight="35.0" prefWidth="502.0">
             <children>
                 <Label fx:id="lbl_exercise_name" text="Exercise Name">
                     <font>
