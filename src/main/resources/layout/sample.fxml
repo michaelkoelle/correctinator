@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="558.0" prefWidth="944.0" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
+<BorderPane prefHeight="558.0" prefWidth="944.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
    <top>
       <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
          <children>
@@ -28,6 +28,8 @@
                 <Menu mnemonicParsing="false" text="Abgaben">
                   <items>
                     <MenuItem mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen" />
+                        <MenuItem mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern" />
+                        <MenuItem mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren" />
                   </items>
                 </Menu>
               </menus>
