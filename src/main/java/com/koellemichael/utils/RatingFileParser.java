@@ -4,87 +4,64 @@ import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class RatingFileParser {
 
     public static Correction parseFile(String path) throws ParseException, IOException, FileNotInitializedException {
 
+        Pattern p = Pattern.compile(
+                "= Bitte nur Bewertung und Kommentare ändern =\\n" +
+                "=============================================\\n" +
+                "========== UniWorx Bewertungsdatei ==========\\n" +
+                "======= diese Datei ist UTF8 encodiert ======\\n" +
+                "Informationen zum Übungsblatt:\\n" +
+                "Veranstaltung: (.+)\\n" +
+                "Blatt: (.+)\\n" +
+                "Korrektor: (.+)\\n" +
+                "E-Mail: (.+)\\n" +
+                "Abgabe-Id: (.+)\\n" +
+                "Maximalpunktzahl: (\\d+[.|,]?\\d*).*\\n" +
+                "=============================================\\n" +
+                "Bewertung: (\\d*[.|,]?\\d*).*\\n" +
+                "=============================================\\n" +
+                "Kommentare:\\n" +
+                "(.*)\\n*" +
+                "============ Ende der Kommentare ============",Pattern.DOTALL | Pattern.MULTILINE);
+
         Correction c = new Correction();
         c.setPath(path);
-        File file = new File(path);
 
-        Scanner chunkScanner = new Scanner(file);
-        chunkScanner.useDelimiter("=.*=");
+        String fileContents = fileContentsToString(new File(path),StandardCharsets.UTF_8);
 
-        while(chunkScanner.hasNext()){
-            String chunk = chunkScanner.next().trim();
+        Matcher matcher = p.matcher(fileContents);
 
-            if(!chunk.isEmpty()){
+        if(matcher.find()){
+            c.setLecture(matcher.group(1));
+            c.setExerciseSheet(matcher.group(2));
+            c.setCorrector(matcher.group(3));
+            c.setCorrectorEmail(matcher.group(4));
+            c.setId(matcher.group(5));
+            c.setMaxPoints(extractDoubleFromString(matcher.group(6)));
+            c.setRating(extractDoubleFromString(matcher.group(7)));
 
-                if(chunk.contains("Kommentare")) {
-                    Scanner s = new Scanner(chunk);
-                    if(s.hasNextLine()){
-                        s.nextLine();
-                    }
+            String commentSection = matcher.group(8);
 
-                    StringBuilder content = new StringBuilder();
-                    //TODO Method bauen die erste line löscht
-                    while(s.hasNextLine()){
-                        content.append(s.nextLine()).append("\n");
-                    }
-
-                    Exercise e = new Exercise();
-                    parseExercises(content.toString(), e);
-                    c.setExercise(e);
-
-                }else{
-                    Scanner lineScanner = new Scanner(chunk);
-                    while(lineScanner.hasNextLine()){
-                        String line = lineScanner.nextLine();
-                        Scanner valueScanner = new Scanner(line);
-                        valueScanner.useDelimiter(":");
-
-                        String key = null;
-                        String value = null;
-                        if(valueScanner.hasNext()){
-                            key = valueScanner.next().trim();
-                        }
-                        if(valueScanner.hasNext()){
-                            value = valueScanner.next().trim();
-                        }
-
-                        if (key != null) {
-                            switch (key){
-                                case "Veranstaltung": c.setLecture(value); break;
-                                case "Blatt": c.setExerciseSheet(value); break;
-                                case "Korrektor": c.setCorrector(value); break;
-                                case "E-Mail": c.setCorrectorEmail(value); break;
-                                case "Abgabe-Id": c.setId(value); break;
-                                case "Maximalpunktzahl": c.setMaxPoints(extractDoubleFromString(value)); break;
-                                //case "Bewertung": c.setRating(extractDoubleFromString(value)); break;
-                            }
-                        }
-
-                        valueScanner.close();
-                    }
-
-                    lineScanner.close();
-                }
-
-
-            }
+            Exercise e = new Exercise();
+            parseExercises(commentSection, e);
+            c.setExercise(e);
+        }else{
+            throw new ParseException(fileContents);
         }
-        chunkScanner.close();
 
         return c;
     }
@@ -108,38 +85,51 @@ public class RatingFileParser {
                 "=============================================\n" +
                 "Kommentare:\n";
 
-                for(Exercise e : c.getExercise().getSubExercises()){
-                    if(e instanceof ExerciseRating){
-                        ExerciseRating er = (ExerciseRating) e;
+
+        if(c.getExercise() != null){
+            List<Exercise> list = c.getExercise().getSubExercises().stream().flatMap(Utils::flatten).collect(Collectors.toList());
+
+            for(Exercise e : list){
+                ratingFileContent += "\t".repeat(e.getDepth()-1) + e.getName() + " " + format.format(e.getRating()) + "/" + format.format(e.getMaxPoints()) + "\n";
+                if(e instanceof ExerciseRating){
+                    if(((ExerciseRating) e).getComment() != null && !((ExerciseRating) e).getComment().isEmpty()){
+                        ratingFileContent += "\t".repeat(e.getDepth()) + ((ExerciseRating) e).getComment() + "\n";
                     }
-                    //TODO
-                    //ratingFileContent += e.getName() + " " + format.format(e.getRating()) + "/" + format.format(e.getMaxPoints()) + "\n";
-                    //if(e.getComment() != null && !e.getComment().isEmpty()){
-                    //    ratingFileContent += "\t" + formatComment(e.getComment(), "\n\t") + "\n";
-                    //}
-
-                    //for(Exercise sub : c.getExercise().getSubExercises()){
-                    //    ratingFileContent += "\t" + sub.getName() + " " + format.format(sub.getRating()) + "/" + format.format(sub.getMaxPoints()) + "\n";
-                    //    if(sub.getComment() != null && !sub.getComment().isEmpty()) {
-                   //         ratingFileContent += "\t\t" + formatComment(sub.getComment(), "\n\t\t") + "\n";
-                    //    }
-                    //}
-                    ratingFileContent += "\n";
                 }
+            }
+        }
+        /*
+        for(Exercise e : c.getExercise().getSubExercises()){
+            if(e instanceof ExerciseRating){
+                ExerciseRating er = (ExerciseRating) e;
+            }
+            //TODO
+            //ratingFileContent += e.getName() + " " + format.format(e.getRating()) + "/" + format.format(e.getMaxPoints()) + "\n";
+            //if(e.getComment() != null && !e.getComment().isEmpty()){
+            //    ratingFileContent += "\t" + formatComment(e.getComment(), "\n\t") + "\n";
+            //}
 
-                ratingFileContent += "============ Ende der Kommentare ============\n";
-                return ratingFileContent;
+            //for(Exercise sub : c.getExercise().getSubExercises()){
+            //    ratingFileContent += "\t" + sub.getName() + " " + format.format(sub.getRating()) + "/" + format.format(sub.getMaxPoints()) + "\n";
+            //    if(sub.getComment() != null && !sub.getComment().isEmpty()) {
+           //         ratingFileContent += "\t\t" + formatComment(sub.getComment(), "\n\t\t") + "\n";
+            //    }
+            //}
+            ratingFileContent += "\n";
+        }
+*/
+        ratingFileContent += "============ Ende der Kommentare ============\n";
+        return ratingFileContent;
     }
 
-    public static double extractDoubleFromString(String s) throws IOException {
-        Pattern pattern = Pattern.compile("\\D*(\\d*[\\.|,]*\\d*)\\D*");
+    public static double extractDoubleFromString(String s) {
+        Pattern pattern = Pattern.compile("(\\d+[.|,]?\\d*)");
         Matcher matcher = pattern.matcher(s);
-        if (matcher.find())
-        {
+        if (matcher.find()) {
             return Double.parseDouble(matcher.group(1).replace(",","."));
+        }else{
+            return 0;
         }
-
-        throw new IOException();
     }
 
     public static String formatComment(String s, String replacement){
@@ -149,14 +139,6 @@ public class RatingFileParser {
         s = s.trim();
 
         return s;
-    }
-
-    public static void saveRatingFile(Correction c) throws IOException {
-        System.out.println("Saving file: " + c.getPath());
-        BufferedWriter writer = new BufferedWriter(new FileWriter(c.getPath()));
-        writer.write(buildRatingFile(c));
-        writer.close();
-        c.setChanged(false);
     }
 
     private static String[] splitWithDelimiters(String str, String regex) {
@@ -186,6 +168,53 @@ public class RatingFileParser {
         return parts.toArray(new String[]{});
     }
 
+    public static void initializeComments(Correction c, String init) throws IOException, ParseException {
+        File file = new File(c.getPath());
+        StringBuilder initializedFileContents = new StringBuilder();
+        Pattern p = Pattern.compile(
+                "(= Bitte nur Bewertung und Kommentare ändern =\\n" +
+                        "=============================================\\n" +
+                        "========== UniWorx Bewertungsdatei ==========\\n" +
+                        "======= diese Datei ist UTF8 encodiert ======\\n" +
+                        "Informationen zum Übungsblatt:\\n" +
+                        "Veranstaltung: .+\\n" +
+                        "Blatt: .+\\n" +
+                        "Korrektor: .+\\n" +
+                        "E-Mail: .+\\n" +
+                        "Abgabe-Id: .+\\n" +
+                        "Maximalpunktzahl: \\d+[.|,]?\\d*.*\\n" +
+                        "=============================================\\n" +
+                        "Bewertung: \\d*[.|,]?\\d*.*\\n" +
+                        "=============================================\\n" +
+                        "Kommentare:\\n)" +
+                        ".*\\n*" +
+                        "(============ Ende der Kommentare ============)",
+                Pattern.DOTALL | Pattern.MULTILINE);
+
+        String fileContents = fileContentsToString(file, StandardCharsets.UTF_8);
+        Matcher matcher = p.matcher(fileContents);
+
+        if(matcher.find()){
+            System.out.println(matcher.groupCount());
+            initializedFileContents.append(matcher.group(1)).append(init).append("\n").append(matcher.group(2));
+            saveContents(file.getPath(), initializedFileContents.toString(), StandardCharsets.UTF_8);
+        }else{
+            throw new ParseException(fileContents);
+        }
+    }
+
+    public static void saveRatingFile(Correction c) throws IOException {
+        saveContents(c.getPath(), buildRatingFile(c), StandardCharsets.UTF_8);
+        c.setChanged(false);
+    }
+
+    public static void saveContents(String path, String content, Charset charset) throws IOException {
+        System.out.println("Saving file: " + path);
+        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), charset));
+        writer.write(content);
+        writer.close();
+    }
+
     public static void parseExercises(String exercises, Exercise parent) throws ParseException, FileNotInitializedException {
         Pattern patternTest = Pattern.compile("(?m)^\\S.*", Pattern.MULTILINE);
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
@@ -198,7 +227,7 @@ public class RatingFileParser {
 
         for(String s : exerciseSplit){
             int count = countPatternInString(s, patternExercise);
-            //System.out.println("Pattern Count: " + count);
+
             if(count > 1) {
                 Exercise e = parseExercise(s);
                 Scanner scanner = new Scanner(s);
@@ -212,7 +241,6 @@ public class RatingFileParser {
                     }
                 }
 
-                //System.out.println(newS);
 
                 if(parent != null){
                     parent.addSubExercise(e);
@@ -278,6 +306,18 @@ public class RatingFileParser {
         }
 
         throw new ParseException(plain);
+    }
+
+    public static String fileContentsToString(File f, Charset charset) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), charset));
+        StringBuilder res = new StringBuilder();
+        String str;
+        while ((str = in.readLine()) != null) {
+            res.append(str).append("\n");
+        }
+        in.close();
+
+        return res.toString();
     }
 
 }
