@@ -57,6 +57,10 @@
                 <version>0.0.1</version>
                 <configuration>
                     <mainClass>com.koellemichael.App</mainClass>
+                    <options>
+                        <option>--add-exports</option>
+                        <option>javafx.base/com.sun.javafx.event=ALL-UNNAMED</option>
+                    </options>
                 </configuration>
             </plugin>
         </plugins>
