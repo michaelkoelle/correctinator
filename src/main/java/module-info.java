@@ -7,6 +7,7 @@ module com.koellemichael {
     requires javafx.graphics;
     requires java.desktop;
     requires java.sql;
+    requires java.prefs;
     exports com.koellemichael;
     exports com.koellemichael.controller;
     exports com.koellemichael.model;
