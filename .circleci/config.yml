@@ -43,7 +43,7 @@ jobs:
       - run: mvn package
       - store_artifacts:
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: temp/correctinator-0.0.1-SNAPSHOT.jar
+          path: target/correctinator-1.0-SNAPSHOT.jar
 
       #- github-release/create:
       #    tag: vX.Y.Z
