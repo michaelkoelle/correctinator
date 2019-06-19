@@ -13,18 +13,18 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.input.KeyCodeCombination?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<SplitPane fx:id="split_main" prefHeight="478.0" prefWidth="659.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
+<SplitPane fx:id="split_main" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
    <items>
-      <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="558.0" prefWidth="348.0">
+      <BorderPane>
          <top>
             <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
                <children>
@@ -79,11 +79,11 @@
             </VBox>
          </bottom>
          <center>
-            <SplitPane dividerPositions="0.3826879271070615" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+            <SplitPane dividerPositions="0.25" orientation="VERTICAL">
               <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                  <StackPane>
                      <children>
-                        <TableView fx:id="tv_corrections" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <TableView fx:id="tv_corrections" StackPane.alignment="CENTER">
                           <columns>
                             <TableColumn fx:id="tc_id" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Abgaben-ID" />
                               <TableColumn fx:id="tc_rating" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Bewertung" />
@@ -98,12 +98,12 @@
                           </columns>
                         </TableView>
                      </children>
-                  </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                  </StackPane>
+                  <StackPane>
                      <children>
-                        <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <VBox StackPane.alignment="CENTER">
                            <children>
-                              <GridPane prefHeight="25.0" prefWidth="188.0">
+                              <GridPane maxHeight="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="188.0">
                                  <columnConstraints>
                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
@@ -161,7 +161,7 @@
                                     <Insets bottom="5.0" top="10.0" />
                                  </VBox.margin>
                               </GridPane>
-                              <HBox alignment="TOP_CENTER" fillHeight="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                              <HBox alignment="TOP_CENTER" fillHeight="false">
                                  <children>
                                     <Button fx:id="btn_back" mnemonicParsing="false" onAction="#onBack" text="Zurück">
                                        <HBox.margin>
@@ -179,19 +179,19 @@
                                     <Insets bottom="5.0" top="5.0" />
                                  </VBox.margin>
                               </HBox>
-                              <ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="243.0" prefWidth="657.0" VBox.vgrow="ALWAYS">
+                              <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
                                 <content>
-                                    <AnchorPane>
-                                       <children>
-                                          <VBox fx:id="vbox_edit" layoutY="2.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="5.0" />
-                                       </children>
-                                    </AnchorPane>
+                                    <VBox fx:id="vbox_edit">
+                                       <padding>
+                                          <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                       </padding>
+                                    </VBox>
                                 </content>
                               </ScrollPane>
                            </children>
                         </VBox>
                      </children>
-                  </AnchorPane>
+                  </StackPane>
               </items>
             </SplitPane>
          </center>
