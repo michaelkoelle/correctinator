@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class RatingFileParser {
 
-    public static Correction parseFile(String path) throws ParseException, IOException, FileNotInitializedException {
+    public static Correction parseFile(String path) throws ParseRatingFileException, IOException, FileNotInitializedException {
 
         Pattern p = Pattern.compile(
                 "= Bitte nur Bewertung und Kommentare ändern =\\n" +
@@ -65,7 +65,7 @@ public class RatingFileParser {
             parseExercises(commentSection, e);
             c.setExercise(e);
         }else{
-            throw new ParseException(fileContents);
+            throw new ParseRatingFileException(fileContents);
         }
 
         return c;
@@ -173,7 +173,7 @@ public class RatingFileParser {
         return parts.toArray(new String[]{});
     }
 
-    public static void initializeComments(Correction c, String init) throws ParseException, IOException {
+    public static void initializeComments(Correction c, String init) throws ParseRatingFileException, IOException {
         File file = new File(c.getPath());
         StringBuilder initializedFileContents = new StringBuilder();
         Pattern p = Pattern.compile(
@@ -203,7 +203,7 @@ public class RatingFileParser {
             initializedFileContents.append(matcher.group(1)).append(init).append("\n").append(matcher.group(2));
             saveContents(file.getPath(), initializedFileContents.toString(), StandardCharsets.UTF_8);
         }else{
-            throw new ParseException(fileContents);
+            throw new ParseRatingFileException(fileContents);
         }
     }
 
@@ -219,7 +219,7 @@ public class RatingFileParser {
         writer.close();
     }
 
-    public static void parseExercises(String exercises, Exercise parent) throws ParseException, FileNotInitializedException {
+    public static void parseExercises(String exercises, Exercise parent) throws ParseRatingFileCommentSectionException, FileNotInitializedException {
         Pattern patternTest = Pattern.compile("(?m)^[^\\r\\t\\f\\v].*", Pattern.MULTILINE);
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
 
@@ -263,7 +263,7 @@ public class RatingFileParser {
         return input.split(pattern.toString(),-1).length - 1;
     }
 
-    public static ExerciseRating parseExerciseRating(String plain) throws ParseException {
+    public static ExerciseRating parseExerciseRating(String plain) throws ParseRatingFileCommentSectionException {
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
         Scanner lineScanner = new Scanner(plain);
         String line;
@@ -290,10 +290,10 @@ public class RatingFileParser {
             }
         }
 
-        throw new ParseException(plain);
+        throw new ParseRatingFileCommentSectionException(plain);
     }
 
-    public static Exercise parseExercise(String plain) throws ParseException {
+    public static Exercise parseExercise(String plain) throws ParseRatingFileCommentSectionException {
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
         Scanner lineScanner = new Scanner(plain);
         String line;
@@ -307,7 +307,7 @@ public class RatingFileParser {
             }
         }
 
-        throw new ParseException(plain);
+        throw new ParseRatingFileCommentSectionException(plain);
     }
 
     public static String fileContentsToString(File f, Charset charset) throws IOException {

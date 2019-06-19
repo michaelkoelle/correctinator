@@ -271,7 +271,7 @@ public class Controller{
                         Correction c;
                         try {
                             c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
-                        } catch (IOException | ParseRatingFileException | ParseRatingFileCommentSectionException e) {
+                        } catch (IOException | ParseRatingFileException e) {
                             c = new Correction();
                             c.setState(Correction.CorrectionState.PARSE_ERROR);
                             c.setPath(ratingFile.getAbsolutePath());
