@@ -137,12 +137,7 @@ public class Controller{
 
         try {
             reloadRatingFiles();
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Zusammenfassung");
-            alert.setHeaderText(null);
-            alert.setContentText(corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).size() + " Datei(en) konnten nicht vollständig geparsed werden!\n"+ corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).size() + " Datei(en) wurden noch nicht initialisiert!");
-            alert.showAndWait();
+            showImportSummary();
 
             if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
                 notAllFilesInitializedDialog();
@@ -154,8 +149,27 @@ public class Controller{
 
         } catch (NoFilesInDirectoryException e) {
             errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
-        } catch (FileNotFoundException ignored) {
+        } catch (FileNotFoundException ignored) {}
+    }
+
+    private void showImportSummary(){
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Zusammenfassung");
+        alert.setHeaderText(null);
+        StringBuilder content = new StringBuilder();
+
+        content.append("Es wurden ").append(corrections.size()).append(" Abgaben gefunden!");
+
+        if(!corrections.filtered(c -> c.getState() == Correction.CorrectionState.PARSE_ERROR).isEmpty()){
+            content.append("\n").append(corrections.filtered(c -> c.getState() == Correction.CorrectionState.PARSE_ERROR).size()).append(" Datei(en) konnten nicht vollständig geparsed werden!");
         }
+
+        if(!corrections.filtered(c -> c.getState() == Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
+            content.append("\n").append(corrections.filtered(c -> c.getState() == Correction.CorrectionState.NOT_INITIALIZED).size()).append(" Datei(en) wurden noch nicht initialisiert!");
+        }
+
+        alert.setContentText(content.toString());
+        alert.showAndWait();
     }
 
     private void initializeCommentSection(List<Correction> notInitialized, String initText){
