@@ -8,19 +8,21 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -34,15 +36,17 @@ import static com.koellemichael.utils.PreferenceKeys.INIT_PREF;
 
 public class Controller{
 
-    public Label lbl_directory;
-    public Label lbl_info;
-
     public TableView tv_corrections;
     public TableColumn<Correction, String> tc_id;
     public TableColumn<Correction, String> tc_path;
     public TableColumn<Correction, Boolean> tc_changed;
     public TableColumn<Correction, Correction.CorrectionState> tc_state;
     public TableColumn<Correction, Number> tc_rating;
+    public TableColumn<Correction, Number> tc_max_points;
+    public TableColumn<Correction, String> tc_exercise_sheet;
+    public TableColumn<Correction, String> tc_lecture;
+    public TableColumn<Correction, String> tc_corrector;
+    public TableColumn<Correction, String> tc_corrector_email;
 
     public ProgressBar pb_correction;
     public Label lbl_current_id;
@@ -52,17 +56,30 @@ public class Controller{
     public StackPane p_media;
     public Label lbl_current_file_max;
     public Label lbl_current_file;
+    public MenuItem mi_open_corrections;
+    public MenuItem mi_save_current_correction;
+    public MenuItem mi_export_zip;
+    public CheckMenuItem mi_autosave;
+    public MenuItem mi_initialize;
+    public Button btn_back;
+    public Button btn_mark_for_later;
+    public Button btn_done;
+    public SplitPane split_main;
+    public AnchorPane bp_mid_main;
+
 
     private Stage primaryStage = null;
-    private boolean autosave = true;
     private ObservableList<Correction> corrections;
     private ArrayList<File> allFiles;
     private int allFilesPos;
     private File correctionsDirectory;
+    private Preferences preferences;
 
     public void initialize(Stage primaryStage){
         this.primaryStage = primaryStage;
         this.allFilesPos = 0;
+        this.preferences = Preferences.userRoot();
+
         corrections = FXCollections.observableArrayList(e -> new Observable[]{
                 e.stateProperty(),
                 e.changedProperty(),
@@ -76,22 +93,49 @@ public class Controller{
                 e.exerciseProperty()
         });
 
-        tc_id.setCellValueFactory(new PropertyValueFactory<>("id"));
-        tc_path.setCellValueFactory(new PropertyValueFactory<>("path"));
+        tc_id.setCellValueFactory(cell -> cell.getValue().idProperty());
+        tc_path.setCellValueFactory(cell -> cell.getValue().pathProperty());
         tc_rating.setCellValueFactory(cell -> cell.getValue().ratingProperty());
-        tc_changed.setCellValueFactory(new PropertyValueFactory<>("changed"));
-        tc_state.setCellValueFactory(new PropertyValueFactory<>("state"));
+        tc_changed.setCellValueFactory(cell -> cell.getValue().changedProperty());
+        tc_state.setCellValueFactory(cell -> cell.getValue().stateProperty());
 
-        tc_id.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
-        tc_path.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6).multiply(2).subtract(20));
-        tc_rating.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
-        tc_changed.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
-        tc_state.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
+        tc_max_points.setCellValueFactory(cell -> cell.getValue().maxPointsProperty());
+        tc_exercise_sheet.setCellValueFactory(cell -> cell.getValue().exerciseSheetProperty());
+        tc_lecture.setCellValueFactory(cell -> cell.getValue().lectureProperty());
+        tc_corrector.setCellValueFactory(cell -> cell.getValue().correctorProperty());
+        tc_corrector_email.setCellValueFactory(cell -> cell.getValue().correctorEmailProperty());
+
+        //tc_id.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
+        //tc_path.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6).multiply(2).subtract(20));
+        //tc_rating.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
+        //tc_changed.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
+        //tc_state.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
 
         tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
         tv_corrections.getSelectionModel().clearSelection();
 
         pb_correction.progressProperty().addListener(this::onProgressBarChanged);
+        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false));
+
+        menuDisable();
+
+        corrections.addListener((ListChangeListener) c -> {
+            while(c.next()){
+                menuDisable();
+            }
+        });
+    }
+
+    public void menuDisable(){
+        if(!corrections.isEmpty()){
+            mi_initialize.setDisable(false);
+            mi_save_current_correction.setDisable(false);
+            mi_export_zip.setDisable(false);
+        }else{
+            mi_initialize.setDisable(true);
+            mi_save_current_correction.setDisable(true);
+            mi_export_zip.setDisable(true);
+        }
     }
 
     public void onProgressBarChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -201,7 +245,6 @@ public class Controller{
         initDialog.getButtonTypes().add(ButtonType.CANCEL);
         initDialog.getButtonTypes().add(ButtonType.FINISH);
         TextArea textArea = new TextArea();
-        Preferences preferences = Preferences.userRoot();
         textArea.setText(preferences.get(INIT_PREF, ""));
         initDialog.getDialogPane().setContent(textArea);
         Optional<ButtonType> b = initDialog.showAndWait();
@@ -272,10 +315,6 @@ public class Controller{
             File[] correctionDirectories = correctionsDirectory.listFiles((dir, name) -> name.matches("[0-9]+"));
 
             if (correctionDirectories != null && correctionDirectories.length>0) {
-                //TODO entfernen
-                lbl_directory.setText(correctionsDirectory.getAbsolutePath());
-                lbl_info.setText("Es wurden " + correctionDirectories.length + " Abgaben gefunden!");
-
                 tv_corrections.getItems().clear();
                 corrections.clear();
 
@@ -341,7 +380,7 @@ public class Controller{
         if(oldSelection instanceof Correction){
             Correction c = (Correction) oldSelection;
             if(c.isChanged()){
-                if(autosave){
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
                     try {
                         RatingFileParser.saveRatingFile(c);
                     } catch (IOException e) {
@@ -407,14 +446,10 @@ public class Controller{
             File fileDir = new File(c.getPath()).getParentFile();
             allFiles = new ArrayList<>();
             listFiles(fileDir.getAbsolutePath(), allFiles, (dir, name) -> (name.toLowerCase()).endsWith(".rtf") || (name.toLowerCase()).endsWith(".asm") || (name.toLowerCase()).endsWith(".s") || (name.toLowerCase()).endsWith(".txt") || (name.toLowerCase()).endsWith(".pdf") || (name.toLowerCase()).endsWith(".jpg") || (name.toLowerCase()).endsWith(".jpeg") || (name.toLowerCase()).endsWith(".png"));
-            //listFiles(fileDir.getAbsolutePath(), allFiles, (dir, name) -> true);
-
-            //for (File allFile : allFiles) {
-            //    System.out.println(allFile.getAbsolutePath());
-            //}
 
             lbl_current_file_max.setText(String.valueOf(allFiles.size()));
             allFilesPos = 0;
+
             //Show first file
             if(allFiles.size()>0){
                 openMediaFile(allFiles.get(allFilesPos));
@@ -534,6 +569,11 @@ public class Controller{
 
     public void onDone(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
+            try {
+                RatingFileParser.saveRatingFile(c);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if (c.getState() == Correction.CorrectionState.TODO) {
                 c.setState(Correction.CorrectionState.FINISHED);
             }
@@ -668,5 +708,9 @@ public class Controller{
 
     public void onInitializeCommentSection(ActionEvent actionEvent) {
         initializeCommentSectionDialog();
+    }
+
+    public void onToggleAutosave(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.AUTOSAVE_PREF, mi_autosave.isSelected());
     }
 }

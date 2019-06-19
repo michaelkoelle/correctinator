@@ -18,6 +18,7 @@ public class Exercise {
     private Exercise parent;
     private ReadOnlyDoubleWrapper rating;
     private ReadOnlyDoubleWrapper maxPoints;
+    private Correction correction;
 
     public Exercise() {
         this.name = new SimpleStringProperty("");
@@ -25,6 +26,7 @@ public class Exercise {
         this.subExercises = new SimpleListProperty<>(FXCollections.observableArrayList(extractor()));
         this.rating = new ReadOnlyDoubleWrapper();
         this.maxPoints = new ReadOnlyDoubleWrapper();
+        this.correction = null;
         this.subExercises.addListener((observable, oldValue, newValue) -> {
             if(getSubExercises() != null){
                 initRatingBinding();
@@ -41,6 +43,7 @@ public class Exercise {
         this.subExercises = new SimpleListProperty<>(FXCollections.observableArrayList(extractor()));
         this.rating = new ReadOnlyDoubleWrapper();
         this.maxPoints = new ReadOnlyDoubleWrapper();
+        this.correction = parent.correction;
         this.subExercises.addListener((observable, oldValue, newValue) -> {
             if(getSubExercises() != null){
                 initRatingBinding();
@@ -153,5 +156,17 @@ public class Exercise {
     }
     public void setName(String name) {
         this.name.set(name);
+    }
+
+    public void setCorrection(Correction correction) {
+        this.correction = correction;
+    }
+
+    public Correction getCorrection() {
+        return correction;
+    }
+
+    public void changed(){
+        this.correction.setChanged(true);
     }
 }

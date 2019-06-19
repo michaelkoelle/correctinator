@@ -2,14 +2,17 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -19,127 +22,152 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="558.0" prefWidth="944.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
-   <top>
-      <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
-         <children>
-            <MenuBar>
-              <menus>
-                <Menu mnemonicParsing="false" text="Abgaben">
-                  <items>
-                    <MenuItem mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen" />
-                        <MenuItem mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern" />
-                        <MenuItem mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren" />
-                        <MenuItem mnemonicParsing="false" onAction="#onInitializeCommentSection" text="Kommentarfeld initialisieren" />
-                  </items>
-                </Menu>
-              </menus>
-            </MenuBar>
-            <GridPane alignment="TOP_CENTER" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="55.0" prefWidth="653.0" VBox.vgrow="NEVER">
-              <columnConstraints>
-                <ColumnConstraints maxWidth="539.0" minWidth="10.0" prefWidth="482.0" />
-                <ColumnConstraints maxWidth="321.0" minWidth="10.0" prefWidth="171.0" />
-              </columnConstraints>
-              <rowConstraints>
-                <RowConstraints />
-                <RowConstraints />
-              </rowConstraints>
+<SplitPane fx:id="split_main" dividerPositions="0.5" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
+   <items>
+      <BorderPane prefHeight="558.0" prefWidth="944.0">
+         <top>
+            <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
                <children>
-                  <Label fx:id="lbl_info" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="427.0" prefWidth="653.0" text="Noch keine Abgaben verfügbar..." GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                  <Button alignment="CENTER" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onOpenDirectory" prefHeight="29.0" prefWidth="102.0" text="Abgaben öffnen" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-                  <Label fx:id="lbl_directory" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="34.0" prefWidth="482.0" text="..." textAlignment="CENTER">
-                     <padding>
-                        <Insets right="10.0" />
-                     </padding>
-                  </Label>
-               </children>
-            </GridPane>
-         </children>
-      </VBox>
-   </top>
-   <bottom>
-      <VBox alignment="BOTTOM_CENTER" BorderPane.alignment="CENTER">
-         <children>
-            <ProgressBar fx:id="pb_correction" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="10.0" prefWidth="653.0" progress="0.0" />
-         </children>
-      </VBox>
-   </bottom>
-   <center>
-      <HBox BorderPane.alignment="CENTER">
-         <children>
-            <VBox maxHeight="1.7976931348623157E308">
-               <children>
-                  <TableView fx:id="tv_corrections" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="169.0" prefWidth="500.0" VBox.vgrow="ALWAYS">
-                    <columns>
-                      <TableColumn fx:id="tc_id" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Abgaben-ID" />
-                        <TableColumn fx:id="tc_rating" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Bewertung" />
-                        <TableColumn fx:id="tc_state" editable="false" maxWidth="1.7976931348623157E308" minWidth="60.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Status" />
-                        <TableColumn fx:id="tc_changed" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Änderung" />
-                      <TableColumn fx:id="tc_path" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Pfad" />
-                    </columns>
-                  </TableView>
-                  <HBox alignment="TOP_CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="35.0" prefWidth="653.0">
-                     <children>
-                        <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Abgabe-ID:" textAlignment="CENTER">
-                           <font>
-                              <Font size="16.0" />
-                           </font>
-                           <HBox.margin>
-                              <Insets right="20.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Label fx:id="lbl_current_id" alignment="CENTER" contentDisplay="CENTER" layoutX="461.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="0" textAlignment="CENTER">
-                           <font>
-                              <Font size="16.0" />
-                           </font>
-                           <HBox.margin>
-                              <Insets right="100.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Bewertung:" textAlignment="CENTER">
-                           <font>
-                              <Font size="16.0" />
-                           </font>
-                           <HBox.margin>
-                              <Insets right="20.0" />
-                           </HBox.margin>
-                        </Label>
-                        <Label fx:id="lbl_current_rating" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="0" textAlignment="CENTER">
-                           <font>
-                              <Font size="16.0" />
-                           </font>
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
-                        </Label>
-                        <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="/" textAlignment="CENTER">
-                           <font>
-                              <Font size="16.0" />
-                           </font>
-                        </Label>
-                        <Label fx:id="lbl_current_max_points" alignment="CENTER" contentDisplay="CENTER" layoutX="453.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="0" textAlignment="CENTER">
-                           <font>
-                              <Font size="16.0" />
-                           </font>
-                        </Label>
-                     </children>
-                  </HBox>
-                  <HBox alignment="TOP_CENTER" fillHeight="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="100.0" prefWidth="200.0">
-                     <children>
-                        <Button mnemonicParsing="false" onAction="#onBack" text="Zurück" />
-                        <Button mnemonicParsing="false" onAction="#onMarkForLater" text="Markieren" />
-                        <Button mnemonicParsing="false" onAction="#onOpenCurrentDirectory" text="Ordner öffnen" />
-                        <Button mnemonicParsing="false" onAction="#onDone" text="Fertig" />
-                     </children>
-                  </HBox>
-                  <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308">
-                    <content>
-                        <VBox fx:id="vbox_edit" />
-                    </content>
-                  </ScrollPane>
+                  <MenuBar>
+                    <menus>
+                      <Menu mnemonicParsing="false" text="Abgaben">
+                        <items>
+                          <MenuItem fx:id="mi_open_corrections" mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen" />
+                              <MenuItem fx:id="mi_save_current_correction" mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern" />
+                              <MenuItem fx:id="mi_export_zip" mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren" />
+                              <MenuItem fx:id="mi_initialize" mnemonicParsing="false" onAction="#onInitializeCommentSection" text="Kommentarfeld initialisieren" />
+                        </items>
+                      </Menu>
+                        <Menu mnemonicParsing="false" text="Einstellungen">
+                          <items>
+                              <CheckMenuItem fx:id="mi_autosave" mnemonicParsing="false" onAction="#onToggleAutosave" text="Autosave" />
+                          </items>
+                        </Menu>
+                    </menus>
+                  </MenuBar>
                </children>
             </VBox>
-            <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="468.0" prefWidth="345.0" HBox.hgrow="ALWAYS">
+         </top>
+         <bottom>
+            <VBox alignment="BOTTOM_CENTER" BorderPane.alignment="CENTER">
+               <children>
+                  <ProgressBar fx:id="pb_correction" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="10.0" prefWidth="653.0" progress="0.0" />
+               </children>
+            </VBox>
+         </bottom>
+         <center>
+          <AnchorPane fx:id="bp_mid_main" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <VBox maxHeight="1.7976931348623157E308" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <TableView fx:id="tv_corrections" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="169.0" prefWidth="500.0" VBox.vgrow="ALWAYS">
+                          <columns>
+                            <TableColumn fx:id="tc_id" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Abgaben-ID" />
+                              <TableColumn fx:id="tc_rating" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Bewertung" />
+                              <TableColumn fx:id="tc_max_points" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Max. Punkte" />
+                              <TableColumn fx:id="tc_exercise_sheet" editable="false" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Blatt" />
+                              <TableColumn fx:id="tc_lecture" editable="false" maxWidth="1.7976931348623157E308" minWidth="50.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Kurs" />
+                              <TableColumn fx:id="tc_state" editable="false" maxWidth="1.7976931348623157E308" minWidth="60.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Status" />
+                              <TableColumn fx:id="tc_changed" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Änderung" />
+                              <TableColumn fx:id="tc_corrector" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Korrektor" />
+                              <TableColumn fx:id="tc_corrector_email" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="E-Mail" />
+                            <TableColumn fx:id="tc_path" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Pfad" />
+                          </columns>
+                        </TableView>
+                        <GridPane prefHeight="25.0" prefWidth="188.0">
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                           <children>
+                              <HBox alignment="CENTER">
+                                 <children>
+                                    <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Abgabe-ID:" textAlignment="CENTER">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                       <HBox.margin>
+                                          <Insets right="5.0" />
+                                       </HBox.margin>
+                                    </Label>
+                                    <Label fx:id="lbl_current_id" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="0" textAlignment="CENTER">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" GridPane.columnIndex="1">
+                                 <children>
+                                    <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Bewertung:" textAlignment="CENTER">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                       <padding>
+                                          <Insets right="5.0" />
+                                       </padding>
+                                    </Label>
+                                    <Label fx:id="lbl_current_rating" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="0" textAlignment="CENTER">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                    </Label>
+                                    <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="/" textAlignment="CENTER">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                    </Label>
+                                    <Label fx:id="lbl_current_max_points" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="0" textAlignment="CENTER">
+                                       <font>
+                                          <Font size="16.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                              </HBox>
+                           </children>
+                           <VBox.margin>
+                              <Insets bottom="5.0" top="10.0" />
+                           </VBox.margin>
+                        </GridPane>
+                        <HBox alignment="TOP_CENTER" fillHeight="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                           <children>
+                              <Button fx:id="btn_back" mnemonicParsing="false" onAction="#onBack" text="Zurück">
+                                 <HBox.margin>
+                                    <Insets />
+                                 </HBox.margin>
+                              </Button>
+                              <Button fx:id="btn_mark_for_later" mnemonicParsing="false" onAction="#onMarkForLater" text="Markieren">
+                                 <HBox.margin>
+                                    <Insets left="5.0" right="5.0" />
+                                 </HBox.margin>
+                              </Button>
+                              <Button fx:id="btn_done" mnemonicParsing="false" onAction="#onDone" text="Speichern/Nächste Abgabe" />
+                           </children>
+                           <VBox.margin>
+                              <Insets bottom="5.0" top="5.0" />
+                           </VBox.margin>
+                        </HBox>
+                        <ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+                          <content>
+                              <AnchorPane>
+                                 <children>
+                                    <VBox fx:id="vbox_edit" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </ScrollPane>
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+         </center>
+      </BorderPane>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+         <children>
+            <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="468.0" prefWidth="345.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
                   <HBox alignment="TOP_CENTER" prefWidth="200.0">
                      <children>
@@ -168,12 +196,17 @@
                               <Insets left="10.0" />
                            </HBox.margin>
                         </Button>
+                        <Button mnemonicParsing="false" onAction="#onOpenCurrentDirectory" text="Ordner öffnen">
+                           <HBox.margin>
+                              <Insets left="50.0" />
+                           </HBox.margin>
+                        </Button>
                      </children>
                   </HBox>
                   <StackPane fx:id="p_media" VBox.vgrow="ALWAYS" />
                </children>
             </VBox>
          </children>
-      </HBox>
-   </center>
-</BorderPane>
+      </AnchorPane>
+   </items>
+</SplitPane>

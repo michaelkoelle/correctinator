@@ -62,6 +62,7 @@ public class RatingFileParser {
             }
 
             Exercise e = new Exercise();
+            e.setCorrection(c);
             parseExercises(commentSection, e);
             c.setExercise(e);
         }else{
@@ -232,7 +233,7 @@ public class RatingFileParser {
         for(String s : exerciseSplit){
             int count = countPatternInString(s, patternExercise);
             if(count > 1) {
-                Exercise e = parseExercise(s);
+                Exercise e = parseExercise(s, parent.getCorrection());
                 Scanner scanner = new Scanner(s);
 
                 StringBuilder newS = new StringBuilder();
@@ -250,7 +251,7 @@ public class RatingFileParser {
                 e.setParent(parent);
                 parseExercises(newS.toString(),e);
             }else{
-                Exercise e = parseExerciseRating(s);
+                Exercise e = parseExerciseRating(s, parent.getCorrection());
                 if(parent != null){
                     parent.addSubExercise(e);
                 }
@@ -263,7 +264,7 @@ public class RatingFileParser {
         return input.split(pattern.toString(),-1).length - 1;
     }
 
-    public static ExerciseRating parseExerciseRating(String plain) throws ParseRatingFileCommentSectionException {
+    public static ExerciseRating parseExerciseRating(String plain, Correction c) throws ParseRatingFileCommentSectionException {
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
         Scanner lineScanner = new Scanner(plain);
         String line;
@@ -272,6 +273,7 @@ public class RatingFileParser {
             Matcher matcher = patternExercise.matcher(line);
             if(matcher.find()){
                 ExerciseRating  e = new ExerciseRating();
+                e.setCorrection(c);
                 e.setName(matcher.group(2));
                 e.setRating(Double.parseDouble(matcher.group(3).replace(",",".")));
                 e.setMaxPoints(Double.parseDouble(matcher.group(4).replace(",",".")));
@@ -293,7 +295,7 @@ public class RatingFileParser {
         throw new ParseRatingFileCommentSectionException(plain);
     }
 
-    public static Exercise parseExercise(String plain) throws ParseRatingFileCommentSectionException {
+    public static Exercise parseExercise(String plain, Correction c) throws ParseRatingFileCommentSectionException {
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
         Scanner lineScanner = new Scanner(plain);
         String line;
@@ -302,6 +304,7 @@ public class RatingFileParser {
             Matcher matcher = patternExercise.matcher(line);
             if(matcher.find()){
                 Exercise  e = new Exercise();
+                e.setCorrection(c);
                 e.setName(matcher.group(2));
                 return e;
             }
