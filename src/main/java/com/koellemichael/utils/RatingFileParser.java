@@ -56,6 +56,10 @@ public class RatingFileParser {
 
             String commentSection = matcher.group(8);
 
+            //TODO workaround-> richtige lösung finden
+            if(commentSection.equals("\n")){
+                throw new FileNotInitializedException();
+            }
             Exercise e = new Exercise();
             parseExercises(commentSection, e);
             c.setExercise(e);
@@ -216,18 +220,19 @@ public class RatingFileParser {
     }
 
     public static void parseExercises(String exercises, Exercise parent) throws ParseException, FileNotInitializedException {
-        Pattern patternTest = Pattern.compile("(?m)^\\S.*", Pattern.MULTILINE);
+        Pattern patternTest = Pattern.compile("^[^\\r\\t\\f\\v].*", Pattern.MULTILINE);
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
 
         String[] exerciseSplit = splitWithDelimiters(exercises, patternTest.pattern());
 
         if(exerciseSplit.length == 0){
             throw new FileNotInitializedException();
+        }else{
+            System.out.println(exerciseSplit[0]);
         }
 
         for(String s : exerciseSplit){
             int count = countPatternInString(s, patternExercise);
-
             if(count > 1) {
                 Exercise e = parseExercise(s);
                 Scanner scanner = new Scanner(s);
