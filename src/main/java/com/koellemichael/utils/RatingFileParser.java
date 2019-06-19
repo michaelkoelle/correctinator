@@ -57,9 +57,10 @@ public class RatingFileParser {
             String commentSection = matcher.group(8);
 
             //TODO workaround-> richtige lösung finden
-            if(commentSection.equals("\n")){
+            if(commentSection.equals("\n") || commentSection.trim().length() == 0){
                 throw new FileNotInitializedException();
             }
+
             Exercise e = new Exercise();
             parseExercises(commentSection, e);
             c.setExercise(e);
@@ -172,7 +173,7 @@ public class RatingFileParser {
         return parts.toArray(new String[]{});
     }
 
-    public static void initializeComments(Correction c, String init) throws IOException, ParseException {
+    public static void initializeComments(Correction c, String init) throws ParseException, IOException {
         File file = new File(c.getPath());
         StringBuilder initializedFileContents = new StringBuilder();
         Pattern p = Pattern.compile(
@@ -199,7 +200,6 @@ public class RatingFileParser {
         Matcher matcher = p.matcher(fileContents);
 
         if(matcher.find()){
-            System.out.println(matcher.groupCount());
             initializedFileContents.append(matcher.group(1)).append(init).append("\n").append(matcher.group(2));
             saveContents(file.getPath(), initializedFileContents.toString(), StandardCharsets.UTF_8);
         }else{
@@ -220,15 +220,13 @@ public class RatingFileParser {
     }
 
     public static void parseExercises(String exercises, Exercise parent) throws ParseException, FileNotInitializedException {
-        Pattern patternTest = Pattern.compile("^[^\\r\\t\\f\\v].*", Pattern.MULTILINE);
+        Pattern patternTest = Pattern.compile("(?m)^[^\\r\\t\\f\\v].*", Pattern.MULTILINE);
         Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
 
         String[] exerciseSplit = splitWithDelimiters(exercises, patternTest.pattern());
 
         if(exerciseSplit.length == 0){
             throw new FileNotInitializedException();
-        }else{
-            System.out.println(exerciseSplit[0]);
         }
 
         for(String s : exerciseSplit){
@@ -245,7 +243,6 @@ public class RatingFileParser {
                         newS.append(line.substring(1)).append("\n");
                     }
                 }
-
 
                 if(parent != null){
                     parent.addSubExercise(e);
