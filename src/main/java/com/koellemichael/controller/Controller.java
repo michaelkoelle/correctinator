@@ -14,18 +14,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
@@ -53,9 +49,6 @@ public class Controller{
     public Label lbl_current_rating;
     public VBox vbox_edit;
     public Label lbl_current_max_points;
-    public StackPane p_media;
-    public Label lbl_current_file_max;
-    public Label lbl_current_file;
     public MenuItem mi_open_corrections;
     public MenuItem mi_save_current_correction;
     public MenuItem mi_export_zip;
@@ -70,14 +63,12 @@ public class Controller{
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
-    private ArrayList<File> allFiles;
-    private int allFilesPos;
+;
     private File correctionsDirectory;
     private Preferences preferences;
 
     public void initialize(Stage primaryStage){
         this.primaryStage = primaryStage;
-        this.allFilesPos = 0;
         this.preferences = Preferences.userRoot();
 
         corrections = FXCollections.observableArrayList(e -> new Observable[]{
@@ -443,19 +434,19 @@ public class Controller{
                 }
             }
 
-            File fileDir = new File(c.getPath()).getParentFile();
-            allFiles = new ArrayList<>();
-            listFiles(fileDir.getAbsolutePath(), allFiles, (dir, name) -> (name.toLowerCase()).endsWith(".rtf") || (name.toLowerCase()).endsWith(".asm") || (name.toLowerCase()).endsWith(".s") || (name.toLowerCase()).endsWith(".txt") || (name.toLowerCase()).endsWith(".pdf") || (name.toLowerCase()).endsWith(".jpg") || (name.toLowerCase()).endsWith(".jpeg") || (name.toLowerCase()).endsWith(".png"));
 
-            lbl_current_file_max.setText(String.valueOf(allFiles.size()));
-            allFilesPos = 0;
-
-            //Show first file
-            if(allFiles.size()>0){
-                openMediaFile(allFiles.get(allFilesPos));
-                lbl_current_file.setText(String.valueOf(allFilesPos+1));
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/mediaview.fxml"));
+                Pane p = loader.load();
+                MediaViewController controller = loader.getController();
+                controller.initialize(this);
+                if(split_main.getItems().size()>1){
+                    split_main.getItems().remove(1);
+                }
+                split_main.getItems().add(p);
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
-
         }
     }
 
@@ -475,87 +466,7 @@ public class Controller{
         });
     }
 
-    private void openMediaFile(File file){
-        p_media.getChildren().clear();
-        switch(getFileExtension(file)){
-            case ".pdf": openPDF(file); break;
-            case ".jpg":
-            case ".jpeg":
-            case ".png": openImage(file); break;
-            case ".asm":
-            case".s": openText(file, "text/plain"); break;
-            case ".txt":
-            default:
-                try {
-                    openText(file, Files.probeContentType(Paths.get(file.getAbsolutePath())));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-        }
-    }
 
-    private void openPDF(File file) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/pdfview.fxml"));
-            Pane p = loader.load();
-            PDFViewController controller = loader.getController();
-            controller.initialize(file);
-            p_media.getChildren().add(p);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void openText(File file, String mimeType) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/textview.fxml"));
-            Pane p = loader.load();
-            TextViewController controller = loader.getController();
-            String contents = new String(Files.readAllBytes(file.toPath()));
-            controller.initialize(contents,mimeType);
-            p_media.getChildren().add(p);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void openImage(File file) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/imageview.fxml"));
-            Pane p = loader.load();
-            ImageViewController controller = loader.getController();
-            controller.initialize(new Image(file.toURI().toURL().toString()));
-            p_media.getChildren().add(p);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private String getFileExtension(File file) {
-        String name = file.getName();
-        int lastIndexOf = name.lastIndexOf(".");
-        if (lastIndexOf == -1) {
-            return ""; // empty extension
-        }
-        return name.substring(lastIndexOf);
-    }
-
-
-    public void listFiles(String directoryName, ArrayList<File> files, FilenameFilter fnf) {
-        File directory = new File(directoryName);
-        File[] fList = directory.listFiles((dir, name) -> !name.contains("__MACOSX"));
-
-        files.addAll(Arrays.stream(Objects.requireNonNull(directory.listFiles(fnf))).filter(file -> !file.getName().contains("bewertung")).collect(Collectors.toList()));
-
-        if(fList != null)
-            for (File file : fList) {
-                if (!file.isFile()) {
-                    if (file.isDirectory()) {
-                        listFiles(file.getAbsolutePath(), files, fnf);
-                    }
-                }
-            }
-    }
 
     public void onBack(ActionEvent actionEvent) {
         tv_corrections.getSelectionModel().selectPrevious();
@@ -579,28 +490,6 @@ public class Controller{
             }
             tv_corrections.getSelectionModel().selectNext();
         });
-    }
-
-    public void onOpenCurrentDirectory(ActionEvent actionEvent) {
-        getSelectedCorrection().ifPresent(c -> DesktopApi.browse(new File(c.getPath()).getParentFile().toURI()));
-    }
-
-    public void onFilePrev(ActionEvent actionEvent) {
-        int temp = allFilesPos - 1;
-        if(temp>=0){
-            allFilesPos--;
-            openMediaFile(allFiles.get(allFilesPos));
-            lbl_current_file.setText(String.valueOf(allFilesPos+1));
-        }
-    }
-
-    public void onFileNext(ActionEvent actionEvent) {
-        int temp = allFilesPos + 1;
-        if(temp<=allFiles.size()-1){
-            allFilesPos++;
-            openMediaFile(allFiles.get(allFilesPos));
-            lbl_current_file.setText(String.valueOf(allFilesPos+1));
-        }
     }
 
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
