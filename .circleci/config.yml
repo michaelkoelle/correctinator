@@ -40,10 +40,10 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
       # run tests!
       #- run: mvn integration-test
-      - run: mvn package
+      - run: mvn clean install
       - store_artifacts:
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: target/correctinator-1.0-SNAPSHOT.jar
+          path: target/correctinator-1.0-SNAPSHOT-jar-with-dependencies.jar
 
       #- github-release/create:
       #    tag: vX.Y.Z

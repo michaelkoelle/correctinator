@@ -3,7 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/correctinator</output-path>
     <root id="archive" name="correctinator.jar">
       <element id="directory" name="META-INF">
-        <element id="file-copy" path="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" />
+        <element id="file-copy" path="$PROJECT_DIR$/src/main/resources/META-INF/MANIFEST.MF" />
       </element>
       <element id="module-output" name="correctinator" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-media/11/javafx-media-11-win.jar" path-in-jar="/" />
