@@ -30,6 +30,7 @@
                     <MenuItem mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen" />
                         <MenuItem mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern" />
                         <MenuItem mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren" />
+                        <MenuItem mnemonicParsing="false" onAction="#onInitializeCommentSection" text="Kommentarfeld initialisieren" />
                   </items>
                 </Menu>
               </menus>
@@ -59,7 +60,7 @@
    <bottom>
       <VBox alignment="BOTTOM_CENTER" BorderPane.alignment="CENTER">
          <children>
-            <ProgressBar fx:id="pb_correction" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="10.0" prefWidth="653.0" progress="0.65" />
+            <ProgressBar fx:id="pb_correction" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="10.0" prefWidth="653.0" progress="0.0" />
          </children>
       </VBox>
    </bottom>
