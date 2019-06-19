@@ -115,7 +115,6 @@ public class Controller{
         btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
         menuDisable();
 
-
         corrections.addListener((ListChangeListener) c -> {
             while(c.next()){
                 menuDisable();
