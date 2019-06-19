@@ -102,31 +102,12 @@ public class RatingFileParser {
                 ratingFileContent += "\t".repeat(e.getDepth()-1) + e.getName() + " " + format.format(e.getRating()) + "/" + format.format(e.getMaxPoints()) + "\n";
                 if(e instanceof ExerciseRating){
                     if(((ExerciseRating) e).getComment() != null && !((ExerciseRating) e).getComment().isEmpty()){
-                        ratingFileContent += "\t".repeat(e.getDepth()) + ((ExerciseRating) e).getComment() + "\n";
+                        ratingFileContent += "\t".repeat(e.getDepth()) + ((ExerciseRating) e).getComment().replace("\n","\n"+"\t".repeat(e.getDepth())) + "\n";
                     }
                 }
             }
         }
-        /*
-        for(Exercise e : c.getExercise().getSubExercises()){
-            if(e instanceof ExerciseRating){
-                ExerciseRating er = (ExerciseRating) e;
-            }
-            //TODO
-            //ratingFileContent += e.getName() + " " + format.format(e.getRating()) + "/" + format.format(e.getMaxPoints()) + "\n";
-            //if(e.getComment() != null && !e.getComment().isEmpty()){
-            //    ratingFileContent += "\t" + formatComment(e.getComment(), "\n\t") + "\n";
-            //}
 
-            //for(Exercise sub : c.getExercise().getSubExercises()){
-            //    ratingFileContent += "\t" + sub.getName() + " " + format.format(sub.getRating()) + "/" + format.format(sub.getMaxPoints()) + "\n";
-            //    if(sub.getComment() != null && !sub.getComment().isEmpty()) {
-           //         ratingFileContent += "\t\t" + formatComment(sub.getComment(), "\n\t\t") + "\n";
-            //    }
-            //}
-            ratingFileContent += "\n";
-        }
-*/
         ratingFileContent += "============ Ende der Kommentare ============\n";
         return ratingFileContent;
     }
