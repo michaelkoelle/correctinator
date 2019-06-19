@@ -56,7 +56,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.1</version>
                 <configuration>
-                    <mainClass>com.koellemichael.App</mainClass>
+                    <mainClass>com.koellemichael.Main</mainClass>
                     <options>
                         <option>--add-exports</option>
                         <option>javafx.base/com.sun.javafx.event=ALL-UNNAMED</option>
