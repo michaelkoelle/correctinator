@@ -63,6 +63,7 @@
                         <Menu mnemonicParsing="false" text="Einstellungen">
                           <items>
                               <CheckMenuItem fx:id="mi_autosave" mnemonicParsing="false" onAction="#onToggleAutosave" text="Autosave" />
+                              <CheckMenuItem fx:id="btn_verbose" mnemonicParsing="false" onAction="#onToggleVerbose" text="Verbose" />
                           </items>
                         </Menu>
                     </menus>

@@ -67,6 +67,7 @@ public class Controller{
     public SplitPane split_main;
     public AnchorPane bp_mid_main;
     public CheckMenuItem btn_fullscreen;
+    public CheckMenuItem btn_verbose;
 
 
     private Stage primaryStage = null;
@@ -111,6 +112,7 @@ public class Controller{
         mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false));
         btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
+        btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
         menuDisable();
 
 
@@ -176,7 +178,10 @@ public class Controller{
 
         try {
             reloadRatingFiles();
-            showImportSummary();
+
+            if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
+                showImportSummary();
+            }
 
             if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
                 notAllFilesInitializedDialog();
@@ -614,5 +619,9 @@ public class Controller{
     public void onExit(ActionEvent actionEvent) {
         Platform.exit();
         System.exit(0);
+    }
+
+    public void onToggleVerbose(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.VERBOSE_PREF, ((CheckMenuItem)actionEvent.getSource()).isSelected());
     }
 }
