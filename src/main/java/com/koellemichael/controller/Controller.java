@@ -6,7 +6,6 @@ import com.koellemichael.model.ExerciseRating;
 import com.koellemichael.utils.*;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.DoubleBinding;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,8 +19,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,7 +56,6 @@ public class Controller{
     private Stage primaryStage = null;
     private boolean autosave = true;
     private ObservableList<Correction> corrections;
-    private DoubleBinding progress;
     private ArrayList<File> allFiles;
     private int allFilesPos;
     private File correctionsDirectory;
@@ -92,6 +90,30 @@ public class Controller{
 
         tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
         tv_corrections.getSelectionModel().clearSelection();
+
+        pb_correction.progressProperty().addListener(this::onProgressBarChanged);
+    }
+
+    public void onProgressBarChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+        if(newValue.doubleValue() == 1.0){
+            suggestCreatingZip();
+        }
+    }
+
+    private void suggestCreatingZip() {
+        Alert d = new Alert(Alert.AlertType.CONFIRMATION);
+        d.setTitle("Korrektur fertig");
+        d.setHeaderText("Es sieht so aus als wäre die Korrektur fertig.");
+        d.setContentText("Möchten Sie sie die Abgaben als Zip exportieren?");
+        d.getButtonTypes().clear();
+        d.getButtonTypes().addAll(ButtonType.CANCEL,ButtonType.YES);
+        Optional<ButtonType> res = d.showAndWait();
+
+        res.ifPresent(type -> {
+            if(type == ButtonType.YES){
+                exportAsZipWithFileChooser();
+            }
+        });
     }
 
     public File getRatingFileFromDirectory(File directory) throws FileNotFoundException, RatingFileNotUniqueException {
@@ -123,7 +145,7 @@ public class Controller{
             alert.showAndWait();
 
             if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
-                initializeDialog();
+                notAllFilesInitializedDialog();
             }
 
             if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
@@ -136,54 +158,98 @@ public class Controller{
         }
     }
 
-    private void initializeDialog(){
-            Alert d = new Alert(Alert.AlertType.WARNING);
-            d.setTitle("Kommentarsektion initialisieren");
-            d.setHeaderText("Einige Dateien wurden noch nicht initialisiert.");
-            d.setContentText("Möchten Sie sie jetzt initialisieren?");
-            d.getButtonTypes().clear();
-            d.getButtonTypes().addAll(ButtonType.CANCEL,ButtonType.YES);
-            Optional<ButtonType> res = d.showAndWait();
+    private void initializeCommentSection(List<Correction> notInitialized, String initText){
+        notInitialized.forEach(c-> {
+            try {
+                RatingFileParser.initializeComments(c,initText);
+            } catch (IOException e) {
+                errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" konnte nicht gelesen werden! ");
+            } catch (ParseRatingFileException e) {
+                errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" ist fehlerhaft! ");
+            }
+        });
 
-            res.ifPresent(type -> {
-            if(type == ButtonType.YES){
-                Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
-                initDialog.setTitle("Initialisierung");
-                initDialog.setHeaderText("Initialisierung des Kommentarfelds");
-                initDialog.setContentText("Tragen sie das initiale Aufgabenschema ein:");
-                initDialog.getButtonTypes().clear();
-                initDialog.getButtonTypes().add(ButtonType.CANCEL);
-                initDialog.getButtonTypes().add(ButtonType.FINISH);
-                TextArea textArea = new TextArea();
-                Preferences preferences = Preferences.userRoot();
-                textArea.setText(preferences.get(INIT_PREF, ""));
-                initDialog.getDialogPane().setContent(textArea);
-                Optional<ButtonType> b = initDialog.showAndWait();
-                b.ifPresent(buttonType -> {
-                    if(buttonType==ButtonType.FINISH){
-                        String initText = textArea.getText();
-                        preferences.put(INIT_PREF, initText);
-                        List<Correction> notInitialized = corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED);
-                        notInitialized.forEach(c-> {
-                            try {
-                                RatingFileParser.initializeComments(c,initText);
-                            } catch (IOException e) {
-                                errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" konnte nicht gelesen werden! ");
-                            } catch (ParseException e) {
-                                errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" ist fehlerhaft! ");
-                            }
-                        });
+        try {
+            reloadRatingFiles();
+        } catch (NoFilesInDirectoryException e) {
+            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
+        } catch (FileNotFoundException e) {
+            errorDialog("Verzeichnisfehler", "Das ausgewählte Verzeichnis existiert nicht mehr");
+        }
+    }
 
-                        try {
-                            reloadRatingFiles();
-                        } catch (NoFilesInDirectoryException e) {
-                            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
-                        } catch (FileNotFoundException e) {
-                            errorDialog("Verzeichnisfehler", "Das ausgewählte Verzeichnis existiert nicht mehr");
-                        }
-                    }
+    private void initializeCommentSectionDialog(List<Correction> notInitialized){
+        Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        initDialog.setTitle("Initialisierung");
+        initDialog.setHeaderText("Initialisierung des Kommentarfelds");
+        initDialog.setContentText("Tragen sie das initiale Aufgabenschema ein:");
+        initDialog.getButtonTypes().clear();
+        initDialog.getButtonTypes().add(ButtonType.CANCEL);
+        initDialog.getButtonTypes().add(ButtonType.FINISH);
+        TextArea textArea = new TextArea();
+        Preferences preferences = Preferences.userRoot();
+        textArea.setText(preferences.get(INIT_PREF, ""));
+        initDialog.getDialogPane().setContent(textArea);
+        Optional<ButtonType> b = initDialog.showAndWait();
+        b.ifPresent(buttonType -> {
+            if(buttonType==ButtonType.FINISH){
+                String initText = textArea.getText();
+                preferences.put(INIT_PREF, initText);
+                initializeCommentSection(notInitialized,initText);
+            }
+        });
+    }
+
+    private void initializeCommentSectionDialog(){
+        Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        initDialog.setTitle("Initialisierung");
+        initDialog.setHeaderText("Initialisierung des Kommentarfelds");
+        initDialog.setContentText("Tragen sie das initiale Aufgabenschema ein:");
+        initDialog.getButtonTypes().clear();
+
+        ButtonType onlyNotInitialized = new ButtonType("Initialisiere NOT INITIALIZED");
+        ButtonType onlyParseError = new ButtonType("Initialisiere PARSE ERROR");
+        ButtonType onlySelection = new ButtonType("Initialisiere aktuelle Auswahl");
+        ButtonType all = new ButtonType("Initialisiere alle");
+
+        initDialog.getButtonTypes().add(ButtonType.CANCEL);
+
+        if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
+            initDialog.getButtonTypes().add(onlyNotInitialized);
+        }
+        if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
+            initDialog.getButtonTypes().add(onlyParseError);
+        }
+        getSelectedCorrection().ifPresent(c -> initDialog.getButtonTypes().add(onlySelection));
+
+        initDialog.getButtonTypes().add(all);
+
+        TextArea textArea = new TextArea();
+        Preferences preferences = Preferences.userRoot();
+        textArea.setText(preferences.get(INIT_PREF, ""));
+        initDialog.getDialogPane().setContent(textArea);
+        Optional<ButtonType> b = initDialog.showAndWait();
+        b.ifPresent(buttonType -> {
+            String initText = textArea.getText();
+            preferences.put(INIT_PREF, initText);
+
+            if(buttonType==onlySelection){
+                getSelectedCorrection().ifPresent(correction -> {
+                    ArrayList<Correction> list = new ArrayList<>();
+                    list.add(correction);
+                    initializeCommentSection(list, initText);
                 });
             }
+            if(buttonType==all){
+                initializeCommentSection(corrections,initText);
+            }
+            if(buttonType==onlyNotInitialized){
+                initializeCommentSection(corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED),initText);
+            }
+            if(buttonType==onlyParseError){
+                initializeCommentSection(corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR),initText);
+            }
+
         });
     }
 
@@ -192,6 +258,7 @@ public class Controller{
             File[] correctionDirectories = correctionsDirectory.listFiles((dir, name) -> name.matches("[0-9]+"));
 
             if (correctionDirectories != null && correctionDirectories.length>0) {
+                //TODO entfernen
                 lbl_directory.setText(correctionsDirectory.getAbsolutePath());
                 lbl_info.setText("Es wurden " + correctionDirectories.length + " Abgaben gefunden!");
 
@@ -204,7 +271,7 @@ public class Controller{
                         Correction c;
                         try {
                             c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
-                        } catch (IOException | ParseException e) {
+                        } catch (IOException | ParseRatingFileException | ParseRatingFileCommentSectionException e) {
                             c = new Correction();
                             c.setState(Correction.CorrectionState.PARSE_ERROR);
                             c.setPath(ratingFile.getAbsolutePath());
@@ -226,6 +293,16 @@ public class Controller{
 
                 if(corrections != null && corrections.size() > 0){
                     tv_corrections.setItems(corrections);
+
+                    pb_correction.progressProperty().bind(Bindings.createDoubleBinding(()-> {
+                        OptionalDouble value = corrections.stream().mapToDouble((c) -> (c.getState() == Correction.CorrectionState.FINISHED)?1:0).average();
+                        if(value.isPresent()){
+                            return value.getAsDouble();
+                        }else{
+                            return 0.0;
+                        }
+                    }, corrections));
+
                     tv_corrections.getSelectionModel().clearSelection();
                     tv_corrections.getSelectionModel().selectFirst();
                 }
@@ -313,7 +390,6 @@ public class Controller{
                 }
             }
 
-
             File fileDir = new File(c.getPath()).getParentFile();
             allFiles = new ArrayList<>();
             listFiles(fileDir.getAbsolutePath(), allFiles, (dir, name) -> (name.toLowerCase()).endsWith(".rtf") || (name.toLowerCase()).endsWith(".asm") || (name.toLowerCase()).endsWith(".s") || (name.toLowerCase()).endsWith(".txt") || (name.toLowerCase()).endsWith(".pdf") || (name.toLowerCase()).endsWith(".jpg") || (name.toLowerCase()).endsWith(".jpeg") || (name.toLowerCase()).endsWith(".png"));
@@ -334,8 +410,21 @@ public class Controller{
         }
     }
 
+    private void notAllFilesInitializedDialog(){
+        Alert d = new Alert(Alert.AlertType.WARNING);
+        d.setTitle("Kommentarsektion initialisieren");
+        d.setHeaderText("Einige Dateien wurden noch nicht initialisiert.");
+        d.setContentText("Möchten Sie sie jetzt initialisieren?");
+        d.getButtonTypes().clear();
+        d.getButtonTypes().addAll(ButtonType.CANCEL,ButtonType.YES);
+        Optional<ButtonType> res = d.showAndWait();
 
-
+        res.ifPresent(type -> {
+            if(type == ButtonType.YES){
+                initializeCommentSectionDialog(corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED));
+            }
+        });
+    }
 
     private void openMediaFile(File file){
         p_media.getChildren().clear();
@@ -411,10 +500,10 @@ public class Controller{
 
         if(fList != null)
             for (File file : fList) {
-                if (file.isFile()) {
-                    //files.add(file);
-                } else if (file.isDirectory()) {
-                    listFiles(file.getAbsolutePath(), files, fnf);
+                if (!file.isFile()) {
+                    if (file.isDirectory()) {
+                        listFiles(file.getAbsolutePath(), files, fnf);
+                    }
                 }
             }
     }
@@ -424,22 +513,22 @@ public class Controller{
     }
 
     public void onMarkForLater(ActionEvent actionEvent) {
-        Correction c = (Correction) tv_corrections.getSelectionModel().getSelectedItem();
-        c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+        getSelectedCorrection().ifPresent(c -> {
+            c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+        });
     }
 
     public void onDone(ActionEvent actionEvent) {
-        Correction c = (Correction) tv_corrections.getSelectionModel().getSelectedItem();
-        if(c.getState()== Correction.CorrectionState.TODO){
-            c.setState(Correction.CorrectionState.FINISHED);
-        }
-        tv_corrections.getSelectionModel().selectNext();
+        getSelectedCorrection().ifPresent(c -> {
+            if (c.getState() == Correction.CorrectionState.TODO) {
+                c.setState(Correction.CorrectionState.FINISHED);
+            }
+            tv_corrections.getSelectionModel().selectNext();
+        });
     }
 
     public void onOpenCurrentDirectory(ActionEvent actionEvent) {
-        Correction c = (Correction) tv_corrections.getSelectionModel().getSelectedItem();
-        DesktopApi.browse(new File(c.getPath()).getParentFile().toURI());
-
+        getSelectedCorrection().ifPresent(c -> DesktopApi.browse(new File(c.getPath()).getParentFile().toURI()));
     }
 
     public void onFilePrev(ActionEvent actionEvent) {
@@ -489,15 +578,38 @@ public class Controller{
         fis.close();
     }
 
+    private void exportAsZipWithFileChooser(){
+        FileChooser choose = new FileChooser();
+        choose.setTitle("Abgaben als Zip speichern");
+        choose.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zip Datei(*.zip)", "*.zip"));
 
-    public void onExportAsZIP(ActionEvent actionEvent) {
-        //Correction c = (Correction) tv_corrections.getSelectionModel().getSelectedItem();
+        if(correctionsDirectory!=null){
+            choose.setInitialDirectory(correctionsDirectory.getParentFile());
+            if(corrections != null && corrections.get(0) != null){
+                choose.setInitialFileName(("Korrektur_" + corrections.get(0).getLecture() + "_" + corrections.get(0).getExerciseSheet()).replace(" ", "_"));
+            }else{
+                choose.setInitialFileName(correctionsDirectory.getName());
+            }
+        }
+
+        File f = choose.showSaveDialog(primaryStage);
+
+        if(f != null){
+            if(!f.getName().contains(".")) {
+                f = new File(f.getAbsolutePath() + ".zip");
+            }
+            exportAsZip(f);
+        }
+    }
+
+
+    private void exportAsZip(File file){
         try {
-            if(correctionsDirectory !=null){
-                File[] directoiesToZip = correctionsDirectory.listFiles();
-                if(directoiesToZip != null){
-                    List<String> directoryPathsToZip = Arrays.stream(directoiesToZip).map((File::getAbsolutePath)).collect(Collectors.toList());
-                    FileOutputStream fos = new FileOutputStream(correctionsDirectory.getAbsolutePath() + ".zip");
+            if(correctionsDirectory != null){
+                File[] directoriesToZip = correctionsDirectory.listFiles();
+                if(directoriesToZip != null){
+                    List<String> directoryPathsToZip = Arrays.stream(directoriesToZip).map((File::getAbsolutePath)).collect(Collectors.toList());
+                    FileOutputStream fos = new FileOutputStream(file);
                     ZipOutputStream zipOut = new ZipOutputStream(fos);
 
                     for (String path:directoryPathsToZip) {
@@ -507,7 +619,7 @@ public class Controller{
 
                     zipOut.close();
                     fos.close();
-                    System.out.println("Saved ZIP to: " + correctionsDirectory.getAbsolutePath() + ".zip");
+                    System.out.println("Saved ZIP to: " + file.getAbsolutePath());
                 }
             }
         } catch (FileNotFoundException e) {
@@ -517,12 +629,30 @@ public class Controller{
         }
     }
 
+    public void onExportAsZIP(ActionEvent actionEvent) {
+        exportAsZipWithFileChooser();
+    }
+
     public void onSaveCorrection(ActionEvent actionEvent) {
+        getSelectedCorrection().ifPresent(c ->{
+            try {
+                RatingFileParser.saveRatingFile(c);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public Optional<Correction> getSelectedCorrection(){
         Correction c = (Correction) tv_corrections.getSelectionModel().getSelectedItem();
-        try {
-            RatingFileParser.saveRatingFile(c);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(c != null){
+            return Optional.of(c);
+        }else{
+            return Optional.empty();
         }
+    }
+
+    public void onInitializeCommentSection(ActionEvent actionEvent) {
+        initializeCommentSectionDialog();
     }
 }
