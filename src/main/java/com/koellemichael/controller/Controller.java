@@ -90,14 +90,104 @@ public class Controller{
         tc_changed.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
         tc_state.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
 
+        tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
+        tv_corrections.getSelectionModel().clearSelection();
+    }
+
+    public File getRatingFileFromDirectory(File directory) throws FileNotFoundException, RatingFileNotUniqueException {
+        File[] ratings = directory.listFiles((dir, name) -> name.matches("bewertung_[0-9]+\\.txt"));
+
+        if (ratings != null && ratings.length>0) {
+            if(ratings.length>1){
+                throw new RatingFileNotUniqueException(directory);
+            }
+            return ratings[0];
+
+        }else{
+            throw new FileNotFoundException();
+        }
     }
 
     public void onOpenDirectory(ActionEvent actionEvent) {
-        boolean first = true;
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Abgaben öffnen");
         correctionsDirectory = chooser.showDialog(primaryStage);
 
+        try {
+            reloadRatingFiles();
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Zusammenfassung");
+            alert.setHeaderText(null);
+            alert.setContentText(corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).size() + " Datei(en) konnten nicht vollständig geparsed werden!\n"+ corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).size() + " Datei(en) wurden noch nicht initialisiert!");
+            alert.showAndWait();
+
+            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
+                initializeDialog();
+            }
+
+            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
+                //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
+            }
+
+        } catch (NoFilesInDirectoryException e) {
+            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
+        } catch (FileNotFoundException ignored) {
+        }
+    }
+
+    private void initializeDialog(){
+            Alert d = new Alert(Alert.AlertType.WARNING);
+            d.setTitle("Kommentarsektion initialisieren");
+            d.setHeaderText("Einige Dateien wurden noch nicht initialisiert.");
+            d.setContentText("Möchten Sie sie jetzt initialisieren?");
+            d.getButtonTypes().clear();
+            d.getButtonTypes().addAll(ButtonType.CANCEL,ButtonType.YES);
+            Optional<ButtonType> res = d.showAndWait();
+
+            res.ifPresent(type -> {
+            if(type == ButtonType.YES){
+                Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
+                initDialog.setTitle("Initialisierung");
+                initDialog.setHeaderText("Initialisierung des Kommentarfelds");
+                initDialog.setContentText("Tragen sie das initiale Aufgabenschema ein:");
+                initDialog.getButtonTypes().clear();
+                initDialog.getButtonTypes().add(ButtonType.CANCEL);
+                initDialog.getButtonTypes().add(ButtonType.FINISH);
+                TextArea textArea = new TextArea();
+                Preferences preferences = Preferences.userRoot();
+                textArea.setText(preferences.get(INIT_PREF, ""));
+                initDialog.getDialogPane().setContent(textArea);
+                Optional<ButtonType> b = initDialog.showAndWait();
+                b.ifPresent(buttonType -> {
+                    if(buttonType==ButtonType.FINISH){
+                        String initText = textArea.getText();
+                        preferences.put(INIT_PREF, initText);
+                        List<Correction> notInitialized = corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED);
+                        notInitialized.forEach(c-> {
+                            try {
+                                RatingFileParser.initializeComments(c,initText);
+                            } catch (IOException e) {
+                                errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" konnte nicht gelesen werden! ");
+                            } catch (ParseException e) {
+                                errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" ist fehlerhaft! ");
+                            }
+                        });
+
+                        try {
+                            reloadRatingFiles();
+                        } catch (NoFilesInDirectoryException e) {
+                            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
+                        } catch (FileNotFoundException e) {
+                            errorDialog("Verzeichnisfehler", "Das ausgewählte Verzeichnis existiert nicht mehr");
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    public void reloadRatingFiles() throws NoFilesInDirectoryException, FileNotFoundException {
         if(correctionsDirectory != null){
             File[] correctionDirectories = correctionsDirectory.listFiles((dir, name) -> name.matches("[0-9]+"));
 
@@ -105,160 +195,46 @@ public class Controller{
                 lbl_directory.setText(correctionsDirectory.getAbsolutePath());
                 lbl_info.setText("Es wurden " + correctionDirectories.length + " Abgaben gefunden!");
 
-                //TODO keine listen erstellen sondern einfach nach state filtern
-                ObservableList<Correction> failedToParse = FXCollections.observableArrayList();
-                ObservableList<Correction> notInitialized = FXCollections.observableArrayList();
+                tv_corrections.getItems().clear();
+                corrections.clear();
 
                 for (File correctionDirectory : correctionDirectories) {
-
-                    File[] ratings = correctionDirectory.listFiles((dir, name) -> name.matches("bewertung_[0-9]+\\.txt"));
-
-                    if (ratings != null && ratings.length>0) {
-
-                        for (File rating : ratings) {
-                            Correction c;
-                            try {
-                                c = RatingFileParser.parseFile(rating.getAbsolutePath());
-                            } catch (IOException | ParseException e) {
-                                //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
-                                c = new Correction();
-                                c.setState(Correction.CorrectionState.PARSE_ERROR);
-                                c.setPath(rating.getAbsolutePath());
-                                c.setId(correctionDirectory.getName());
-                                failedToParse.add(c);
-                            } catch (FileNotInitializedException e) {
-                                //TODO counter + initialisierungsdialog
-                                c = new Correction();
-                                c.setState(Correction.CorrectionState.NOT_INITIALIZED);
-                                c.setPath(rating.getAbsolutePath());
-                                c.setId(correctionDirectory.getName());
-                                notInitialized.add(c);
-                            }
-                            corrections.add(c);
+                    try {
+                        File ratingFile = getRatingFileFromDirectory(correctionDirectory);
+                        Correction c;
+                        try {
+                            c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
+                        } catch (IOException | ParseException e) {
+                            c = new Correction();
+                            c.setState(Correction.CorrectionState.PARSE_ERROR);
+                            c.setPath(ratingFile.getAbsolutePath());
+                            c.setId(correctionDirectory.getName());
+                        } catch (FileNotInitializedException e) {
+                            c = new Correction();
+                            c.setState(Correction.CorrectionState.NOT_INITIALIZED);
+                            c.setPath(ratingFile.getAbsolutePath());
+                            c.setId(correctionDirectory.getName());
                         }
+                        corrections.add(c);
 
-                    }else{
-                        errorDialog("Fehler", "Keine Bewertungsdatei für Abgabe " + correctionDirectory.getName() + " gefunden!");
+                    } catch (FileNotFoundException e) {
+                        errorDialog("Bewertungsdatei nicht gefunden","Die Bewertungsdatei konnte im Verzeichnis \"" + correctionDirectory.getAbsolutePath() + "\" nicht gefunden werden!");
+                    } catch (RatingFileNotUniqueException e) {
+                        errorDialog("Mehrere Bewertungsdateien", "Es befinden sich mehrere Bewertungsdateien im Verzeichnis\"" + correctionDirectory.getAbsolutePath() + "\"!");
                     }
                 }
 
-                lbl_info.setText(lbl_info.getText() + "\n" + failedToParse.size() + " Dateien konnten nicht vollständig geparsed werden!\n"+ notInitialized.size() + " Dateien wurden noch nicht initialisiert!");
-
-                //Progress Bar binding
-                if(corrections.size()>0){
-                    progress = Bindings.createDoubleBinding(()-> corrections.stream().mapToDouble((c) -> (c.getState() == Correction.CorrectionState.FINISHED)?1:0).average().getAsDouble(), corrections);
-                    pb_correction.progressProperty().bind(progress);
-
+                if(corrections != null && corrections.size() > 0){
                     tv_corrections.setItems(corrections);
-
-                    tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
-
                     tv_corrections.getSelectionModel().clearSelection();
                     tv_corrections.getSelectionModel().selectFirst();
                 }
-
-                if(!notInitialized.isEmpty()){
-                    Alert d = new Alert(Alert.AlertType.WARNING);
-                    d.setTitle("Kommentarsektion initialisieren");
-                    d.setHeaderText("Einige Dateien wurden noch nicht initialisiert.");
-                    d.setContentText("Möchten Sie sie jetzt initialisieren?");
-                    d.getButtonTypes().clear();
-                    d.getButtonTypes().addAll(ButtonType.CANCEL,ButtonType.YES);
-                    Optional<ButtonType> res =  d.showAndWait();
-
-                    res.ifPresent(type -> {
-                        if(type == ButtonType.YES){
-                            //TODO open initialisation dialog
-                            System.out.println("Initialisierungsdialog");
-
-                            Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
-                            initDialog.setTitle("Initialisierung");
-                            initDialog.setHeaderText("Initialisierung des Kommentarfelds");
-                            initDialog.setContentText("Tragen sie das initiale Aufgabenschema ein:");
-                            initDialog.getButtonTypes().clear();
-                            initDialog.getButtonTypes().add(ButtonType.CANCEL);
-                            initDialog.getButtonTypes().add(ButtonType.FINISH);
-                            TextArea initString = new TextArea();
-                            Preferences preferences = Preferences.userRoot();
-                            initString.setText(preferences.get(INIT_PREF, ""));
-                            initDialog.getDialogPane().setContent(initString);
-                            Optional<ButtonType> b = initDialog.showAndWait();
-                            b.ifPresent(buttonType -> {
-                                if(buttonType==ButtonType.FINISH){
-                                    initString.getText();
-                                    preferences.put(INIT_PREF, initString.getText());
-
-                                    notInitialized.forEach(c-> {
-                                        try {
-                                            RatingFileParser.initializeComments(c,initString.getText());
-
-                                            //TODO liste aktualisieren
-                                            corrections.clear();
-                                            for (File correctionDirectory : correctionDirectories) {
-
-                                                File[] ratings = correctionDirectory.listFiles((dir, name) -> name.matches("bewertung_[0-9]+\\.txt"));
-
-                                                if (ratings != null && ratings.length>0) {
-
-                                                    for (File rating : ratings) {
-                                                        Correction c1;
-                                                        try {
-                                                            c1 = RatingFileParser.parseFile(rating.getAbsolutePath());
-                                                        } catch (IOException | ParseException e) {
-                                                            //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
-                                                            c1 = new Correction();
-                                                            c1.setState(Correction.CorrectionState.PARSE_ERROR);
-                                                            c1.setPath(rating.getAbsolutePath());
-                                                            c1.setId(correctionDirectory.getName());
-                                                            failedToParse.add(c1);
-                                                        } catch (FileNotInitializedException e) {
-                                                            //TODO counter + initialisierungsdialog
-                                                            c1 = new Correction();
-                                                            c1.setState(Correction.CorrectionState.NOT_INITIALIZED);
-                                                            c1.setPath(rating.getAbsolutePath());
-                                                            c1.setId(correctionDirectory.getName());
-                                                            notInitialized.add(c1);
-                                                        }
-                                                        corrections.add(c1);
-                                                    }
-
-                                                }else{
-                                                    errorDialog("Fehler", "Keine Bewertungsdatei für Abgabe " + correctionDirectory.getName() + " gefunden!");
-                                                }
-                                            }
-
-                                            lbl_info.setText(lbl_info.getText() + "\n" + failedToParse.size() + " Dateien konnten nicht vollständig geparsed werden!\n"+ notInitialized.size() + " Dateien wurden noch nicht initialisiert!");
-
-                                            //Progress Bar binding
-                                            if(corrections.size()>0){
-                                                progress = Bindings.createDoubleBinding(()-> corrections.stream().mapToDouble((c1) -> (c1.getState() == Correction.CorrectionState.FINISHED)?1:0).average().getAsDouble(), corrections);
-                                                pb_correction.progressProperty().bind(progress);
-
-                                                tv_corrections.setItems(corrections);
-
-                                                tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
-
-                                                tv_corrections.getSelectionModel().clearSelection();
-                                                tv_corrections.getSelectionModel().selectFirst();
-                                            }
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
-                                        }
-                                    });
-
-                                }
-                            });
-                        }
-                    });
-                }
-
             }else{
-                errorDialog("Fehler", "Keine Abgaben gefunden!");
+                throw new NoFilesInDirectoryException(correctionsDirectory);
             }
+        }else{
+            throw new FileNotFoundException();
         }
-
     }
 
     private void errorDialog(String title, String message){
@@ -292,7 +268,7 @@ public class Controller{
                         try {
                             RatingFileParser.saveRatingFile(c);
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
                         }
                     }
                 }
@@ -343,9 +319,9 @@ public class Controller{
             listFiles(fileDir.getAbsolutePath(), allFiles, (dir, name) -> (name.toLowerCase()).endsWith(".rtf") || (name.toLowerCase()).endsWith(".asm") || (name.toLowerCase()).endsWith(".s") || (name.toLowerCase()).endsWith(".txt") || (name.toLowerCase()).endsWith(".pdf") || (name.toLowerCase()).endsWith(".jpg") || (name.toLowerCase()).endsWith(".jpeg") || (name.toLowerCase()).endsWith(".png"));
             //listFiles(fileDir.getAbsolutePath(), allFiles, (dir, name) -> true);
 
-            for (File allFile : allFiles) {
-                System.out.println(allFile.getAbsolutePath());
-            }
+            //for (File allFile : allFiles) {
+            //    System.out.println(allFile.getAbsolutePath());
+            //}
 
             lbl_current_file_max.setText(String.valueOf(allFiles.size()));
             allFilesPos = 0;
