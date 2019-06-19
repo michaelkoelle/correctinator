@@ -1,4 +1,4 @@
-package com.koellemichael.utils;
+package com.koellemichael.exceptions;
 
 public class ParseRatingFileException extends Exception {
 

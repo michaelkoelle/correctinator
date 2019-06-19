@@ -1,4 +1,4 @@
-package com.koellemichael.utils;
+package com.koellemichael.exceptions;
 
 import java.io.File;
 

@@ -12,4 +12,5 @@ module com.koellemichael {
     exports com.koellemichael.controller;
     exports com.koellemichael.model;
     exports com.koellemichael.utils;
+    exports com.koellemichael.exceptions;
 }

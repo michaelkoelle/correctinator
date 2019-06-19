@@ -1,5 +1,9 @@
 package com.koellemichael.controller;
 
+import com.koellemichael.exceptions.FileNotInitializedException;
+import com.koellemichael.exceptions.NoFilesInDirectoryException;
+import com.koellemichael.exceptions.ParseRatingFileException;
+import com.koellemichael.exceptions.RatingFileNotUniqueException;
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
@@ -95,12 +99,6 @@ public class Controller{
         tc_lecture.setCellValueFactory(cell -> cell.getValue().lectureProperty());
         tc_corrector.setCellValueFactory(cell -> cell.getValue().correctorProperty());
         tc_corrector_email.setCellValueFactory(cell -> cell.getValue().correctorEmailProperty());
-
-        //tc_id.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
-        //tc_path.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6).multiply(2).subtract(20));
-        //tc_rating.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
-        //tc_changed.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
-        //tc_state.prefWidthProperty().bind(tv_corrections.widthProperty().divide(6));
 
         tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
         tv_corrections.getSelectionModel().clearSelection();
@@ -433,7 +431,6 @@ public class Controller{
                     }
                 }
             }
-
 
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/mediaview.fxml"));

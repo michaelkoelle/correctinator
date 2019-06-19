@@ -1,5 +1,8 @@
 package com.koellemichael.utils;
 
+import com.koellemichael.exceptions.FileNotInitializedException;
+import com.koellemichael.exceptions.ParseRatingFileCommentSectionException;
+import com.koellemichael.exceptions.ParseRatingFileException;
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
