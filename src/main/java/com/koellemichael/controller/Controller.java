@@ -7,7 +7,10 @@ import com.koellemichael.exceptions.RatingFileNotUniqueException;
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
-import com.koellemichael.utils.*;
+import com.koellemichael.utils.PreferenceKeys;
+import com.koellemichael.utils.RatingFileParser;
+import com.koellemichael.utils.Utils;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -63,6 +66,7 @@ public class Controller{
     public Button btn_done;
     public SplitPane split_main;
     public AnchorPane bp_mid_main;
+    public CheckMenuItem btn_fullscreen;
 
 
     private Stage primaryStage = null;
@@ -105,8 +109,10 @@ public class Controller{
 
         pb_correction.progressProperty().addListener(this::onProgressBarChanged);
         mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false));
-
+        btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
+        primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         menuDisable();
+
 
         corrections.addListener((ListChangeListener) c -> {
             while(c.next()){
@@ -598,5 +604,15 @@ public class Controller{
 
     public void onToggleAutosave(ActionEvent actionEvent) {
         preferences.putBoolean(PreferenceKeys.AUTOSAVE_PREF, mi_autosave.isSelected());
+    }
+
+    public void onToggleFullscreen(ActionEvent actionEvent) {
+        primaryStage.setFullScreen(btn_fullscreen.isSelected());
+        preferences.putBoolean(PreferenceKeys.FULLSCREEN_PREF, btn_fullscreen.isSelected());
+    }
+
+    public void onExit(ActionEvent actionEvent) {
+        Platform.exit();
+        System.exit(0);
     }
 }

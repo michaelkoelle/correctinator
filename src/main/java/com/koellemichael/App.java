@@ -17,6 +17,7 @@ public class App extends Application {
         controller.initialize(primaryStage);
 
         primaryStage.setTitle("Correctinator");
+        primaryStage.setFullScreenExitHint("F1 um Vollbild zu verlassen");
         primaryStage.setScene(new Scene(root, 1300, 800));
         primaryStage.show();
     }

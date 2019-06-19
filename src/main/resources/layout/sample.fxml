@@ -12,6 +12,7 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -31,12 +32,34 @@
                     <menus>
                       <Menu mnemonicParsing="false" text="Abgaben">
                         <items>
-                          <MenuItem fx:id="mi_open_corrections" mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen" />
-                              <MenuItem fx:id="mi_save_current_correction" mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern" />
-                              <MenuItem fx:id="mi_export_zip" mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren" />
-                              <MenuItem fx:id="mi_initialize" mnemonicParsing="false" onAction="#onInitializeCommentSection" text="Kommentarfeld initialisieren" />
+                          <MenuItem fx:id="mi_open_corrections" mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen">
+                                 <accelerator>
+                                    <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                 </accelerator></MenuItem>
+                              <MenuItem fx:id="mi_save_current_correction" mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern">
+                                 <accelerator>
+                                    <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                 </accelerator></MenuItem>
+                              <MenuItem fx:id="mi_export_zip" mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren">
+                                 <accelerator>
+                                    <KeyCodeCombination alt="UP" code="E" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                 </accelerator></MenuItem>
+                              <MenuItem fx:id="mi_initialize" mnemonicParsing="false" onAction="#onInitializeCommentSection" text="Kommentarfeld initialisieren">
+                                 <accelerator>
+                                    <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                 </accelerator></MenuItem>
+                              <MenuItem mnemonicParsing="false" onAction="#onExit" text="Beenden" />
                         </items>
                       </Menu>
+                        <Menu mnemonicParsing="false" text="Ansicht">
+                          <items>
+                              <CheckMenuItem fx:id="btn_fullscreen" mnemonicParsing="false" onAction="#onToggleFullscreen" text="Vollbild">
+                                 <accelerator>
+                                    <KeyCodeCombination alt="UP" code="F1" control="UP" meta="ANY" shift="UP" shortcut="UP" />
+                                 </accelerator>
+                              </CheckMenuItem>
+                          </items>
+                        </Menu>
                         <Menu mnemonicParsing="false" text="Einstellungen">
                           <items>
                               <CheckMenuItem fx:id="mi_autosave" mnemonicParsing="false" onAction="#onToggleAutosave" text="Autosave" />
