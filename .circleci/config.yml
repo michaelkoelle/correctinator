@@ -44,11 +44,6 @@ jobs:
       # run tests!
       #- run: mvn integration-test
 
-      - run: mvn clean install
-      - store_artifacts:
-          # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: workspace/artifacts/
-
       - run:
           command: |
             VERSION=$(mvn -s .circleci/settings.xml -q \
@@ -57,6 +52,10 @@ jobs:
             mkdir workspace
             echo "$VERSION" > workspace/version
           name: Read version from maven
+
+      - run: mvn clean install
+      - store_artifacts:
+          path: workspace/artifacts/
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
@@ -72,10 +71,10 @@ jobs:
     steps:
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
-          at: /tmp/workspace
+          at: /workspace
       - run:
           command: |
-            VERSION=$(cat /temp/workspace/version)
+            VERSION=$(cat /workspace/version)
             echo $VERSION
           name: Getting version from build-phase
       - github-release/create:
