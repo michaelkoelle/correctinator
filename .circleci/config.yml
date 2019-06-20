@@ -67,6 +67,7 @@ jobs:
           paths:
             - /artifacts
             - version
+
   deploy:
     executor: github-release/default
     working_directory: ~/correctinator
