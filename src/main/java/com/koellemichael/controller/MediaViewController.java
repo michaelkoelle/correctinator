@@ -151,4 +151,7 @@ public class MediaViewController {
             }
     }
 
+    public void onReloadFile(ActionEvent actionEvent) {
+        openMediaFile(allFiles.get(allFilesPos));
+    }
 }
