@@ -45,7 +45,7 @@ jobs:
       - run: mvn clean install
       - store_artifacts:
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: target/
+          path: artifacts/
 
       #- github-release/create:
       #    tag: vX.Y.Z
