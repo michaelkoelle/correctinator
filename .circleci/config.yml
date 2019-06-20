@@ -56,7 +56,11 @@ jobs:
             echo "Releasing $VERSION"
 
         #workaround
-      - run: sudo apt install golang-go
+      - run:
+          command: |
+            sudo apt install golang-go
+            export GOPATH=~/go
+            export PATH=$PATH:$GOPATH/bin
 
       - github-release/create:
           tag: ${VERSION}
