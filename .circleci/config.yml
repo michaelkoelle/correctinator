@@ -49,7 +49,7 @@ jobs:
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
           path: artifacts/
 
-  release:
+  deploy:
     executor: github-release/default
     working_directory: ~/correctinator
 
@@ -70,3 +70,18 @@ jobs:
           description: This release is version v${VERSION}.
           file-path: artifacts/
           pre-release: true
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
