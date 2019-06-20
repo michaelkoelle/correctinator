@@ -65,7 +65,7 @@ jobs:
           root: workspace
           # Must be relative path from root
           paths:
-            - artifacts/
+            - artifacts/*
             - version
   deploy:
     executor: github-release/default
