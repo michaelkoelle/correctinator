@@ -25,7 +25,12 @@ jobs:
     #executor: github-release/default
 
     steps:
-      - run: go get github.com/aktau/github-release github.com/tcnksm/ghr
+      - github-release/create:
+          tag: ${VERSION}
+          title: v${VERSION}
+          description: This release is version v${VERSION}.
+          file-path: artifacts/
+          pre-release: true
       - checkout
 
       # Download and cache dependencies
@@ -63,9 +68,3 @@ jobs:
       #- run: export PATH=$PATH:$GOPATH/bin
       #- run: go get github.com/aktau/github-release github.com/tcnksm/ghr
 
-      - github-release/create:
-          tag: ${VERSION}
-          title: v${VERSION}
-          description: This release is version v${VERSION}.
-          file-path: artifacts/
-          pre-release: true
