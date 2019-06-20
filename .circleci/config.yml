@@ -10,7 +10,6 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:latest
-      - image: circleci/golang:latest
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
@@ -21,6 +20,8 @@ jobs:
     environment:
       # Customize the JVM maximum heap limit
       MAVEN_OPTS: -Xmx3200m
+
+    executor: github-release/default
 
     steps:
       - checkout
@@ -58,3 +59,4 @@ jobs:
           title: v${VERSION}
           description: This release is version v${VERSION}.
           file-path: artifacts/
+          pre-release: true
