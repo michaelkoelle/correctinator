@@ -28,6 +28,7 @@ jobs:
       - checkout
       - run: git submodule sync
       - run: git submodule update --init
+      - run: git fetch --all
       # Download and cache dependencies
       - restore_cache:
           keys:
