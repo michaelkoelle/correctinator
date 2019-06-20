@@ -50,10 +50,7 @@ jobs:
           path: artifacts/
 
   release:
-    docker:
-      # specify the version you desire here
-      - image: circleci/openjdk:latest
-
+    executor: github-release/default
     working_directory: ~/correctinator
 
     environment:
