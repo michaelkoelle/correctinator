@@ -29,6 +29,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
@@ -69,12 +71,12 @@ public class Controller{
     public CheckMenuItem btn_fullscreen;
     public CheckMenuItem btn_verbose;
 
-
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
-;
     private File correctionsDirectory;
     private Preferences preferences;
+    private MediaViewController mediaViewController;
+    private Pane mediaPane;
 
     public void initialize(Stage primaryStage){
         this.primaryStage = primaryStage;
@@ -118,8 +120,150 @@ public class Controller{
         corrections.addListener((ListChangeListener) c -> {
             while(c.next()){
                 menuDisable();
+
             }
         });
+    }
+
+    public void onOpenDirectory(ActionEvent actionEvent) {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle("Abgaben öffnen");
+        correctionsDirectory = chooser.showDialog(primaryStage);
+
+        try {
+            reloadRatingFiles();
+
+            if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
+                showImportSummary();
+            }
+
+            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
+                notAllFilesInitializedDialog();
+            }
+
+            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
+                //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
+            }
+
+        } catch (NoFilesInDirectoryException e) {
+            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
+        } catch (FileNotFoundException ignored) {}
+    }
+
+    private void onSelectionChanged(ObservableValue observableValue, Object oldSelection, Object newSelection){
+
+        if(oldSelection instanceof Correction){
+            Correction c = (Correction) oldSelection;
+            if(c.isChanged()){
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    c.setState(Correction.CorrectionState.FINISHED);
+                }else{
+                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                    alert.setTitle("Änderungen nicht gespeichert");
+                    alert.setHeaderText("Die Abgabe wurde noch nicht gespeichert.");
+                    alert.setContentText("Möchten sie die Abgabe jetzt speichern?");
+
+                    Optional<ButtonType> result = alert.showAndWait();
+                    if (result.isPresent() && result.get() == ButtonType.OK){
+                        try {
+                            RatingFileParser.saveRatingFile(c);
+                        } catch (IOException e) {
+                            errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
+                        }
+                    }
+                }
+            }
+        }
+
+        if(newSelection instanceof Correction){
+            Correction c = (Correction) newSelection;
+            lbl_current_id.textProperty().bind(c.idProperty());
+            lbl_current_rating.textProperty().bind(Bindings.convert(c.ratingProperty()));
+            lbl_current_max_points.textProperty().bind(Bindings.convert(c.maxPointsProperty()));
+            vbox_edit.getChildren().clear();
+
+            //TODO Liste hierarchisch, nicht flatten benutzen
+            if(c.getExercise() != null){
+                List<Exercise> list = c.getExercise().getSubExercises().stream().flatMap(Utils::flatten).collect(Collectors.toList());
+
+                for(Exercise e : list){
+                    if(e instanceof ExerciseRating){
+                        try {
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exercise.fxml"));
+                            Pane p = loader.load();
+                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
+                            ExerciseRatingController controller = loader.getController();
+                            controller.initialize((ExerciseRating)e);
+                            vbox_edit.getChildren().add(p);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }else{
+                        try {
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exerciselabel.fxml"));
+                            Pane p = loader.load();
+                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
+                            ExerciseLabelController controller = loader.getController();
+                            controller.initialize(e);
+                            vbox_edit.getChildren().add(p);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            if(!corrections.isEmpty()){
+                try {
+                    if (split_main.getItems().size() <= 1) {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/mediaview.fxml"));
+                        mediaPane = loader.load();
+                        mediaViewController = loader.getController();
+                        split_main.getItems().add(mediaPane);
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            ArrayList<File> files = new ArrayList<>();
+            File fileDir = new File(c.getPath()).getParentFile();
+            FileFilter ff = (file) ->{
+                try {
+                    String mimeType = Files.probeContentType(Paths.get(file.toURI()));
+                    switch (mimeType){
+                        case "application/pdf":
+                        case "image/bmp":
+                        case "image/gif":
+                        case "image/jpeg":
+                        case "image/png":
+                        case "image/svg+xml":
+                        case "image/tiff":
+                        case "text/css":
+                        case "text/html":
+                        case "text/javascript":
+                        case "text/plain":
+                        case "text/richtext":
+                        case "text/rtf":
+                        case "text/tab-separated-values":
+                        case "text/comma-separated-values":
+                        case "text/xml":
+                        default: return true;
+                    }
+                } catch (IOException e) {
+                    return false;
+                }
+            };
+
+            listFiles(fileDir.getAbsolutePath(), files, ff);
+            mediaViewController.initialize(files);
+
+        }
     }
 
     public void menuDisable(){
@@ -170,30 +314,7 @@ public class Controller{
         }
     }
 
-    public void onOpenDirectory(ActionEvent actionEvent) {
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Abgaben öffnen");
-        correctionsDirectory = chooser.showDialog(primaryStage);
 
-        try {
-            reloadRatingFiles();
-
-            if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
-                showImportSummary();
-            }
-
-            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
-                notAllFilesInitializedDialog();
-            }
-
-            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
-                //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
-            }
-
-        } catch (NoFilesInDirectoryException e) {
-            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
-        } catch (FileNotFoundException ignored) {}
-    }
 
     private void showImportSummary(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -374,88 +495,7 @@ public class Controller{
         alert.showAndWait();
     }
 
-    private void onSelectionChanged(ObservableValue observableValue, Object oldSelection, Object newSelection){
 
-        if(oldSelection instanceof Correction){
-            Correction c = (Correction) oldSelection;
-            if(c.isChanged()){
-                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
-                    try {
-                        RatingFileParser.saveRatingFile(c);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    c.setState(Correction.CorrectionState.FINISHED);
-                }else{
-                    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                    alert.setTitle("Änderungen nicht gespeichert");
-                    alert.setHeaderText("Die Abgabe wurde noch nicht gespeichert.");
-                    alert.setContentText("Möchten sie die Abgabe jetzt speichern?");
-
-                    Optional<ButtonType> result = alert.showAndWait();
-                    if (result.isPresent() && result.get() == ButtonType.OK){
-                        try {
-                            RatingFileParser.saveRatingFile(c);
-                        } catch (IOException e) {
-                            errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
-                        }
-                    }
-                }
-            }
-        }
-
-        if(newSelection instanceof Correction){
-            Correction c = (Correction) newSelection;
-            lbl_current_id.textProperty().bind(c.idProperty());
-            lbl_current_rating.textProperty().bind(Bindings.convert(c.ratingProperty()));
-            lbl_current_max_points.textProperty().bind(Bindings.convert(c.maxPointsProperty()));
-            vbox_edit.getChildren().clear();
-
-            //TODO Liste hierarchisch, nicht flatten benutzen
-            if(c.getExercise() != null){
-                List<Exercise> list = c.getExercise().getSubExercises().stream().flatMap(Utils::flatten).collect(Collectors.toList());
-
-                for(Exercise e : list){
-                    if(e instanceof ExerciseRating){
-                        try {
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exercise.fxml"));
-                            Pane p = loader.load();
-                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
-                            ExerciseRatingController controller = loader.getController();
-                            controller.initialize((ExerciseRating)e);
-                            vbox_edit.getChildren().add(p);
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }else{
-                        try {
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exerciselabel.fxml"));
-                            Pane p = loader.load();
-                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
-                            ExerciseLabelController controller = loader.getController();
-                            controller.initialize(e);
-                            vbox_edit.getChildren().add(p);
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }
-            }
-
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/mediaview.fxml"));
-                Pane p = loader.load();
-                MediaViewController controller = loader.getController();
-                controller.initialize(this);
-                if(split_main.getItems().size()>1){
-                    split_main.getItems().remove(1);
-                }
-                split_main.getItems().add(p);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
 
     private void notAllFilesInitializedDialog(){
         Alert d = new Alert(Alert.AlertType.WARNING);
@@ -528,6 +568,23 @@ public class Controller{
         fis.close();
     }
 
+    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter) {
+        File directory = new File(directoryName);
+        File[] fList = directory.listFiles((dir, name) -> !name.contains("__MACOSX"));
+
+        files.addAll(Arrays.stream(Objects.requireNonNull(directory.listFiles(fileFilter))).filter(file -> !file.getName().contains("bewertung")).collect(Collectors.toList()));
+
+        if(fList != null) {
+            for (File file : fList) {
+                if (!file.isFile()) {
+                    if (file.isDirectory()) {
+                        listFiles(file.getAbsolutePath(), files, fileFilter);
+                    }
+                }
+            }
+        }
+    }
+
     private void exportAsZipWithFileChooser(){
         FileChooser choose = new FileChooser();
         choose.setTitle("Abgaben als Zip speichern");
@@ -572,8 +629,6 @@ public class Controller{
                     System.out.println("Saved ZIP to: " + file.getAbsolutePath());
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

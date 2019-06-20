@@ -9,83 +9,77 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class MediaViewController {
     public StackPane p_media;
     public Label lbl_current_file_max;
     public Label lbl_current_file;
-    private ArrayList<File> allFiles;
     private int allFilesPos;
-    private Controller controller;
+    private ArrayList<File> files;
 
-    public void initialize(Controller controller){
-        this.controller = controller;
+    public void initialize(ArrayList<File> files){
+        this.files = files;
         this.allFilesPos = 0;
+        lbl_current_file_max.setText(String.valueOf(this.files.size()));
 
-        this.controller.getSelectedCorrection().ifPresent(c ->{
-            File fileDir = new File(c.getPath()).getParentFile();
-            allFiles = new ArrayList<>();
-            listFiles(fileDir.getAbsolutePath(), allFiles, (dir, name) -> (name.toLowerCase()).endsWith(".rtf") || (name.toLowerCase()).endsWith(".asm") || (name.toLowerCase()).endsWith(".s") || (name.toLowerCase()).endsWith(".txt") || (name.toLowerCase()).endsWith(".pdf") || (name.toLowerCase()).endsWith(".jpg") || (name.toLowerCase()).endsWith(".jpeg") || (name.toLowerCase()).endsWith(".png"));
-
-            lbl_current_file_max.setText(String.valueOf(allFiles.size()));
-            allFilesPos = 0;
-
-            //Show first file
-            if(allFiles.size()>0){
-                openMediaFile(allFiles.get(allFilesPos));
-                lbl_current_file.setText(String.valueOf(allFilesPos+1));
-            }
-        });
+        //Show first file
+        if(this.files.size()>0){
+            openMediaFile(this.files.get(allFilesPos));
+            lbl_current_file.setText(String.valueOf(allFilesPos+1));
+        }
 
     }
 
     public void onOpenCurrentDirectory(ActionEvent actionEvent) {
-        this.controller.getSelectedCorrection().ifPresent(c -> DesktopApi.browse(new File(c.getPath()).getParentFile().toURI()));
+        DesktopApi.browse(files.get(allFilesPos).getParentFile().toURI());
     }
 
     public void onFilePrev(ActionEvent actionEvent) {
         int temp = allFilesPos - 1;
         if(temp>=0){
             allFilesPos--;
-            openMediaFile(allFiles.get(allFilesPos));
+            openMediaFile(files.get(allFilesPos));
             lbl_current_file.setText(String.valueOf(allFilesPos+1));
         }
     }
 
     public void onFileNext(ActionEvent actionEvent) {
         int temp = allFilesPos + 1;
-        if(temp<=allFiles.size()-1){
+        if(temp<=files.size()-1){
             allFilesPos++;
-            openMediaFile(allFiles.get(allFilesPos));
+            openMediaFile(files.get(allFilesPos));
             lbl_current_file.setText(String.valueOf(allFilesPos+1));
         }
     }
 
     private void openMediaFile(File file){
         p_media.getChildren().clear();
-        switch(getFileExtension(file)){
-            case ".pdf": openPDF(file); break;
-            case ".jpg":
-            case ".jpeg":
-            case ".png": openImage(file); break;
-            case ".asm":
-            case".s": openText(file, "text/plain"); break;
-            case ".txt":
-            default:
-                try {
-                    openText(file, Files.probeContentType(Paths.get(file.getAbsolutePath())));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-        }
+        try {
+            String mimeType = Files.probeContentType(Paths.get(file.toURI()));
+            switch (mimeType){
+                case "application/pdf": openPDF(file); break;
+                case "image/bmp":
+                case "image/gif":
+                case "image/jpeg":
+                case "image/png":
+                case "image/svg+xml":
+                case "image/tiff": openImage(file); break;
+                case "text/css":
+                case "text/html":
+                case "text/javascript":
+                case "text/plain":
+                case "text/richtext":
+                case "text/rtf":
+                case "text/tab-separated-values":
+                case "text/comma-separated-values":
+                case "text/xml":
+                default: openText(file,mimeType);
+            }
+        } catch (IOException ignored) {}
     }
 
     private void openPDF(File file) {
@@ -134,21 +128,7 @@ public class MediaViewController {
         return name.substring(lastIndexOf);
     }
 
-
-    public void listFiles(String directoryName, ArrayList<File> files, FilenameFilter fnf) {
-        File directory = new File(directoryName);
-        File[] fList = directory.listFiles((dir, name) -> !name.contains("__MACOSX"));
-
-        files.addAll(Arrays.stream(Objects.requireNonNull(directory.listFiles(fnf))).filter(file -> !file.getName().contains("bewertung")).collect(Collectors.toList()));
-
-        if(fList != null)
-            for (File file : fList) {
-                if (!file.isFile()) {
-                    if (file.isDirectory()) {
-                        listFiles(file.getAbsolutePath(), files, fnf);
-                    }
-                }
-            }
+    public void onReloadFile(ActionEvent actionEvent) {
+        openMediaFile(files.get(allFilesPos));
     }
-
 }
