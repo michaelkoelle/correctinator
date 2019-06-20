@@ -26,9 +26,9 @@ jobs:
 
     steps:
       - checkout
-      - run: git submodule sync
-      - run: git submodule update --init
-      - run: git fetch -t
+      #- run: git submodule sync
+      #- run: git submodule update --init
+      #- run: git fetch -t
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -54,9 +54,9 @@ jobs:
             mkdir ~/correctinator/workspace
             echo "$VERSION" > workspace/version
           name: Read version from maven
-      - run:
-          command: |
-            (git log $(git describe --tags --abbrev=0)..HEAD --oneline) > workspace/changes
+      #- run:
+      #    command: |
+      #     (git log $(git describe --tags --abbrev=0)..HEAD --oneline) > workspace/changes
       - run: mvn clean install
       - store_artifacts:
           path: artifacts/
@@ -85,7 +85,7 @@ jobs:
       - github-release/create:
           tag: $VERSION
           title: v$VERSION
-          description: This release is version v$VERSION \n##Changes since last release:\n$CHANGES.
+          description: This release is version v$VERSION #$CHANGES.
           file-path: ~/correctinator/workspace/artifacts/
           pre-release: true
 
