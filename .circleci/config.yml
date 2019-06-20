@@ -71,7 +71,7 @@ jobs:
     steps:
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
-          at: /workspace
+          at: ~/correctinator/workspace
       - run:
           command: |
             VERSION=$(cat /workspace/version)
