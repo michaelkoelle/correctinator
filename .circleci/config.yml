@@ -57,4 +57,4 @@ jobs:
           tag: ${VERSION}
           title: v${VERSION}
           description: This release is version v${VERSION}.
-          file-path: /tmp/artifacts/
+          file-path: artifacts/
