@@ -26,7 +26,8 @@ jobs:
 
     steps:
       - checkout
-      - run: git fetch --depth=500
+      - run: git submodule sync
+      - run: git submodule update --init
       # Download and cache dependencies
       - restore_cache:
           keys:
