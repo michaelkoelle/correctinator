@@ -85,7 +85,7 @@ jobs:
           tag: $VERSION
           title: v$VERSION
           description: This release is version v$VERSION.
-          file-path: ~/correctinator/workspace/artifacts
+          file-path: ~/correctinator/workspace/artifacts/
           pre-release: true
 
 workflows:
