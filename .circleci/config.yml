@@ -74,7 +74,7 @@ jobs:
           at: ~/correctinator/workspace
       - run:
           command: |
-            VERSION=$(cat /workspace/version)
+            VERSION=$(cat ~/correctinator/workspace/version)
             echo $VERSION
           name: Getting version from build-phase
       - github-release/create:
