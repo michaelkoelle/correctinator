@@ -9,8 +9,8 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      #- image: circleci/openjdk:latest
-      - image: circleci/golang:latest
+      - image: circleci/openjdk:latest
+      #- image: circleci/golang:latest
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
@@ -25,12 +25,6 @@ jobs:
     #executor: github-release/default
 
     steps:
-      - github-release/create:
-          tag: ${VERSION}
-          title: v${VERSION}
-          description: This release is version v${VERSION}.
-          file-path: artifacts/
-          pre-release: true
       - checkout
 
       # Download and cache dependencies
@@ -55,16 +49,27 @@ jobs:
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
           path: artifacts/
 
+  release:
+    docker:
+      # specify the version you desire here
+      - image: circleci/openjdk:latest
+
+    working_directory: ~/correctinator
+
+    environment:
+      # Customize the JVM maximum heap limit
+      MAVEN_OPTS: -Xmx3200m
+    steps:
+      - checkout
       - run:
           command: |
             VERSION=$(mvn -s .circleci/settings.xml -q \
               -Dexec.executable="echo" -Dexec.args='${project.version}' \
               --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
             echo "Releasing $VERSION"
-
-        #workaround
-      #- run: sudo apt install golang-go
-      #- run: export GOPATH=~/go
-      #- run: export PATH=$PATH:$GOPATH/bin
-      #- run: go get github.com/aktau/github-release github.com/tcnksm/ghr
-
+      - github-release/create:
+          tag: ${VERSION}
+          title: v${VERSION}
+          description: This release is version v${VERSION}.
+          file-path: artifacts/
+          pre-release: true
