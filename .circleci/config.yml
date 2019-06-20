@@ -49,24 +49,20 @@ jobs:
             VERSION=$(mvn -s .circleci/settings.xml -q \
               -Dexec.executable="echo" -Dexec.args='${project.version}' \
               --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
-            mkdir workspace
-            mkdir workspace/artifacts
+            mkdir ~/correctinator/workspace
+            mkdir ~/correctinator/workspace/artifacts
             echo "$VERSION" > workspace/version
           name: Read version from maven
 
       - run: mvn clean install
       - store_artifacts:
           path: artifacts/
-          destination: workspace/artifacts/
-
-      - store_artifacts:
-          path: artifacts/
-          destination: workspace/
+          destination: ~/correctinator/workspace/artifacts/
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
           # taken to be the root directory of the workspace.
-          root: workspace
+          root: ~/correctinator/workspace
           # Must be relative path from root
           paths:
             - artifacts/correctinator-v0.1.0.jar
