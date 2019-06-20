@@ -52,7 +52,9 @@ jobs:
             mkdir ~/correctinator/workspace
             echo "$VERSION" > workspace/version
           name: Read version from maven
-
+      - run:
+          command: |
+            (git log $(git describe --tags --abbrev=0)..HEAD --oneline) > workspace/changes
       - run: mvn clean install
       - store_artifacts:
           path: artifacts/
@@ -75,13 +77,13 @@ jobs:
       - run:
           command: |
             echo 'export VERSION=$(cat ~/correctinator/workspace/version)' >> $BASH_ENV
-            echo $VERSION
-          name: Getting version from build-phase
+            echo 'export CHANGES=$(cat ~/correctinator/workspace/changes)' >> $BASH_ENV
+          name: Getting version and changes from build-phase
 
       - github-release/create:
           tag: $VERSION
           title: v$VERSION
-          description: This release is version v$VERSION.
+          description: This release is version v$VERSION \n##Changes since last release:\n$CHANGES.
           file-path: ~/correctinator/workspace/artifacts/
           pre-release: true
 
