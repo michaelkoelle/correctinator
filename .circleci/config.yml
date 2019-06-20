@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - checkout
-
+      - run: git fetch --all
       # Download and cache dependencies
       - restore_cache:
           keys:
