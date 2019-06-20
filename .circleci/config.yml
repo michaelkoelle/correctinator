@@ -47,41 +47,40 @@ jobs:
       - run: mvn clean install
       - store_artifacts:
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: artifacts/
+          path: workspace/artifacts/
 
-  deploy:
-    executor: github-release/default
-    working_directory: ~/correctinator
-
-    environment:
-      # Customize the JVM maximum heap limit
-      MAVEN_OPTS: -Xmx3200m
-    steps:
-      - checkout
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "pom.xml" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: mvn dependency:go-offline
-
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: v1-dependencies-{{ checksum "pom.xml" }}
       - run:
           command: |
             VERSION=$(mvn -s .circleci/settings.xml -q \
               -Dexec.executable="echo" -Dexec.args='${project.version}' \
               --non-recursive org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
-            echo "Releasing $VERSION"
-          name: Read Version from Maven
+            echo "$VERSION" > workspace/version
+          name: Read version from maven
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is
+          # taken to be the root directory of the workspace.
+          root: workspace
+          # Must be relative path from root
+          paths:
+            - artifacts
+            - version
+  deploy:
+    executor: github-release/default
+    working_directory: ~/correctinator
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: /tmp/workspace
+      - run:
+          command: |
+            VERSION=$(cat /temp/workspace/version)
+            echo $VERSION
+          name: Getting version from build-phase
       - github-release/create:
-          tag: ${VERSION}
-          title: v${VERSION}
-          description: This release is version v${VERSION}.
+          tag: $VERSION
+          title: v$VERSION
+          description: This release is version v$VERSION.
           file-path: artifacts/
           pre-release: true
 
