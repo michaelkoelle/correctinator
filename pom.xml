@@ -165,7 +165,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <outputDirectory>artifacts</outputDirectory>
+                    <outputDirectory>workspace/artifacts</outputDirectory>
                     <archive>
                         <manifest>
                             <mainClass>com.koellemichael.Main</mainClass>
