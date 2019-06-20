@@ -58,21 +58,20 @@ jobs:
       MAVEN_OPTS: -Xmx3200m
     steps:
       - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: mvn dependency:go-offline
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
       - run:
-          # Download and cache dependencies
-          - restore_cache:
-              keys:
-                - v1-dependencies-{{ checksum "pom.xml" }}
-                # fallback to using the latest cache if no exact match is found
-                - v1-dependencies-
-
-          - run: mvn dependency:go-offline
-
-          - save_cache:
-              paths:
-                - ~/.m2
-              key: v1-dependencies-{{ checksum "pom.xml" }}
-
           command: |
             VERSION=$(mvn -s .circleci/settings.xml -q \
               -Dexec.executable="echo" -Dexec.args='${project.version}' \
