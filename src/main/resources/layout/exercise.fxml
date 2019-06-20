@@ -20,7 +20,7 @@
                   <Insets left="10.0" right="30.0" />
                </HBox.margin>
             </Label>
-            <Spinner fx:id="sp_rating" prefHeight="25.0" prefWidth="61.0" />
+            <Spinner fx:id="sp_rating" editable="true" prefHeight="25.0" prefWidth="61.0" />
             <Label text="/">
                <font>
                   <Font size="16.0" />
