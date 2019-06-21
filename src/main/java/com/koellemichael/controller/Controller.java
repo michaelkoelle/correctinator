@@ -21,6 +21,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -529,16 +531,44 @@ public class Controller{
 
     public void onDone(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
+
             try {
                 RatingFileParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             if (c.getState() == Correction.CorrectionState.TODO) {
                 c.setState(Correction.CorrectionState.FINISHED);
             }
-            tv_corrections.getSelectionModel().selectNext();
+
+            if(tv_corrections.getItems().indexOf(c) == tv_corrections.getItems().size()-1){
+                corrections.filtered(correction -> (correction.getState() == Correction.CorrectionState.TODO || correction.getState() == Correction.CorrectionState.MARKED_FOR_LATER)).stream().findFirst().ifPresent(obj -> {
+                    tv_corrections.getSelectionModel().select(obj);
+                    int index = tv_corrections.getItems().indexOf(obj);
+                    scrollToIndex(index, 3);
+                });
+            }else{
+                tv_corrections.getSelectionModel().selectNext();
+                int index = tv_corrections.getSelectionModel().getSelectedIndex();
+                scrollToIndex(index, 1);
+            }
+
         });
+    }
+
+    private void scrollToIndex(int index, double topFactor) {
+        TableViewSkin<?> ts = (TableViewSkin<?>) tv_corrections.getSkin();
+        VirtualFlow<?> vf = (VirtualFlow<?>)ts.getChildren().get(1);
+
+        int first = vf.getFirstVisibleCell().getIndex();
+        int last = vf.getLastVisibleCell().getIndex();
+
+        int scrollIndex = (int)(index - ((last - first)/topFactor));
+        if(scrollIndex >= 0 && (index > last || index < first)) {
+
+            tv_corrections.scrollTo(scrollIndex);
+        }
     }
 
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
