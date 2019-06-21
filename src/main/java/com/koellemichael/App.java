@@ -18,7 +18,7 @@ public class App extends Application {
         double width = primaryScreenBounds.getWidth() / 1.2;
         double height = primaryScreenBounds.getHeight() / 1.2;
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/sample.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/main.fxml"));
         Parent root = loader.load();
         Controller controller = loader.getController();
         controller.initialize(primaryStage);
