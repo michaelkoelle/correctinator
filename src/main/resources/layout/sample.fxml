@@ -22,7 +22,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<SplitPane fx:id="split_main" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
+<SplitPane fx:id="split_main" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
    <items>
       <BorderPane>
          <top>
@@ -34,19 +34,19 @@
                         <items>
                           <MenuItem fx:id="mi_open_corrections" mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen">
                                  <accelerator>
-                                    <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                    <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                                  </accelerator></MenuItem>
                               <MenuItem fx:id="mi_save_current_correction" mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern">
                                  <accelerator>
-                                    <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                    <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                                  </accelerator></MenuItem>
                               <MenuItem fx:id="mi_export_zip" mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren">
                                  <accelerator>
-                                    <KeyCodeCombination alt="UP" code="E" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                    <KeyCodeCombination alt="UP" code="E" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                                  </accelerator></MenuItem>
                               <MenuItem fx:id="mi_initialize" mnemonicParsing="false" onAction="#onInitializeCommentSection" text="Kommentarfeld initialisieren">
                                  <accelerator>
-                                    <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                                    <KeyCodeCombination alt="UP" code="I" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                                  </accelerator></MenuItem>
                               <MenuItem mnemonicParsing="false" onAction="#onExit" text="Beenden" />
                         </items>
