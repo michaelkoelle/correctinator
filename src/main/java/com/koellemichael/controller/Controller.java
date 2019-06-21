@@ -120,7 +120,6 @@ public class Controller{
         corrections.addListener((ListChangeListener) c -> {
             while(c.next()){
                 menuDisable();
-
             }
         });
     }
@@ -225,6 +224,9 @@ public class Controller{
                         mediaPane = loader.load();
                         mediaViewController = loader.getController();
                         split_main.getItems().add(mediaPane);
+                        if(!split_main.getDividers().isEmpty()){
+                            split_main.setDividerPositions(0.4);
+                        }
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
