@@ -13,6 +13,7 @@ import com.koellemichael.utils.Utils;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -74,6 +75,7 @@ public class Controller{
     public CheckMenuItem btn_verbose;
     public ScrollPane sb_comments;
     public CheckMenuItem mi_autoscroll_top;
+    public TextArea ta_note;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
@@ -182,6 +184,8 @@ public class Controller{
                     }
                 }
             }
+
+            ta_note.textProperty().unbindBidirectional(c.noteProperty());
         }
 
         if(newSelection instanceof Correction){
@@ -273,6 +277,18 @@ public class Controller{
 
             listFiles(fileDir.getAbsolutePath(), files, ff);
             mediaViewController.initialize(files);
+
+            ta_note.textProperty().bindBidirectional(c.noteProperty());
+            ta_note.textProperty().addListener((observableValue1, s, t1) -> {
+                c.setChanged(true);
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
 
         }
     }
@@ -532,7 +548,23 @@ public class Controller{
 
     public void onMarkForLater(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
-            c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+
+            if(c.getState()== Correction.CorrectionState.MARKED_FOR_LATER){
+                c.setState(Correction.CorrectionState.TODO);
+                ((Button) actionEvent.getSource()).setText("Markieren");
+            }else {
+                c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+                ((Button) actionEvent.getSource()).setText("Markierung entfernen");
+            }
+
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
         });
     }
 

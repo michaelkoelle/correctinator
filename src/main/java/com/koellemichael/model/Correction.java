@@ -19,6 +19,7 @@ public class Correction {
     private SimpleObjectProperty<Exercise> exercise;
     private SimpleBooleanProperty changed;
     private SimpleObjectProperty<CorrectionState> state;
+    private SimpleStringProperty note;
     private ReadOnlyDoubleWrapper rating;
 
     public Correction() {
@@ -31,6 +32,7 @@ public class Correction {
         this.maxPoints = new SimpleDoubleProperty(0);
         this.exercise = new SimpleObjectProperty<>();
         this.changed = new SimpleBooleanProperty(false);
+        this.note = new SimpleStringProperty("");
         this.state = new SimpleObjectProperty<>(CorrectionState.TODO);
         this.rating = new ReadOnlyDoubleWrapper();
     }
@@ -178,5 +180,17 @@ public class Correction {
 
     public void setState(CorrectionState state) {
         this.state.set(state);
+    }
+
+    public String getNote() {
+        return note.get();
+    }
+
+    public SimpleStringProperty noteProperty() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note.set(note);
     }
 }
