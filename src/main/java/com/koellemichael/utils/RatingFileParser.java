@@ -12,6 +12,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -79,6 +80,7 @@ public class RatingFileParser {
             e.setCorrection(c);
             parseExercises(commentSection, e);
             c.setExercise(e);
+
         }else{
             throw new ParseRatingFileException(fileContents);
         }
@@ -128,6 +130,7 @@ public class RatingFileParser {
         }
 
         ratingFileContent += "============ Ende der Kommentare ============\n";
+
         return ratingFileContent;
     }
 
@@ -168,11 +171,8 @@ public class RatingFileParser {
             lastEnd = m.end();
         }
 
-        if(lastEnd != str.length()) {
-            String nonDelim = str.substring(lastEnd);
-            parts.add(lastDelim+nonDelim);
-        }
-
+        String nonDelim = str.substring(lastEnd);
+        parts.add(lastDelim+nonDelim);
 
         return parts.toArray(new String[]{});
     }

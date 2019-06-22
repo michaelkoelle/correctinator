@@ -75,6 +75,11 @@ public class Controller{
     public ScrollPane sb_comments;
     public CheckMenuItem mi_autoscroll_top;
     public TextArea ta_note;
+    public ScrollPane sp_note;
+    public MenuItem mi_set_todo;
+    public MenuItem mi_set_marked;
+    public MenuItem mi_set_finished;
+    public Menu mi_state_change;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
@@ -291,8 +296,11 @@ public class Controller{
 
             if(c.getState() != Correction.CorrectionState.MARKED_FOR_LATER){
                 btn_mark_for_later.setText("Markieren");
+                sp_note.setManaged(false);
             }else {
                 btn_mark_for_later.setText("Markierung entfernen");
+                sp_note.setManaged(true);
+
             }
 
         }
@@ -303,10 +311,12 @@ public class Controller{
             mi_initialize.setDisable(false);
             mi_save_current_correction.setDisable(false);
             mi_export_zip.setDisable(false);
+            mi_state_change.setDisable(false);
         }else{
             mi_initialize.setDisable(true);
             mi_save_current_correction.setDisable(true);
             mi_export_zip.setDisable(true);
+            mi_state_change.setDisable(true);
         }
     }
 
@@ -557,9 +567,11 @@ public class Controller{
             if(c.getState()== Correction.CorrectionState.MARKED_FOR_LATER){
                 c.setState(Correction.CorrectionState.TODO);
                 ((Button) actionEvent.getSource()).setText("Markieren");
+                sp_note.setManaged(false);
             }else {
                 c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
                 ((Button) actionEvent.getSource()).setText("Markierung entfernen");
+                sp_note.setManaged(true);
             }
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
@@ -757,5 +769,53 @@ public class Controller{
 
     public void onToggleAutoscrollTop(ActionEvent actionEvent) {
         preferences.putBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF,((CheckMenuItem)actionEvent.getSource()).isSelected());
+    }
+
+    public void onSetTODO(ActionEvent actionEvent) {
+        getSelectedCorrection().ifPresent(c -> {
+            c.setState(Correction.CorrectionState.TODO);
+            sp_note.setManaged(false);
+            c.setChanged(true);
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+    }
+
+    public void onSetMarked(ActionEvent actionEvent) {
+        getSelectedCorrection().ifPresent(c -> {
+            c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+            sp_note.setManaged(true);
+            c.setChanged(true);
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+    }
+
+    public void onSetFinished(ActionEvent actionEvent) {
+        getSelectedCorrection().ifPresent(c -> {
+            c.setState(Correction.CorrectionState.FINISHED);
+            sp_note.setManaged(false);
+            c.setChanged(true);
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
     }
 }
