@@ -38,8 +38,7 @@ public class RatingFileParser {
                 "Bewertung: (\\d*[.|,]?\\d*).*\\n" +
                 "=============================================\\n" +
                 "Kommentare:\\n" +
-                "(.*)\\n*" +
-                "(?>/\\*(.*)\\*/)*\\n*" +
+                "\\s*(.*\\w|.*?)\\s*(?>/\\*(.*)\\*/)?\\s*" +
                 "============ Ende der Kommentare ============",Pattern.DOTALL | Pattern.MULTILINE);
 
         Correction c = new Correction();
@@ -58,20 +57,18 @@ public class RatingFileParser {
             c.setMaxPoints(extractDoubleFromString(matcher.group(6)));
 
             if(matcher.group(7)!=null){
-                c.setState(Correction.CorrectionState.FINISHED);
+                //c.setState(Correction.CorrectionState.FINISHED);
                 c.setRating(extractDoubleFromString(matcher.group(7)));
             }else {
                 c.setState(Correction.CorrectionState.TODO);
             }
 
-            System.out.println("Group 9: " + matcher.group(9));
             if(matcher.group(9) != null){
                 c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
                 c.setNote(matcher.group(9));
             }
 
             String commentSection = matcher.group(8);
-            System.out.println(commentSection);
 
             //TODO workaround-> richtige lösung finden
             if(commentSection.equals("\n") || commentSection.trim().length() == 0){
@@ -90,7 +87,6 @@ public class RatingFileParser {
     }
 
     public static String buildRatingFile(Correction c){
-        boolean finished = (c.getState() == Correction.CorrectionState.FINISHED);
         boolean marked = (c.getState() == Correction.CorrectionState.MARKED_FOR_LATER);
 
         DecimalFormat format = new DecimalFormat("0.#");
@@ -107,7 +103,7 @@ public class RatingFileParser {
                 "Abgabe-Id: " + c.getId() + "\n" +
                 "Maximalpunktzahl: " + format.format(c.getMaxPoints()) + " Punkte\n" +
                 "=============================================\n" +
-                "Bewertung: " + (finished?format.format(c.getRating()):"") + "\n" +
+                "Bewertung: " + format.format(c.getRating()) + "\n" +
                 "=============================================\n" +
                 "Kommentare:\n";
 

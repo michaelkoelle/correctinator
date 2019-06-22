@@ -13,7 +13,6 @@ import com.koellemichael.utils.Utils;
 import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -279,7 +278,7 @@ public class Controller{
             mediaViewController.initialize(files);
 
             ta_note.textProperty().bindBidirectional(c.noteProperty());
-            ta_note.textProperty().addListener((observableValue1, s, t1) -> {
+            c.noteProperty().addListener((observableValue1, s, t1) -> {
                 c.setChanged(true);
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
                     try {
@@ -289,6 +288,12 @@ public class Controller{
                     }
                 }
             });
+
+            if(c.getState() != Correction.CorrectionState.MARKED_FOR_LATER){
+                btn_mark_for_later.setText("Markieren");
+            }else {
+                btn_mark_for_later.setText("Markierung entfernen");
+            }
 
         }
     }
@@ -556,7 +561,7 @@ public class Controller{
                 c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
                 ((Button) actionEvent.getSource()).setText("Markierung entfernen");
             }
-
+            c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
                 try {
                     RatingFileParser.saveRatingFile(c);
