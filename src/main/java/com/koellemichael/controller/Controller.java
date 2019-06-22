@@ -72,6 +72,8 @@ public class Controller{
     public AnchorPane bp_mid_main;
     public CheckMenuItem btn_fullscreen;
     public CheckMenuItem btn_verbose;
+    public ScrollPane sb_comments;
+    public CheckMenuItem mi_autoscroll_top;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
@@ -114,6 +116,7 @@ public class Controller{
 
         pb_correction.progressProperty().addListener(this::onProgressBarChanged);
         mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false));
+        mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
         btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
@@ -217,6 +220,10 @@ public class Controller{
                         }
                     }
                 }
+            }
+
+            if(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true)){
+                sb_comments.setVvalue(0);
             }
 
             if(!corrections.isEmpty()){
@@ -709,5 +716,9 @@ public class Controller{
 
     public void onToggleVerbose(ActionEvent actionEvent) {
         preferences.putBoolean(PreferenceKeys.VERBOSE_PREF, ((CheckMenuItem)actionEvent.getSource()).isSelected());
+    }
+
+    public void onToggleAutoscrollTop(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF,((CheckMenuItem)actionEvent.getSource()).isSelected());
     }
 }

@@ -22,7 +22,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<SplitPane fx:id="split_main" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
+<SplitPane fx:id="split_main" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
    <items>
       <BorderPane>
          <top>
@@ -63,6 +63,7 @@
                         <Menu mnemonicParsing="false" text="Einstellungen">
                           <items>
                               <CheckMenuItem fx:id="mi_autosave" mnemonicParsing="false" onAction="#onToggleAutosave" text="Autosave" />
+                              <CheckMenuItem fx:id="mi_autoscroll_top" mnemonicParsing="false" onAction="#onToggleAutoscrollTop" selected="true" text="Automatisches Hochscrollen" />
                               <CheckMenuItem fx:id="btn_verbose" mnemonicParsing="false" onAction="#onToggleVerbose" text="Verbose" />
                           </items>
                         </Menu>
@@ -179,7 +180,7 @@
                                     <Insets bottom="5.0" top="5.0" />
                                  </VBox.margin>
                               </HBox>
-                              <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                              <ScrollPane fx:id="sb_comments" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
                                 <content>
                                     <VBox fx:id="vbox_edit">
                                        <padding>
