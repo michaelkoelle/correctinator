@@ -57,8 +57,9 @@ public class RatingFileParser {
             c.setId(matcher.group(5));
             c.setMaxPoints(extractDoubleFromString(matcher.group(6)));
 
-            if(matcher.group(7)!=null){
-                //c.setState(Correction.CorrectionState.FINISHED);
+            System.out.println(matcher.group(7));
+            if(!matcher.group(7).trim().equals("")){
+                c.setState(Correction.CorrectionState.FINISHED);
                 c.setRating(extractDoubleFromString(matcher.group(7)));
             }else {
                 c.setState(Correction.CorrectionState.TODO);
@@ -89,6 +90,7 @@ public class RatingFileParser {
     }
 
     public static String buildRatingFile(Correction c){
+        boolean finished = (c.getState() == Correction.CorrectionState.FINISHED);
         boolean marked = (c.getState() == Correction.CorrectionState.MARKED_FOR_LATER);
 
         DecimalFormat format = new DecimalFormat("0.#");
@@ -105,7 +107,7 @@ public class RatingFileParser {
                 "Abgabe-Id: " + c.getId() + "\n" +
                 "Maximalpunktzahl: " + format.format(c.getMaxPoints()) + " Punkte\n" +
                 "=============================================\n" +
-                "Bewertung: " + format.format(c.getRating()) + "\n" +
+                "Bewertung: " + ((finished)?format.format(c.getRating()):"") + "\n" +
                 "=============================================\n" +
                 "Kommentare:\n";
 

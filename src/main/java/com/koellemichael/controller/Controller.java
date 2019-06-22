@@ -588,15 +588,16 @@ public class Controller{
     public void onDone(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
 
+            if (c.getState() == Correction.CorrectionState.TODO) {
+                c.setState(Correction.CorrectionState.FINISHED);
+            }
+
             try {
                 RatingFileParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            if (c.getState() == Correction.CorrectionState.TODO) {
-                c.setState(Correction.CorrectionState.FINISHED);
-            }
 
             if(tv_corrections.getItems().indexOf(c) == tv_corrections.getItems().size()-1){
                 corrections.filtered(correction -> (correction.getState() == Correction.CorrectionState.TODO || correction.getState() == Correction.CorrectionState.MARKED_FOR_LATER)).stream().findFirst().ifPresent(obj -> {
