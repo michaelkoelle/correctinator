@@ -612,6 +612,10 @@ public class Controller{
                 c.setState(Correction.CorrectionState.FINISHED);
             }
 
+            if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
+                c.setGlobalComment(replaceAutoCommentWithString(c.getGlobalComment(),buildAutoComment(c)));
+            }
+
             try {
                 RatingFileParser.saveRatingFile(c);
             } catch (IOException e) {
