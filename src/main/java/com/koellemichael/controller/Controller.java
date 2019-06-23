@@ -80,6 +80,8 @@ public class Controller{
     public Menu mi_state_change;
     public CheckMenuItem mi_cycle_files;
     public MenuItem mi_save_all;
+    public TextArea ta_global_comment;
+    public AnchorPane global_comment;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
@@ -128,6 +130,9 @@ public class Controller{
         btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
         stateChangeListener = this::onStateChange;
         menuDisable();
+
+        sp_note.setManaged(false);
+        global_comment.setManaged(false);
 
         corrections.addListener((ListChangeListener) c -> {
             while(c.next()){
@@ -189,6 +194,7 @@ public class Controller{
                 }
             }
             ta_note.textProperty().unbindBidirectional(c.noteProperty());
+            ta_global_comment.textProperty().unbindBidirectional(c.globalCommentProperty());
         }
 
         if(newSelection instanceof Correction){
@@ -199,6 +205,7 @@ public class Controller{
             lbl_current_max_points.textProperty().bind(Bindings.convert(c.maxPointsProperty()));
             vbox_edit.getChildren().clear();
 
+            global_comment.setManaged(true);
             //TODO Liste hierarchisch, nicht flatten benutzen
             if(c.getExercise() != null){
                 List<Exercise> list = c.getExercise().getSubExercises().stream().flatMap(Utils::flatten).collect(Collectors.toList());
@@ -287,6 +294,18 @@ public class Controller{
 
             ta_note.textProperty().bindBidirectional(c.noteProperty());
             c.noteProperty().addListener((observableValue1, s, t1) -> {
+                c.setChanged(true);
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            ta_global_comment.textProperty().bindBidirectional(c.globalCommentProperty());
+            c.globalCommentProperty().addListener((observableValue1, s, t1) -> {
                 c.setChanged(true);
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {

@@ -23,7 +23,7 @@ public class RatingFileParser {
     public static Correction parseFile(String path) throws ParseRatingFileException, IOException, FileNotInitializedException {
 
         Pattern p = Pattern.compile(
-                "= Bitte nur Bewertung und Kommentare ändern =\\n" +
+                "(?m)= Bitte nur Bewertung und Kommentare ändern =\\n" +
                 "=============================================\\n" +
                 "========== UniWorx Bewertungsdatei ==========\\n" +
                 "======= diese Datei ist UTF8 encodiert ======\\n" +
@@ -38,7 +38,8 @@ public class RatingFileParser {
                 "Bewertung: (\\d*[.|,]?\\d*).*\\n" +
                 "=============================================\\n" +
                 "Kommentare:\\n" +
-                "\\s*(.*\\w|.*?)\\s*(?>/\\*(.*)\\*/)?\\s*" +
+                //"\\s*(.*\\w|.*?)\\s*(?>/\\*(.*)\\*/)?\\s*" +
+                "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\t\\n]+\\s*))*)*)\\s*(.*?)\\s*(?>\\/\\*(.*)\\*\\/)?\\s*" +
                 "============ Ende der Kommentare ============",Pattern.DOTALL | Pattern.MULTILINE);
 
         Correction c = new Correction();
@@ -63,9 +64,13 @@ public class RatingFileParser {
                 c.setState(Correction.CorrectionState.TODO);
             }
 
-            if(matcher.group(9) != null){
+            if(matcher.group(10) != null){
                 c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
-                c.setNote(matcher.group(9));
+                c.setNote(matcher.group(10));
+            }
+
+            if(matcher.group(9) != null){
+                c.setGlobalComment(matcher.group(9));
             }
 
             String commentSection = matcher.group(8);
@@ -123,7 +128,9 @@ public class RatingFileParser {
             }
         }
 
-
+        if(c.getGlobalComment() != null && c.getGlobalComment().trim().length()>0){
+            ratingFileContent += c.getGlobalComment() + "\n";
+        }
 
         if(marked){
             ratingFileContent += "/*"+ c.getNote() +"*/\n";
