@@ -14,7 +14,7 @@
          <children>
             <Label fx:id="lbl_exercise_name" text="Exercise Name">
                <font>
-                  <Font size="16.0" />
+                  <Font size="17.0" />
                </font>
                <HBox.margin>
                   <Insets left="10.0" right="30.0" />

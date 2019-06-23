@@ -1,6 +1,7 @@
 package com.koellemichael.controller;
 
 import com.koellemichael.utils.DesktopApi;
+import com.koellemichael.utils.PreferenceKeys;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.prefs.Preferences;
 
 public class MediaViewController {
     public StackPane p_media;
@@ -20,11 +22,14 @@ public class MediaViewController {
     public Label lbl_current_file;
     private int allFilesPos;
     private ArrayList<File> files;
+    private Preferences preferences;
 
     public void initialize(ArrayList<File> files){
         this.files = files;
         this.allFilesPos = 0;
-        lbl_current_file_max.setText(String.valueOf(this.files.size()));
+        this.preferences = Preferences.userRoot();
+        this.lbl_current_file_max.setText(String.valueOf(this.files.size()));
+
 
         //Show first file
         if(this.files.size()>0){
@@ -44,6 +49,12 @@ public class MediaViewController {
             allFilesPos--;
             openMediaFile(files.get(allFilesPos));
             lbl_current_file.setText(String.valueOf(allFilesPos+1));
+        }else{
+            if(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF,false)){
+                allFilesPos = files.size()-1;
+                openMediaFile(files.get(allFilesPos));
+                lbl_current_file.setText(String.valueOf(allFilesPos+1));
+            }
         }
     }
 
@@ -53,6 +64,12 @@ public class MediaViewController {
             allFilesPos++;
             openMediaFile(files.get(allFilesPos));
             lbl_current_file.setText(String.valueOf(allFilesPos+1));
+        }else{
+            if(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF,false)){
+                allFilesPos = 0;
+                openMediaFile(files.get(allFilesPos));
+                lbl_current_file.setText(String.valueOf(allFilesPos+1));
+            }
         }
     }
 

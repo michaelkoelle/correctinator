@@ -15,10 +15,12 @@ public class Correction {
     private SimpleStringProperty exerciseSheet;
     private SimpleStringProperty corrector;
     private SimpleStringProperty correctorEmail;
+    private SimpleStringProperty globalComment;
     private SimpleDoubleProperty maxPoints;
     private SimpleObjectProperty<Exercise> exercise;
     private SimpleBooleanProperty changed;
     private SimpleObjectProperty<CorrectionState> state;
+    private SimpleStringProperty note;
     private ReadOnlyDoubleWrapper rating;
 
     public Correction() {
@@ -31,6 +33,8 @@ public class Correction {
         this.maxPoints = new SimpleDoubleProperty(0);
         this.exercise = new SimpleObjectProperty<>();
         this.changed = new SimpleBooleanProperty(false);
+        this.note = new SimpleStringProperty("");
+        this.globalComment = new SimpleStringProperty("");
         this.state = new SimpleObjectProperty<>(CorrectionState.TODO);
         this.rating = new ReadOnlyDoubleWrapper();
     }
@@ -176,7 +180,29 @@ public class Correction {
         return state;
     }
 
-    public void setState(CorrectionState state) {
-        this.state.set(state);
+    public void setState(CorrectionState state) { this.state.set(state); }
+
+    public String getNote() {
+        return note.get();
+    }
+
+    public SimpleStringProperty noteProperty() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note.set(note);
+    }
+
+    public String getGlobalComment() {
+        return globalComment.get();
+    }
+
+    public SimpleStringProperty globalCommentProperty() {
+        return globalComment;
+    }
+
+    public void setGlobalComment(String globalComment) {
+        this.globalComment.set(globalComment);
     }
 }

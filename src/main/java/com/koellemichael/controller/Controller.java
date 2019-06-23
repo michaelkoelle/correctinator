@@ -1,18 +1,16 @@
 package com.koellemichael.controller;
 
 import com.koellemichael.exceptions.FileNotInitializedException;
-import com.koellemichael.exceptions.NoFilesInDirectoryException;
 import com.koellemichael.exceptions.ParseRatingFileException;
-import com.koellemichael.exceptions.RatingFileNotUniqueException;
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
 import com.koellemichael.utils.PreferenceKeys;
 import com.koellemichael.utils.RatingFileParser;
 import com.koellemichael.utils.Utils;
-import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -20,19 +18,22 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.skin.TableViewSkin;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javafx.stage.*;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -70,13 +71,28 @@ public class Controller{
     public AnchorPane bp_mid_main;
     public CheckMenuItem btn_fullscreen;
     public CheckMenuItem btn_verbose;
+    public ScrollPane sb_comments;
+    public CheckMenuItem mi_autoscroll_top;
+    public TextArea ta_note;
+    public ScrollPane sp_note;
+    public MenuItem mi_set_todo;
+    public MenuItem mi_set_marked;
+    public MenuItem mi_set_finished;
+    public Menu mi_state_change;
+    public CheckMenuItem mi_cycle_files;
+    public MenuItem mi_save_all;
+    public TextArea ta_global_comment;
+    public AnchorPane global_comment;
+    public CheckMenuItem mi_auto_comment;
+    public MenuItem mi_autocomment_settings;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
     private File correctionsDirectory;
     private Preferences preferences;
     private MediaViewController mediaViewController;
-    private Pane mediaPane;
+    private ChangeListener<Correction.CorrectionState> stateChangeListener;
+    private ChangeListener<Number> ratingChangeListener;
 
     public void initialize(Stage primaryStage){
         this.primaryStage = primaryStage;
@@ -110,52 +126,57 @@ public class Controller{
         tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
         tv_corrections.getSelectionModel().clearSelection();
 
-        pb_correction.progressProperty().addListener(this::onProgressBarChanged);
-        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false));
+        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, true));
+        mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
+        mi_cycle_files.setSelected(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF, false));
+        mi_auto_comment.setSelected(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true));
         btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
+        stateChangeListener = this::onStateChange;
         menuDisable();
+
+        sp_note.setManaged(false);
+        global_comment.setManaged(false);
 
         corrections.addListener((ListChangeListener) c -> {
             while(c.next()){
                 menuDisable();
-
             }
         });
+
+        primaryStage.setOnCloseRequest(this::closeWindowEvent);
     }
 
     public void onOpenDirectory(ActionEvent actionEvent) {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Abgaben öffnen");
         correctionsDirectory = chooser.showDialog(primaryStage);
+        reloadRatingFiles();
 
-        try {
-            reloadRatingFiles();
+        if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
+            showImportSummary();
+        }
 
-            if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
-                showImportSummary();
-            }
+        if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
+            notAllFilesInitializedDialog();
+        }
 
-            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
-                notAllFilesInitializedDialog();
-            }
-
-            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
-                //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
-            }
-
-        } catch (NoFilesInDirectoryException e) {
-            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
-        } catch (FileNotFoundException ignored) {}
+        if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
+            //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
+        }
     }
+
+
 
     private void onSelectionChanged(ObservableValue observableValue, Object oldSelection, Object newSelection){
 
         if(oldSelection instanceof Correction){
             Correction c = (Correction) oldSelection;
+            c.stateProperty().removeListener(stateChangeListener);
+            c.ratingProperty().removeListener(ratingChangeListener);
             if(c.isChanged()){
-                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
                         RatingFileParser.saveRatingFile(c);
                     } catch (IOException e) {
@@ -178,15 +199,19 @@ public class Controller{
                     }
                 }
             }
+            ta_note.textProperty().unbindBidirectional(c.noteProperty());
+            ta_global_comment.textProperty().unbindBidirectional(c.globalCommentProperty());
         }
 
         if(newSelection instanceof Correction){
             Correction c = (Correction) newSelection;
+            c.stateProperty().addListener(stateChangeListener);
             lbl_current_id.textProperty().bind(c.idProperty());
             lbl_current_rating.textProperty().bind(Bindings.convert(c.ratingProperty()));
             lbl_current_max_points.textProperty().bind(Bindings.convert(c.maxPointsProperty()));
             vbox_edit.getChildren().clear();
 
+            global_comment.setManaged(true);
             //TODO Liste hierarchisch, nicht flatten benutzen
             if(c.getExercise() != null){
                 List<Exercise> list = c.getExercise().getSubExercises().stream().flatMap(Utils::flatten).collect(Collectors.toList());
@@ -196,7 +221,11 @@ public class Controller{
                         try {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exercise.fxml"));
                             Pane p = loader.load();
-                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
+                            int top = 0;
+                            if(e.getDepth()==1){
+                                top = 20;
+                            }
+                            p.setPadding(new Insets(top,0,0,(e.getDepth()-1)*40));
                             ExerciseRatingController controller = loader.getController();
                             controller.initialize((ExerciseRating)e);
                             vbox_edit.getChildren().add(p);
@@ -207,7 +236,11 @@ public class Controller{
                         try {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exerciselabel.fxml"));
                             Pane p = loader.load();
-                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
+                            int top = 0;
+                            if(e.getDepth()==1){
+                                top = 20;
+                            }
+                            p.setPadding(new Insets(top,0,0,(e.getDepth()-1)*40));
                             ExerciseLabelController controller = loader.getController();
                             controller.initialize(e);
                             vbox_edit.getChildren().add(p);
@@ -218,13 +251,20 @@ public class Controller{
                 }
             }
 
+            if(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true)){
+                sb_comments.setVvalue(0);
+            }
+
             if(!corrections.isEmpty()){
                 try {
                     if (split_main.getItems().size() <= 1) {
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/mediaview.fxml"));
-                        mediaPane = loader.load();
+                        Pane mediaPane = loader.load();
                         mediaViewController = loader.getController();
                         split_main.getItems().add(mediaPane);
+                        if(!split_main.getDividers().isEmpty()){
+                            split_main.setDividerPositions(0.4);
+                        }
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -234,6 +274,9 @@ public class Controller{
             ArrayList<File> files = new ArrayList<>();
             File fileDir = new File(c.getPath()).getParentFile();
             FileFilter ff = (file) ->{
+                if(file.getName().contains("bewertung")){
+                    return false;
+                }
                 try {
                     String mimeType = Files.probeContentType(Paths.get(file.toURI()));
                     switch (mimeType){
@@ -260,9 +303,56 @@ public class Controller{
                 }
             };
 
-            listFiles(fileDir.getAbsolutePath(), files, ff);
+            listFiles(fileDir.getAbsolutePath(), files, ff, dir -> !dir.getName().contains("__MACOSX"));
             mediaViewController.initialize(files);
 
+            ta_note.textProperty().bindBidirectional(c.noteProperty());
+            c.noteProperty().addListener((observableValue1, s, t1) -> {
+                c.setChanged(true);
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            ta_global_comment.textProperty().bindBidirectional(c.globalCommentProperty());
+            c.globalCommentProperty().addListener((observableValue1, s, t1) -> {
+                c.setChanged(true);
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            if(c.getState() != Correction.CorrectionState.MARKED_FOR_LATER){
+                btn_mark_for_later.setText("Markieren");
+                sp_note.setManaged(false);
+            }else {
+                btn_mark_for_later.setText("Markierung entfernen");
+                sp_note.setManaged(true);
+
+            }
+
+            ratingChangeListener = (observable, oldValue, newValue) -> {
+                if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
+                    c.setGlobalComment(replaceAutoCommentWithString(c.getGlobalComment(),buildAutoComment(c)));
+                }
+            };
+            c.ratingProperty().addListener(ratingChangeListener);
+
+        }
+    }
+
+    public void onStateChange(ObservableValue<? extends Correction.CorrectionState> observable, Correction.CorrectionState oldValue, Correction.CorrectionState newValue) {
+
+        if(corrections.filtered(correction -> correction.getState() != Correction.CorrectionState.FINISHED).isEmpty()){
+            suggestCreatingZip();
         }
     }
 
@@ -271,16 +361,14 @@ public class Controller{
             mi_initialize.setDisable(false);
             mi_save_current_correction.setDisable(false);
             mi_export_zip.setDisable(false);
+            mi_state_change.setDisable(false);
+            mi_save_all.setDisable(false);
         }else{
             mi_initialize.setDisable(true);
             mi_save_current_correction.setDisable(true);
             mi_export_zip.setDisable(true);
-        }
-    }
-
-    public void onProgressBarChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-        if(newValue.doubleValue() == 1.0){
-            suggestCreatingZip();
+            mi_state_change.setDisable(true);
+            mi_save_all.setDisable(true);
         }
     }
 
@@ -299,22 +387,6 @@ public class Controller{
             }
         });
     }
-
-    public File getRatingFileFromDirectory(File directory) throws FileNotFoundException, RatingFileNotUniqueException {
-        File[] ratings = directory.listFiles((dir, name) -> name.matches("bewertung_[0-9]+\\.txt"));
-
-        if (ratings != null && ratings.length>0) {
-            if(ratings.length>1){
-                throw new RatingFileNotUniqueException(directory);
-            }
-            return ratings[0];
-
-        }else{
-            throw new FileNotFoundException();
-        }
-    }
-
-
 
     private void showImportSummary(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -347,13 +419,7 @@ public class Controller{
             }
         });
 
-        try {
-            reloadRatingFiles();
-        } catch (NoFilesInDirectoryException e) {
-            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
-        } catch (FileNotFoundException e) {
-            errorDialog("Verzeichnisfehler", "Das ausgewählte Verzeichnis existiert nicht mehr");
-        }
+        reloadRatingFiles();
     }
 
     private void initializeCommentSectionDialog(List<Correction> notInitialized){
@@ -430,17 +496,20 @@ public class Controller{
         });
     }
 
-    public void reloadRatingFiles() throws NoFilesInDirectoryException, FileNotFoundException {
+    public void reloadRatingFiles(){
         if(correctionsDirectory != null){
-            File[] correctionDirectories = correctionsDirectory.listFiles((dir, name) -> name.matches("[0-9]+"));
+            Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
+            ArrayList<File> ratingFiles = new ArrayList<>();
+            listFiles(correctionsDirectory.getAbsolutePath(),ratingFiles,file-> file.getName().matches(ratingFilePattern.pattern()), dir ->!dir.getName().contains("__MACOSX"));
 
-            if (correctionDirectories != null && correctionDirectories.length>0) {
+            if(!ratingFiles.isEmpty()){
                 tv_corrections.getItems().clear();
                 corrections.clear();
 
-                for (File correctionDirectory : correctionDirectories) {
-                    try {
-                        File ratingFile = getRatingFileFromDirectory(correctionDirectory);
+                ratingFiles.forEach(ratingFile ->{
+                    Matcher m = ratingFilePattern.matcher(ratingFile.getName());
+                    if(m.find()){
+                        String id = m.group(1);
                         Correction c;
                         try {
                             c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
@@ -448,21 +517,16 @@ public class Controller{
                             c = new Correction();
                             c.setState(Correction.CorrectionState.PARSE_ERROR);
                             c.setPath(ratingFile.getAbsolutePath());
-                            c.setId(correctionDirectory.getName());
+                            c.setId(id);
                         } catch (FileNotInitializedException e) {
                             c = new Correction();
                             c.setState(Correction.CorrectionState.NOT_INITIALIZED);
                             c.setPath(ratingFile.getAbsolutePath());
-                            c.setId(correctionDirectory.getName());
+                            c.setId(id);
                         }
                         corrections.add(c);
-
-                    } catch (FileNotFoundException e) {
-                        errorDialog("Bewertungsdatei nicht gefunden","Die Bewertungsdatei konnte im Verzeichnis \"" + correctionDirectory.getAbsolutePath() + "\" nicht gefunden werden!");
-                    } catch (RatingFileNotUniqueException e) {
-                        errorDialog("Mehrere Bewertungsdateien", "Es befinden sich mehrere Bewertungsdateien im Verzeichnis\"" + correctionDirectory.getAbsolutePath() + "\"!");
                     }
-                }
+                });
 
                 if(corrections != null && corrections.size() > 0){
                     tv_corrections.setItems(corrections);
@@ -480,10 +544,8 @@ public class Controller{
                     tv_corrections.getSelectionModel().selectFirst();
                 }
             }else{
-                throw new NoFilesInDirectoryException(correctionsDirectory);
+                errorDialog("Abgaben nicht gefunden","Es konnten keine Abgaben gefunden werden!");
             }
-        }else{
-            throw new FileNotFoundException();
         }
     }
 
@@ -521,22 +583,65 @@ public class Controller{
 
     public void onMarkForLater(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
-            c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+
+            if(c.getState()== Correction.CorrectionState.MARKED_FOR_LATER){
+                c.setState(Correction.CorrectionState.TODO);
+                ((Button) actionEvent.getSource()).setText("Markieren");
+                sp_note.setManaged(false);
+            }else {
+                c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+                ((Button) actionEvent.getSource()).setText("Markierung entfernen");
+                sp_note.setManaged(true);
+            }
+            c.setChanged(true);
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
         });
     }
 
     public void onDone(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
+
+            if (c.getState() == Correction.CorrectionState.TODO) {
+                c.setState(Correction.CorrectionState.FINISHED);
+            }
+
             try {
                 RatingFileParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (c.getState() == Correction.CorrectionState.TODO) {
-                c.setState(Correction.CorrectionState.FINISHED);
+
+
+            if(tv_corrections.getItems().indexOf(c) == tv_corrections.getItems().size()-1){
+                showUnfinishedCorrection();
+            }else{
+                tv_corrections.getSelectionModel().selectNext();
+                int index = tv_corrections.getSelectionModel().getSelectedIndex();
+                scrollToIndex(index, 1);
             }
-            tv_corrections.getSelectionModel().selectNext();
+
         });
+    }
+
+    private void scrollToIndex(int index, double topFactor) {
+        TableViewSkin<?> ts = (TableViewSkin<?>) tv_corrections.getSkin();
+        VirtualFlow<?> vf = (VirtualFlow<?>)ts.getChildren().get(1);
+
+        int first = vf.getFirstVisibleCell().getIndex();
+        int last = vf.getLastVisibleCell().getIndex();
+
+        int scrollIndex = (int)(index - ((last - first)/topFactor));
+        if(scrollIndex >= 0 && (index > last || index < first)) {
+
+            tv_corrections.scrollTo(scrollIndex);
+        }
     }
 
     private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
@@ -568,17 +673,19 @@ public class Controller{
         fis.close();
     }
 
-    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter) {
+    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter, FileFilter dirFilter) {
         File directory = new File(directoryName);
-        File[] fList = directory.listFiles((dir, name) -> !name.contains("__MACOSX"));
+        File[] fList = directory.listFiles(dirFilter);
 
-        files.addAll(Arrays.stream(Objects.requireNonNull(directory.listFiles(fileFilter))).filter(file -> !file.getName().contains("bewertung")).collect(Collectors.toList()));
+        if(directory.listFiles(fileFilter) != null){
+            files.addAll(Arrays.stream(directory.listFiles(fileFilter)).collect(Collectors.toList()));
+        }
 
         if(fList != null) {
             for (File file : fList) {
                 if (!file.isFile()) {
                     if (file.isDirectory()) {
-                        listFiles(file.getAbsolutePath(), files, fileFilter);
+                        listFiles(file.getAbsolutePath(), files, fileFilter, dirFilter);
                     }
                 }
             }
@@ -635,7 +742,41 @@ public class Controller{
     }
 
     public void onExportAsZIP(ActionEvent actionEvent) {
-        exportAsZipWithFileChooser();
+        if(corrections.filtered(c -> (c.getState() != Correction.CorrectionState.FINISHED)).isEmpty()){
+            exportAsZipWithFileChooser();
+        }else{
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unfertige Abgaben");
+            alert.setHeaderText("Einige Abgaben sind noch noch nicht fertig korrigiert oder beinhalten Fehler.");
+            alert.setContentText("Möchten Sie die Abgaben trotzdem exportieren?");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK){
+                corrections.forEach(c -> {
+                    try {
+                        if(c.getState()== Correction.CorrectionState.TODO || c.getState() == Correction.CorrectionState.MARKED_FOR_LATER){
+                            c.setState(Correction.CorrectionState.FINISHED);
+                            RatingFileParser.saveRatingFile(c);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            if(result.isPresent() && result.get()==ButtonType.CANCEL){
+                showUnfinishedCorrection();
+            }
+        }
+
+    }
+
+    private void showUnfinishedCorrection() {
+        corrections.filtered(correction -> (correction.getState() != Correction.CorrectionState.FINISHED)).stream().findFirst().ifPresent(obj -> {
+            tv_corrections.getSelectionModel().select(obj);
+            int index = tv_corrections.getItems().indexOf(obj);
+            scrollToIndex(index, 3);
+        });
     }
 
     public void onSaveCorrection(ActionEvent actionEvent) {
@@ -671,11 +812,182 @@ public class Controller{
     }
 
     public void onExit(ActionEvent actionEvent) {
-        Platform.exit();
-        System.exit(0);
+        Window window = primaryStage.getScene().getWindow();
+        window.fireEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSE_REQUEST));
     }
 
     public void onToggleVerbose(ActionEvent actionEvent) {
         preferences.putBoolean(PreferenceKeys.VERBOSE_PREF, ((CheckMenuItem)actionEvent.getSource()).isSelected());
+    }
+
+    public void onToggleAutoscrollTop(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF,((CheckMenuItem)actionEvent.getSource()).isSelected());
+    }
+
+    public void onSetTODO(ActionEvent actionEvent) {
+        getSelectedCorrection().ifPresent(c -> {
+            c.setState(Correction.CorrectionState.TODO);
+            sp_note.setManaged(false);
+            c.setChanged(true);
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+    }
+
+    public void onSetMarked(ActionEvent actionEvent) {
+        getSelectedCorrection().ifPresent(c -> {
+            c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+            sp_note.setManaged(true);
+            c.setChanged(true);
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+    }
+
+    public void onSetFinished(ActionEvent actionEvent) {
+        getSelectedCorrection().ifPresent(c -> {
+            c.setState(Correction.CorrectionState.FINISHED);
+            sp_note.setManaged(false);
+            c.setChanged(true);
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                try {
+                    RatingFileParser.saveRatingFile(c);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        });
+    }
+
+    private void closeWindowEvent(WindowEvent event) {
+        List<Correction> changedCorrections = new ArrayList<>(corrections.filtered(Correction::isChanged));
+        if(!changedCorrections.isEmpty()){
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                changedCorrections.forEach(c -> {
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                });
+            }else{
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.getButtonTypes().add(ButtonType.CLOSE);
+                alert.setTitle("Änderungen nicht gespeichert");
+                alert.setHeaderText(changedCorrections.size() + " Abgabe(n) wurden noch nicht gespeichert.");
+                alert.setContentText("Möchten sie die Abgaben jetzt speichern?");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent() && result.get() == ButtonType.OK){
+                    changedCorrections.forEach(c -> {
+                        try {
+                            RatingFileParser.saveRatingFile(c);
+                        } catch (IOException e) {
+                            errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
+                        }
+                    });
+                }
+                if(result.isPresent() && result.get() == ButtonType.CANCEL){
+                    event.consume();
+                }
+            }
+        }
+    }
+
+    public void onToggleCycleFiles(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.CYCLE_FILES_PREF,((CheckMenuItem) actionEvent.getSource()).isSelected());
+    }
+
+    public void onSaveAllCorrections(ActionEvent actionEvent) {
+        saveAllCorrections();
+    }
+
+    public void saveAllCorrections(){
+        corrections.forEach(c -> {
+            try {
+                RatingFileParser.saveRatingFile(c);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public static String buildAutoComment(Correction c){
+        Preferences preferences = Preferences.userRoot();
+        double percentage = (c.getRating()/c.getMaxPoints())*100;
+
+        if (percentage >= 100) {
+            return preferences.get(PreferenceKeys.COMMENT_100_PREF,"Perfekt!");
+        } else if (percentage > 80) {
+            return preferences.get(PreferenceKeys.COMMENT_80_PREF,"Sehr gut!");
+        } else if (percentage > 60) {
+            return preferences.get(PreferenceKeys.COMMENT_60_PREF,"Gut!");
+        } else if (percentage > 40) {
+            return preferences.get(PreferenceKeys.COMMENT_40_PREF,"");
+        } else if (percentage > 20) {
+            return preferences.get(PreferenceKeys.COMMENT_20_PREF,"");
+        } else if (percentage >= 0) {
+            return preferences.get(PreferenceKeys.COMMENT_0_PREF,"");
+        }
+
+        return "";
+    }
+
+    public String replaceAutoCommentWithString(String comment, String replacement){
+        Preferences preferences = Preferences.userRoot();
+
+        ArrayList<String> targets = new ArrayList<>();
+
+        targets.add(preferences.get(PreferenceKeys.COMMENT_100_PREF, "Perfekt!"));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_80_PREF, "Sehr gut!"));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_60_PREF, "Gut!"));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_40_PREF, ""));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_20_PREF, ""));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_0_PREF, ""));
+
+        Optional<String> res = targets.stream().filter(s -> (comment.contains(s) && !s.trim().equals(""))).findFirst();
+
+        if(res.isPresent()){
+            return comment.replace(res.get(), replacement);
+        }else{
+            if(!comment.trim().equals("")){
+                return comment + "\n" + replacement;
+            }else{
+                return replacement;
+            }
+
+        }
+    }
+
+    public void onAutocommentSettings(ActionEvent actionEvent) {
+        Stage s = new Stage();
+        s.initModality(Modality.APPLICATION_MODAL);
+        s.initOwner(primaryStage);
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/autocomment.fxml"));
+            Pane p = loader.load();
+            AutocommentController controller = loader.getController();
+            controller.initialize(s,corrections);
+            s.setScene(new Scene(p));
+            s.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
