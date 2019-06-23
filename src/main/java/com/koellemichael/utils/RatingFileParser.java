@@ -12,7 +12,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -57,7 +56,6 @@ public class RatingFileParser {
             c.setId(matcher.group(5));
             c.setMaxPoints(extractDoubleFromString(matcher.group(6)));
 
-            System.out.println(matcher.group(7));
             if(!matcher.group(7).trim().equals("")){
                 c.setState(Correction.CorrectionState.FINISHED);
                 c.setRating(extractDoubleFromString(matcher.group(7)));

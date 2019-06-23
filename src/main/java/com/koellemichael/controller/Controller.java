@@ -29,6 +29,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -133,6 +134,8 @@ public class Controller{
                 menuDisable();
             }
         });
+
+        primaryStage.setOnCloseRequest(this::closeWindowEvent);
     }
 
     public void onOpenDirectory(ActionEvent actionEvent) {
@@ -159,6 +162,8 @@ public class Controller{
             errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
         } catch (FileNotFoundException ignored) {}
     }
+
+
 
     private void onSelectionChanged(ObservableValue observableValue, Object oldSelection, Object newSelection){
 
@@ -818,5 +823,41 @@ public class Controller{
             }
 
         });
+    }
+
+    private void closeWindowEvent(WindowEvent event) {
+        List<Correction> changedCorrections = new ArrayList<>(corrections.filtered(Correction::isChanged));
+        if(!changedCorrections.isEmpty()){
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                changedCorrections.forEach(c -> {
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                });
+            }else{
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.getButtonTypes().add(ButtonType.CLOSE);
+                alert.setTitle("Änderungen nicht gespeichert");
+                alert.setHeaderText(changedCorrections.size() + " Abgabe(n) wurden noch nicht gespeichert.");
+                alert.setContentText("Möchten sie die Abgaben jetzt speichern?");
+
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.isPresent() && result.get() == ButtonType.OK){
+                    changedCorrections.forEach(c -> {
+                        try {
+                            RatingFileParser.saveRatingFile(c);
+                        } catch (IOException e) {
+                            errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
+                        }
+                    });
+                }
+                if(result.isPresent() && result.get() == ButtonType.CANCEL){
+                    event.consume();
+                }
+            }
+        }
     }
 }
