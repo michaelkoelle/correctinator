@@ -1,5 +1,6 @@
 package com.koellemichael.controller;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
@@ -32,7 +33,8 @@ public class PDFViewController implements ChangeListener {
         try {
             byte[] data = Files.readAllBytes(Paths.get(pdf.getPath()));
             String base64 = Base64.getEncoder().encodeToString(data);
-            engine.executeScript("openFileFromBase64('" + base64 + "')");
+            Platform.runLater(() -> engine.executeScript("openFileFromBase64('" + base64 + "')"));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
