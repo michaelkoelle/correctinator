@@ -215,7 +215,11 @@ public class Controller{
                         try {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exercise.fxml"));
                             Pane p = loader.load();
-                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
+                            int top = 0;
+                            if(e.getDepth()==1){
+                                top = 20;
+                            }
+                            p.setPadding(new Insets(top,0,0,(e.getDepth()-1)*40));
                             ExerciseRatingController controller = loader.getController();
                             controller.initialize((ExerciseRating)e);
                             vbox_edit.getChildren().add(p);
@@ -226,7 +230,11 @@ public class Controller{
                         try {
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exerciselabel.fxml"));
                             Pane p = loader.load();
-                            p.setPadding(new Insets(0,0,0,(e.getDepth()-1)*40));
+                            int top = 0;
+                            if(e.getDepth()==1){
+                                top = 20;
+                            }
+                            p.setPadding(new Insets(top,0,0,(e.getDepth()-1)*40));
                             ExerciseLabelController controller = loader.getController();
                             controller.initialize(e);
                             vbox_edit.getChildren().add(p);
