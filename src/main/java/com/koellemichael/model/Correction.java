@@ -178,9 +178,7 @@ public class Correction {
         return state;
     }
 
-    public void setState(CorrectionState state) {
-        this.state.set(state);
-    }
+    public void setState(CorrectionState state) { this.state.set(state); }
 
     public String getNote() {
         return note.get();

@@ -12,6 +12,7 @@ import com.koellemichael.utils.RatingFileParser;
 import com.koellemichael.utils.Utils;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -86,6 +87,7 @@ public class Controller{
     private Preferences preferences;
     private MediaViewController mediaViewController;
     private Pane mediaPane;
+    private ChangeListener<Correction.CorrectionState> stateChangeListener;
 
     public void initialize(Stage primaryStage){
         this.primaryStage = primaryStage;
@@ -119,13 +121,13 @@ public class Controller{
         tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
         tv_corrections.getSelectionModel().clearSelection();
 
-        pb_correction.progressProperty().addListener(this::onProgressBarChanged);
         mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, true));
         mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
         mi_cycle_files.setSelected(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF, false));
         btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
+        stateChangeListener = this::onStateChange;
         menuDisable();
 
         corrections.addListener((ListChangeListener) c -> {
@@ -168,6 +170,7 @@ public class Controller{
 
         if(oldSelection instanceof Correction){
             Correction c = (Correction) oldSelection;
+            c.stateProperty().removeListener(stateChangeListener);
             if(c.isChanged()){
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
@@ -198,6 +201,7 @@ public class Controller{
 
         if(newSelection instanceof Correction){
             Correction c = (Correction) newSelection;
+            c.stateProperty().addListener(stateChangeListener);
             lbl_current_id.textProperty().bind(c.idProperty());
             lbl_current_rating.textProperty().bind(Bindings.convert(c.ratingProperty()));
             lbl_current_max_points.textProperty().bind(Bindings.convert(c.maxPointsProperty()));
@@ -307,8 +311,19 @@ public class Controller{
 
             }
 
+
+
+
         }
     }
+
+    public void onStateChange(ObservableValue<? extends Correction.CorrectionState> observable, Correction.CorrectionState oldValue, Correction.CorrectionState newValue) {
+        if(corrections.filtered(correction -> correction.getState() != Correction.CorrectionState.FINISHED).isEmpty()){
+            suggestCreatingZip();
+        }
+    }
+
+
 
     public void menuDisable(){
         if(!corrections.isEmpty()){
@@ -323,12 +338,6 @@ public class Controller{
             mi_export_zip.setDisable(true);
             mi_state_change.setDisable(true);
             mi_save_all.setDisable(true);
-        }
-    }
-
-    public void onProgressBarChanged(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-        if(newValue.doubleValue() == 1.0){
-            suggestCreatingZip();
         }
     }
 
@@ -606,11 +615,7 @@ public class Controller{
 
 
             if(tv_corrections.getItems().indexOf(c) == tv_corrections.getItems().size()-1){
-                corrections.filtered(correction -> (correction.getState() == Correction.CorrectionState.TODO || correction.getState() == Correction.CorrectionState.MARKED_FOR_LATER)).stream().findFirst().ifPresent(obj -> {
-                    tv_corrections.getSelectionModel().select(obj);
-                    int index = tv_corrections.getItems().indexOf(obj);
-                    scrollToIndex(index, 3);
-                });
+                showUnfinishedCorrection();
             }else{
                 tv_corrections.getSelectionModel().selectNext();
                 int index = tv_corrections.getSelectionModel().getSelectedIndex();
@@ -730,7 +735,41 @@ public class Controller{
     }
 
     public void onExportAsZIP(ActionEvent actionEvent) {
-        exportAsZipWithFileChooser();
+        if(corrections.filtered(c -> (c.getState() != Correction.CorrectionState.FINISHED)).isEmpty()){
+            exportAsZipWithFileChooser();
+        }else{
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unfertige Abgaben");
+            alert.setHeaderText("Einige Abgaben sind noch noch nicht fertig korrigiert oder beinhalten Fehler.");
+            alert.setContentText("Möchten Sie die Abgaben trotzdem exportieren?");
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK){
+                corrections.forEach(c -> {
+                    try {
+                        if(c.getState()== Correction.CorrectionState.TODO || c.getState() == Correction.CorrectionState.MARKED_FOR_LATER){
+                            c.setState(Correction.CorrectionState.FINISHED);
+                            RatingFileParser.saveRatingFile(c);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            if(result.isPresent() && result.get()==ButtonType.CANCEL){
+                showUnfinishedCorrection();
+            }
+        }
+
+    }
+
+    private void showUnfinishedCorrection() {
+        corrections.filtered(correction -> (correction.getState() != Correction.CorrectionState.FINISHED)).stream().findFirst().ifPresent(obj -> {
+            tv_corrections.getSelectionModel().select(obj);
+            int index = tv_corrections.getItems().indexOf(obj);
+            scrollToIndex(index, 3);
+        });
     }
 
     public void onSaveCorrection(ActionEvent actionEvent) {
@@ -867,6 +906,10 @@ public class Controller{
     }
 
     public void onSaveAllCorrections(ActionEvent actionEvent) {
+        saveAllCorrections();
+    }
+
+    public void saveAllCorrections(){
         corrections.forEach(c -> {
             try {
                 RatingFileParser.saveRatingFile(c);
