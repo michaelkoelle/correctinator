@@ -18,6 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
@@ -82,6 +83,8 @@ public class Controller{
     public MenuItem mi_save_all;
     public TextArea ta_global_comment;
     public AnchorPane global_comment;
+    public CheckMenuItem mi_auto_comment;
+    public MenuItem mi_autocomment_settings;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
@@ -89,6 +92,7 @@ public class Controller{
     private Preferences preferences;
     private MediaViewController mediaViewController;
     private ChangeListener<Correction.CorrectionState> stateChangeListener;
+    private ChangeListener<Number> ratingChangeListener;
 
     public void initialize(Stage primaryStage){
         this.primaryStage = primaryStage;
@@ -125,6 +129,7 @@ public class Controller{
         mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, true));
         mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
         mi_cycle_files.setSelected(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF, false));
+        mi_auto_comment.setSelected(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true));
         btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
@@ -169,6 +174,7 @@ public class Controller{
         if(oldSelection instanceof Correction){
             Correction c = (Correction) oldSelection;
             c.stateProperty().removeListener(stateChangeListener);
+            c.ratingProperty().removeListener(ratingChangeListener);
             if(c.isChanged()){
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
@@ -332,10 +338,19 @@ public class Controller{
                 sp_note.setManaged(true);
 
             }
+
+            ratingChangeListener = (observable, oldValue, newValue) -> {
+                if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
+                    c.setGlobalComment(replaceAutoCommentWithString(c.getGlobalComment(),buildAutoComment(c)));
+                }
+            };
+            c.ratingProperty().addListener(ratingChangeListener);
+
         }
     }
 
     public void onStateChange(ObservableValue<? extends Correction.CorrectionState> observable, Correction.CorrectionState oldValue, Correction.CorrectionState newValue) {
+
         if(corrections.filtered(correction -> correction.getState() != Correction.CorrectionState.FINISHED).isEmpty()){
             suggestCreatingZip();
         }
@@ -676,26 +691,7 @@ public class Controller{
             }
         }
     }
-/*
-    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter, FileFilter dirFilter) {
-        File directory = new File(directoryName);
-        File[] fList = directory.listFiles((dir, name) -> !name.contains("__MACOSX"));
 
-        if(directory.listFiles(fileFilter) != null){
-            files.addAll(Arrays.stream(directory.listFiles(fileFilter)).filter(file -> !file.getName().contains("bewertung")).collect(Collectors.toList()));
-        }
-
-        if(fList != null) {
-            for (File file : fList) {
-                if (!file.isFile()) {
-                    if (file.isDirectory()) {
-                        listFiles(file.getAbsolutePath(), files, fileFilter);
-                    }
-                }
-            }
-        }
-    }
-*/
     private void exportAsZipWithFileChooser(){
         FileChooser choose = new FileChooser();
         choose.setTitle("Abgaben als Zip speichern");
@@ -928,5 +924,70 @@ public class Controller{
                 e.printStackTrace();
             }
         });
+    }
+
+    public static String buildAutoComment(Correction c){
+        Preferences preferences = Preferences.userRoot();
+        double percentage = (c.getRating()/c.getMaxPoints())*100;
+
+        if (percentage >= 100) {
+            return preferences.get(PreferenceKeys.COMMENT_100_PREF,"Perfekt!");
+        } else if (percentage > 80) {
+            return preferences.get(PreferenceKeys.COMMENT_80_PREF,"Sehr gut!");
+        } else if (percentage > 60) {
+            return preferences.get(PreferenceKeys.COMMENT_60_PREF,"Gut!");
+        } else if (percentage > 40) {
+            return preferences.get(PreferenceKeys.COMMENT_40_PREF,"");
+        } else if (percentage > 20) {
+            return preferences.get(PreferenceKeys.COMMENT_20_PREF,"");
+        } else if (percentage >= 0) {
+            return preferences.get(PreferenceKeys.COMMENT_0_PREF,"");
+        }
+
+        return "";
+    }
+
+    public String replaceAutoCommentWithString(String comment, String replacement){
+        Preferences preferences = Preferences.userRoot();
+
+        ArrayList<String> targets = new ArrayList<>();
+
+        targets.add(preferences.get(PreferenceKeys.COMMENT_100_PREF, "Perfekt!"));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_80_PREF, "Sehr gut!"));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_60_PREF, "Gut!"));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_40_PREF, ""));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_20_PREF, ""));
+        targets.add(preferences.get(PreferenceKeys.COMMENT_0_PREF, ""));
+
+        Optional<String> res = targets.stream().filter(s -> (comment.contains(s) && !s.trim().equals(""))).findFirst();
+
+        if(res.isPresent()){
+            return comment.replace(res.get(), replacement);
+        }else{
+            if(!comment.trim().equals("")){
+                return comment + "\n" + replacement;
+            }else{
+                return replacement;
+            }
+
+        }
+    }
+
+    public void onAutocommentSettings(ActionEvent actionEvent) {
+        Stage s = new Stage();
+        s.initModality(Modality.APPLICATION_MODAL);
+        s.initOwner(primaryStage);
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/autocomment.fxml"));
+            Pane p = loader.load();
+            AutocommentController controller = loader.getController();
+            controller.initialize(s,corrections);
+            s.setScene(new Scene(p));
+            s.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

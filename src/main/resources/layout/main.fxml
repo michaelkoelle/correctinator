@@ -64,6 +64,7 @@
                                  <accelerator>
                                     <KeyCodeCombination alt="UP" code="I" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                                  </accelerator></MenuItem>
+                              <MenuItem fx:id="mi_autocomment_settings" mnemonicParsing="false" onAction="#onAutocommentSettings" text="Autokommentar Einstellungen (Experimental)" />
                               <MenuItem mnemonicParsing="false" onAction="#onExit" text="Beenden" />
                         </items>
                       </Menu>
@@ -81,6 +82,7 @@
                               <CheckMenuItem fx:id="mi_autosave" mnemonicParsing="false" onAction="#onToggleAutosave" text="Autosave" />
                               <CheckMenuItem fx:id="mi_cycle_files" mnemonicParsing="false" onAction="#onToggleCycleFiles" text="Cycle Files" />
                               <CheckMenuItem fx:id="mi_autoscroll_top" mnemonicParsing="false" onAction="#onToggleAutoscrollTop" selected="true" text="Automatisches Hochscrollen" />
+                              <CheckMenuItem fx:id="mi_auto_comment" mnemonicParsing="false" text="Automatischer Kommentar" />
                               <CheckMenuItem fx:id="btn_verbose" mnemonicParsing="false" onAction="#onToggleVerbose" text="Verbose" />
                           </items>
                         </Menu>
