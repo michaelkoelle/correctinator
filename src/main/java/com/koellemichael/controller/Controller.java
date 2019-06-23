@@ -77,6 +77,7 @@ public class Controller{
     public MenuItem mi_set_marked;
     public MenuItem mi_set_finished;
     public Menu mi_state_change;
+    public CheckMenuItem mi_cycle_files;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
@@ -118,8 +119,9 @@ public class Controller{
         tv_corrections.getSelectionModel().clearSelection();
 
         pb_correction.progressProperty().addListener(this::onProgressBarChanged);
-        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false));
+        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, true));
         mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
+        mi_cycle_files.setSelected(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF, false));
         btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
@@ -166,7 +168,7 @@ public class Controller{
         if(oldSelection instanceof Correction){
             Correction c = (Correction) oldSelection;
             if(c.isChanged()){
-                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
                         RatingFileParser.saveRatingFile(c);
                     } catch (IOException e) {
@@ -286,7 +288,7 @@ public class Controller{
             ta_note.textProperty().bindBidirectional(c.noteProperty());
             c.noteProperty().addListener((observableValue1, s, t1) -> {
                 c.setChanged(true);
-                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+                if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
                         RatingFileParser.saveRatingFile(c);
                     } catch (IOException e) {
@@ -575,7 +577,7 @@ public class Controller{
                 sp_note.setManaged(true);
             }
             c.setChanged(true);
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
                     RatingFileParser.saveRatingFile(c);
                 } catch (IOException e) {
@@ -778,7 +780,7 @@ public class Controller{
             c.setState(Correction.CorrectionState.TODO);
             sp_note.setManaged(false);
             c.setChanged(true);
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
                     RatingFileParser.saveRatingFile(c);
                 } catch (IOException e) {
@@ -794,7 +796,7 @@ public class Controller{
             c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
             sp_note.setManaged(true);
             c.setChanged(true);
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
                     RatingFileParser.saveRatingFile(c);
                 } catch (IOException e) {
@@ -810,7 +812,7 @@ public class Controller{
             c.setState(Correction.CorrectionState.FINISHED);
             sp_note.setManaged(false);
             c.setChanged(true);
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
                     RatingFileParser.saveRatingFile(c);
                 } catch (IOException e) {
@@ -824,7 +826,7 @@ public class Controller{
     private void closeWindowEvent(WindowEvent event) {
         List<Correction> changedCorrections = new ArrayList<>(corrections.filtered(Correction::isChanged));
         if(!changedCorrections.isEmpty()){
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,false)){
+            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 changedCorrections.forEach(c -> {
                     try {
                         RatingFileParser.saveRatingFile(c);
@@ -855,5 +857,9 @@ public class Controller{
                 }
             }
         }
+    }
+
+    public void onToggleCycleFiles(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.CYCLE_FILES_PREF,((CheckMenuItem) actionEvent.getSource()).isSelected());
     }
 }
