@@ -219,7 +219,7 @@
                                              </VBox.margin></VBox>
                                           <AnchorPane fx:id="global_comment">
                                              <children>
-                                                <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Weitere Kommentare:" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Weitere Kommentare:" textAlignment="CENTER" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                    <font>
                                                       <Font size="17.0" />
                                                    </font>
@@ -227,7 +227,7 @@
                                                 <TextArea fx:id="ta_global_comment" layoutX="10.0" layoutY="31.0" prefHeight="60.0" prefWidth="700.0" promptText="Kommentar für die gesamte Abgabe" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="30.0" />
                                              </children>
                                              <VBox.margin>
-                                                <Insets top="20.0" />
+                                                <Insets bottom="20.0" top="20.0" />
                                              </VBox.margin>
                                           </AnchorPane>
                                        </children>
