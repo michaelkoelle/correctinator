@@ -9,6 +9,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -38,6 +39,11 @@
                                  <accelerator>
                                     <KeyCodeCombination alt="UP" code="O" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
                                  </accelerator></MenuItem>
+                              <MenuItem fx:id="mi_save_all" mnemonicParsing="false" onAction="#onSaveAllCorrections" text="Abgaben speichern">
+                                 <accelerator>
+                                    <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="DOWN" shortcut="DOWN" />
+                                 </accelerator>
+                              </MenuItem>
                               <MenuItem fx:id="mi_save_current_correction" mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern">
                                  <accelerator>
                                     <KeyCodeCombination alt="UP" code="S" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
@@ -49,6 +55,7 @@
                                     <MenuItem fx:id="mi_set_finished" mnemonicParsing="false" onAction="#onSetFinished" text="FINISHED" />
                                 </items>
                               </Menu>
+                              <SeparatorMenuItem mnemonicParsing="false" />
                               <MenuItem fx:id="mi_export_zip" mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren">
                                  <accelerator>
                                     <KeyCodeCombination alt="UP" code="E" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
@@ -187,7 +194,7 @@
                                     <Button fx:id="btn_done" mnemonicParsing="false" onAction="#onDone" text="Speichern/Nächste Abgabe" />
                                  </children>
                                  <VBox.margin>
-                                    <Insets bottom="5.0" top="5.0" />
+                                    <Insets bottom="10.0" top="5.0" />
                                  </VBox.margin>
                               </HBox>
                               <ScrollPane fx:id="sp_note" fitToHeight="true" fitToWidth="true" managed="false" prefHeight="35.0" prefWidth="722.0">
@@ -199,7 +206,7 @@
                                     </AnchorPane>
                                 </content>
                                  <VBox.margin>
-                                    <Insets bottom="5.0" left="20.0" right="20.0" />
+                                    <Insets bottom="10.0" left="20.0" right="20.0" />
                                  </VBox.margin>
                               </ScrollPane>
                               <ScrollPane fx:id="sb_comments" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">

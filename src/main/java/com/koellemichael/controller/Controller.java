@@ -78,6 +78,7 @@ public class Controller{
     public MenuItem mi_set_finished;
     public Menu mi_state_change;
     public CheckMenuItem mi_cycle_files;
+    public MenuItem mi_save_all;
 
     private Stage primaryStage = null;
     private ObservableList<Correction> corrections;
@@ -315,11 +316,13 @@ public class Controller{
             mi_save_current_correction.setDisable(false);
             mi_export_zip.setDisable(false);
             mi_state_change.setDisable(false);
+            mi_save_all.setDisable(false);
         }else{
             mi_initialize.setDisable(true);
             mi_save_current_correction.setDisable(true);
             mi_export_zip.setDisable(true);
             mi_state_change.setDisable(true);
+            mi_save_all.setDisable(true);
         }
     }
 
@@ -861,5 +864,15 @@ public class Controller{
 
     public void onToggleCycleFiles(ActionEvent actionEvent) {
         preferences.putBoolean(PreferenceKeys.CYCLE_FILES_PREF,((CheckMenuItem) actionEvent.getSource()).isSelected());
+    }
+
+    public void onSaveAllCorrections(ActionEvent actionEvent) {
+        corrections.forEach(c -> {
+            try {
+                RatingFileParser.saveRatingFile(c);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
