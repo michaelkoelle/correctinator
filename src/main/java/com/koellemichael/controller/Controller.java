@@ -1,9 +1,7 @@
 package com.koellemichael.controller;
 
 import com.koellemichael.exceptions.FileNotInitializedException;
-import com.koellemichael.exceptions.NoFilesInDirectoryException;
 import com.koellemichael.exceptions.ParseRatingFileException;
-import com.koellemichael.exceptions.RatingFileNotUniqueException;
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
@@ -33,6 +31,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -86,7 +86,6 @@ public class Controller{
     private File correctionsDirectory;
     private Preferences preferences;
     private MediaViewController mediaViewController;
-    private Pane mediaPane;
     private ChangeListener<Correction.CorrectionState> stateChangeListener;
 
     public void initialize(Stage primaryStage){
@@ -143,25 +142,19 @@ public class Controller{
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Abgaben öffnen");
         correctionsDirectory = chooser.showDialog(primaryStage);
+        reloadRatingFiles();
 
-        try {
-            reloadRatingFiles();
+        if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
+            showImportSummary();
+        }
 
-            if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
-                showImportSummary();
-            }
+        if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
+            notAllFilesInitializedDialog();
+        }
 
-            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
-                notAllFilesInitializedDialog();
-            }
-
-            if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
-                //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
-            }
-
-        } catch (NoFilesInDirectoryException e) {
-            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
-        } catch (FileNotFoundException ignored) {}
+        if(!corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
+            //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
+        }
     }
 
 
@@ -195,7 +188,6 @@ public class Controller{
                     }
                 }
             }
-
             ta_note.textProperty().unbindBidirectional(c.noteProperty());
         }
 
@@ -246,7 +238,7 @@ public class Controller{
                 try {
                     if (split_main.getItems().size() <= 1) {
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/mediaview.fxml"));
-                        mediaPane = loader.load();
+                        Pane mediaPane = loader.load();
                         mediaViewController = loader.getController();
                         split_main.getItems().add(mediaPane);
                         if(!split_main.getDividers().isEmpty()){
@@ -261,6 +253,9 @@ public class Controller{
             ArrayList<File> files = new ArrayList<>();
             File fileDir = new File(c.getPath()).getParentFile();
             FileFilter ff = (file) ->{
+                if(file.getName().contains("bewertung")){
+                    return false;
+                }
                 try {
                     String mimeType = Files.probeContentType(Paths.get(file.toURI()));
                     switch (mimeType){
@@ -287,7 +282,7 @@ public class Controller{
                 }
             };
 
-            listFiles(fileDir.getAbsolutePath(), files, ff);
+            listFiles(fileDir.getAbsolutePath(), files, ff, dir -> !dir.getName().contains("__MACOSX"));
             mediaViewController.initialize(files);
 
             ta_note.textProperty().bindBidirectional(c.noteProperty());
@@ -310,10 +305,6 @@ public class Controller{
                 sp_note.setManaged(true);
 
             }
-
-
-
-
         }
     }
 
@@ -322,8 +313,6 @@ public class Controller{
             suggestCreatingZip();
         }
     }
-
-
 
     public void menuDisable(){
         if(!corrections.isEmpty()){
@@ -357,22 +346,6 @@ public class Controller{
         });
     }
 
-    public File getRatingFileFromDirectory(File directory) throws FileNotFoundException, RatingFileNotUniqueException {
-        File[] ratings = directory.listFiles((dir, name) -> name.matches("bewertung_[0-9]+\\.txt"));
-
-        if (ratings != null && ratings.length>0) {
-            if(ratings.length>1){
-                throw new RatingFileNotUniqueException(directory);
-            }
-            return ratings[0];
-
-        }else{
-            throw new FileNotFoundException();
-        }
-    }
-
-
-
     private void showImportSummary(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Zusammenfassung");
@@ -404,13 +377,7 @@ public class Controller{
             }
         });
 
-        try {
-            reloadRatingFiles();
-        } catch (NoFilesInDirectoryException e) {
-            errorDialog("Verzeichnisfehler", "Keine Abgaben gefunden!");
-        } catch (FileNotFoundException e) {
-            errorDialog("Verzeichnisfehler", "Das ausgewählte Verzeichnis existiert nicht mehr");
-        }
+        reloadRatingFiles();
     }
 
     private void initializeCommentSectionDialog(List<Correction> notInitialized){
@@ -487,17 +454,20 @@ public class Controller{
         });
     }
 
-    public void reloadRatingFiles() throws NoFilesInDirectoryException, FileNotFoundException {
+    public void reloadRatingFiles(){
         if(correctionsDirectory != null){
-            File[] correctionDirectories = correctionsDirectory.listFiles((dir, name) -> name.matches("[0-9]+"));
+            Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
+            ArrayList<File> ratingFiles = new ArrayList<>();
+            listFiles(correctionsDirectory.getAbsolutePath(),ratingFiles,file-> file.getName().matches(ratingFilePattern.pattern()), dir ->!dir.getName().contains("__MACOSX"));
 
-            if (correctionDirectories != null && correctionDirectories.length>0) {
+            if(!ratingFiles.isEmpty()){
                 tv_corrections.getItems().clear();
                 corrections.clear();
 
-                for (File correctionDirectory : correctionDirectories) {
-                    try {
-                        File ratingFile = getRatingFileFromDirectory(correctionDirectory);
+                ratingFiles.forEach(ratingFile ->{
+                    Matcher m = ratingFilePattern.matcher(ratingFile.getName());
+                    if(m.find()){
+                        String id = m.group(1);
                         Correction c;
                         try {
                             c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
@@ -505,21 +475,16 @@ public class Controller{
                             c = new Correction();
                             c.setState(Correction.CorrectionState.PARSE_ERROR);
                             c.setPath(ratingFile.getAbsolutePath());
-                            c.setId(correctionDirectory.getName());
+                            c.setId(id);
                         } catch (FileNotInitializedException e) {
                             c = new Correction();
                             c.setState(Correction.CorrectionState.NOT_INITIALIZED);
                             c.setPath(ratingFile.getAbsolutePath());
-                            c.setId(correctionDirectory.getName());
+                            c.setId(id);
                         }
                         corrections.add(c);
-
-                    } catch (FileNotFoundException e) {
-                        errorDialog("Bewertungsdatei nicht gefunden","Die Bewertungsdatei konnte im Verzeichnis \"" + correctionDirectory.getAbsolutePath() + "\" nicht gefunden werden!");
-                    } catch (RatingFileNotUniqueException e) {
-                        errorDialog("Mehrere Bewertungsdateien", "Es befinden sich mehrere Bewertungsdateien im Verzeichnis\"" + correctionDirectory.getAbsolutePath() + "\"!");
                     }
-                }
+                });
 
                 if(corrections != null && corrections.size() > 0){
                     tv_corrections.setItems(corrections);
@@ -537,10 +502,8 @@ public class Controller{
                     tv_corrections.getSelectionModel().selectFirst();
                 }
             }else{
-                throw new NoFilesInDirectoryException(correctionsDirectory);
+                errorDialog("Abgaben nicht gefunden","Es konnten keine Abgaben gefunden werden!");
             }
-        }else{
-            throw new FileNotFoundException();
         }
     }
 
@@ -668,11 +631,32 @@ public class Controller{
         fis.close();
     }
 
-    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter) {
+    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter, FileFilter dirFilter) {
+        File directory = new File(directoryName);
+        File[] fList = directory.listFiles(dirFilter);
+
+        if(directory.listFiles(fileFilter) != null){
+            files.addAll(Arrays.stream(directory.listFiles(fileFilter)).collect(Collectors.toList()));
+        }
+
+        if(fList != null) {
+            for (File file : fList) {
+                if (!file.isFile()) {
+                    if (file.isDirectory()) {
+                        listFiles(file.getAbsolutePath(), files, fileFilter, dirFilter);
+                    }
+                }
+            }
+        }
+    }
+/*
+    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter, FileFilter dirFilter) {
         File directory = new File(directoryName);
         File[] fList = directory.listFiles((dir, name) -> !name.contains("__MACOSX"));
 
-        files.addAll(Arrays.stream(Objects.requireNonNull(directory.listFiles(fileFilter))).filter(file -> !file.getName().contains("bewertung")).collect(Collectors.toList()));
+        if(directory.listFiles(fileFilter) != null){
+            files.addAll(Arrays.stream(directory.listFiles(fileFilter)).filter(file -> !file.getName().contains("bewertung")).collect(Collectors.toList()));
+        }
 
         if(fList != null) {
             for (File file : fList) {
@@ -684,7 +668,7 @@ public class Controller{
             }
         }
     }
-
+*/
     private void exportAsZipWithFileChooser(){
         FileChooser choose = new FileChooser();
         choose.setTitle("Abgaben als Zip speichern");
