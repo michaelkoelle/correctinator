@@ -10,7 +10,6 @@ import com.koellemichael.model.ExerciseRating;
 import com.koellemichael.utils.PreferenceKeys;
 import com.koellemichael.utils.RatingFileParser;
 import com.koellemichael.utils.Utils;
-import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ObservableValue;
@@ -26,10 +25,7 @@ import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
+import javafx.stage.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -765,8 +761,8 @@ public class Controller{
     }
 
     public void onExit(ActionEvent actionEvent) {
-        Platform.exit();
-        System.exit(0);
+        Window window = primaryStage.getScene().getWindow();
+        window.fireEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSE_REQUEST));
     }
 
     public void onToggleVerbose(ActionEvent actionEvent) {
