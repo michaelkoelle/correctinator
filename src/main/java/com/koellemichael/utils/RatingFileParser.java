@@ -132,7 +132,7 @@ public class RatingFileParser {
         }
 
         if(marked){
-            ratingFileContent += "/*"+ c.getNote().trim() +"*/\n";
+            ratingFileContent += "/*"+ c.getNote() +"*/\n";
         }
 
         ratingFileContent += "============ Ende der Kommentare ============\n";
