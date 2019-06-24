@@ -38,7 +38,6 @@ public class RatingFileParser {
                 "Bewertung: (\\d*[.|,]?\\d*).*\\n" +
                 "=============================================\\n" +
                 "Kommentare:\\n" +
-                //"\\s*(.*\\w|.*?)\\s*(?>/\\*(.*)\\*/)?\\s*" +
                 "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*?)\\s*(?>\\/\\*(.*)\\*\\/)?\\s*" +
                 "============ Ende der Kommentare ============",Pattern.DOTALL | Pattern.MULTILINE);
 
@@ -129,11 +128,11 @@ public class RatingFileParser {
         }
 
         if(c.getGlobalComment() != null && c.getGlobalComment().trim().length()>0){
-            ratingFileContent += c.getGlobalComment() + "\n";
+            ratingFileContent += c.getGlobalComment().trim() + "\n";
         }
 
         if(marked){
-            ratingFileContent += "/*"+ c.getNote() +"*/\n";
+            ratingFileContent += "/*"+ c.getNote().trim() +"*/\n";
         }
 
         ratingFileContent += "============ Ende der Kommentare ============\n";
