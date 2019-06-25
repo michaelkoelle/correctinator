@@ -30,14 +30,15 @@ public class PDFViewController implements ChangeListener {
     }
 
     private void loadPDF(File pdf){
-        try {
-            byte[] data = Files.readAllBytes(Paths.get(pdf.getPath()));
-            String base64 = Base64.getEncoder().encodeToString(data);
-            Platform.runLater(() -> engine.executeScript("openFileFromBase64('" + base64 + "')"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Platform.runLater(() -> {
+            try {
+                byte[] data = Files.readAllBytes(Paths.get(pdf.getPath()));
+                String base64 = Base64.getEncoder().encodeToString(data);
+                engine.executeScript("openFileFromBase64('" + base64 + "')");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     private void changeLanguage(Locale locale) {
