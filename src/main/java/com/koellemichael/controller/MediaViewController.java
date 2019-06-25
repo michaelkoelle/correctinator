@@ -28,11 +28,15 @@ public class MediaViewController {
         this.files = files;
         this.allFilesPos = 0;
         this.preferences = Preferences.userRoot();
-        this.lbl_current_file_max.setText(String.valueOf(this.files.size()));
 
+        if(this.files != null){
+            this.lbl_current_file_max.setText(String.valueOf(this.files.size()));
+        }else{
+            this.lbl_current_file_max.setText("0");
+        }
 
         //Show first file
-        if(this.files.size()>0){
+        if(this.files != null && this.files.size()>0){
             openMediaFile(this.files.get(allFilesPos));
             lbl_current_file.setText(String.valueOf(allFilesPos+1));
         }
@@ -40,10 +44,16 @@ public class MediaViewController {
     }
 
     public void onOpenCurrentDirectory(ActionEvent actionEvent) {
+        if(files == null){
+            return;
+        }
         DesktopApi.browse(files.get(allFilesPos).getParentFile().toURI());
     }
 
     public void onFilePrev(ActionEvent actionEvent) {
+        if(files == null){
+            return;
+        }
         int temp = allFilesPos - 1;
         if(temp>=0){
             allFilesPos--;
@@ -59,6 +69,9 @@ public class MediaViewController {
     }
 
     public void onFileNext(ActionEvent actionEvent) {
+        if(files == null){
+            return;
+        }
         int temp = allFilesPos + 1;
         if(temp<=files.size()-1){
             allFilesPos++;
@@ -74,9 +87,15 @@ public class MediaViewController {
     }
 
     private void openMediaFile(File file){
+        if(file == null){
+            return;
+        }
         p_media.getChildren().clear();
         try {
             String mimeType = Files.probeContentType(Paths.get(file.toURI()));
+            if(mimeType == null){
+                return;
+            }
             switch (mimeType){
                 case "application/pdf": openPDF(file); break;
                 case "image/bmp":
@@ -146,6 +165,9 @@ public class MediaViewController {
     }
 
     public void onReloadFile(ActionEvent actionEvent) {
+        if(files == null){
+            return;
+        }
         openMediaFile(files.get(allFilesPos));
     }
 }

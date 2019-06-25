@@ -222,7 +222,7 @@ public class Controller{
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/exercise.fxml"));
                             Pane p = loader.load();
                             int top = 0;
-                            if(e.getDepth()==1){
+                            if(e.getDepth()==1 && list.indexOf(e)!=0){
                                 top = 20;
                             }
                             p.setPadding(new Insets(top,0,0,(e.getDepth()-1)*40));
@@ -274,11 +274,15 @@ public class Controller{
             ArrayList<File> files = new ArrayList<>();
             File fileDir = new File(c.getPath()).getParentFile();
             FileFilter ff = (file) ->{
-                if(file.getName().contains("bewertung")){
+                Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
+                if(ratingFilePattern.matcher(file.getName()).find()){
                     return false;
                 }
                 try {
                     String mimeType = Files.probeContentType(Paths.get(file.toURI()));
+                    if(mimeType == null){
+                        return false;
+                    }
                     switch (mimeType){
                         case "application/pdf":
                         case "image/bmp":
@@ -681,16 +685,15 @@ public class Controller{
         File directory = new File(directoryName);
         File[] fList = directory.listFiles(dirFilter);
 
-        if(directory.listFiles(fileFilter) != null){
-            files.addAll(Arrays.stream(directory.listFiles(fileFilter)).collect(Collectors.toList()));
+        if(fList != null){
+            List<File> allFiles = Arrays.stream(fList).filter(f -> !f.isDirectory()).filter(fileFilter::accept).collect(Collectors.toList());
+            files.addAll(allFiles);
         }
 
         if(fList != null) {
             for (File file : fList) {
-                if (!file.isFile()) {
-                    if (file.isDirectory()) {
-                        listFiles(file.getAbsolutePath(), files, fileFilter, dirFilter);
-                    }
+                if (file.isDirectory()) {
+                    listFiles(file.getAbsolutePath(), files, fileFilter, dirFilter);
                 }
             }
         }
