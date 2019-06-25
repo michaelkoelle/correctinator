@@ -20,7 +20,7 @@ Unteraufgaben werden mit Tabs eingerückt. Das Schema der Aufgaben im Kommentarf
 
 Beispiel:
 
-![alt text](https://i.ibb.co/WpRwxN8/Unbenannt.png "Beispiel Initialisierung")
+![alt text](https://i.imgur.com/dKLKDPT.png "Beispiel Initialisierung")
 
 ## Einstellungen
 - **Autosave**: Automatisches Speichern nach jeder Aktion.
