@@ -350,6 +350,9 @@ public class Controller{
             };
             c.ratingProperty().addListener(ratingChangeListener);
 
+            if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
+                c.setGlobalComment(replaceAutoCommentWithString(c.getGlobalComment(),buildAutoComment(c)));
+            }
         }
     }
 
