@@ -128,7 +128,7 @@ public class RatingFileParser {
         }
 
         if(c.getGlobalComment() != null && c.getGlobalComment().trim().length()>0){
-            ratingFileContent += c.getGlobalComment().trim() + "\n";
+            ratingFileContent += "\n" + c.getGlobalComment().trim() + "\n";
         }
 
         if(marked){
