@@ -9,13 +9,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.*;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
@@ -86,19 +83,8 @@ public class MenuController {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle("Abgaben öffnen");
         mainController.correctionsDirectory = chooser.showDialog(primaryStage);
-        mainController.reloadRatingFiles();
-
-        if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
-            mainController.showImportSummary();
-        }
-
-        if(!mainController.corrections.filtered(c -> c.getState()== Correction.CorrectionState.NOT_INITIALIZED).isEmpty()){
-            mainController.notAllFilesInitializedDialog();
-        }
-
-        if(!mainController.corrections.filtered(c -> c.getState()== Correction.CorrectionState.PARSE_ERROR).isEmpty()){
-            //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
-        }
+        preferences.put(PreferenceKeys.LAST_OPENED_DIR_PREF, mainController.correctionsDirectory.getAbsolutePath());
+        mainController.openCorrections();
     }
 
     public void onToggleCycleFiles(ActionEvent actionEvent) {
@@ -229,11 +215,6 @@ public class MenuController {
             return Optional.empty();
         }
     }
-
-
-
-
-
 
     public void onExportAsZIP(ActionEvent actionEvent) {
         if(mainController.corrections.filtered(c -> (c.getState() != Correction.CorrectionState.FINISHED)).isEmpty()){

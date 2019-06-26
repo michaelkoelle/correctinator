@@ -11,31 +11,32 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.skin.TableViewSkin;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.*;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static com.koellemichael.utils.PreferenceKeys.INIT_PREF;
 
@@ -69,10 +70,7 @@ public class Controller{
     public TextArea ta_global_comment;
     public AnchorPane global_comment;
     public MenuBar menu;
-
-    @FXML
     public MenuController menuController;
-
 
     private Stage primaryStage = null;
     public ObservableList<Correction> corrections;
@@ -120,15 +118,20 @@ public class Controller{
 
         sp_note.setManaged(false);
         global_comment.setManaged(false);
-
         primaryStage.setOnCloseRequest(this::closeWindowEvent);
+
         menuController.initialize(primaryStage,this);
+
+        if(!preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,"").equals("")){
+            File dir = new File(preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,""));
+            if(dir.isDirectory() && dir.exists()){
+                correctionsDirectory = dir;
+                openCorrections();
+            }
+        }
     }
 
-    public void onOpenDirectory(ActionEvent actionEvent) {
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Abgaben öffnen");
-        correctionsDirectory = chooser.showDialog(primaryStage);
+    public void openCorrections(){
         reloadRatingFiles();
 
         if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
@@ -143,8 +146,6 @@ public class Controller{
             //TODO user die möglichkeit geben die datei anzupassen oder zu überschrieben, evtl counter wie viele nicht geparsed werden konnten
         }
     }
-
-
 
     private void onSelectionChanged(ObservableValue observableValue, Object oldSelection, Object newSelection){
 

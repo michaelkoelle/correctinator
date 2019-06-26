@@ -1,7 +1,5 @@
 package com.koellemichael.utils;
 
-import com.koellemichael.model.Correction;
-import javafx.collections.ObservableList;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -19,12 +17,10 @@ public class FileUtils {
         File directory = new File(directoryName);
         File[] fList = directory.listFiles(dirFilter);
 
-        if(fList != null){
+        if(fList != null) {
             List<File> allFiles = Arrays.stream(fList).filter(f -> !f.isDirectory()).filter(fileFilter::accept).collect(Collectors.toList());
             files.addAll(allFiles);
-        }
 
-        if(fList != null) {
             for (File file : fList) {
                 if (file.isDirectory()) {
                     listFiles(file.getAbsolutePath(), files, fileFilter, dirFilter);
@@ -70,8 +66,10 @@ public class FileUtils {
                 zipOut.closeEntry();
             }
             File[] children = fileToZip.listFiles();
-            for (File childFile : children) {
-                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+            if (children != null) {
+                for (File childFile : children) {
+                    zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
+                }
             }
             return;
         }
@@ -90,22 +88,9 @@ public class FileUtils {
         FileChooser choose = new FileChooser();
         choose.setTitle("Abgaben als Zip speichern");
         choose.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zip Datei(*.zip)", "*.zip"));
-
         choose.setInitialDirectory(initialFileDirectory);
         choose.setInitialFileName(initialFileName);
-
-        /*
-        if(correctionsDirectory!=null){
-            choose.setInitialDirectory(correctionsDirectory.getParentFile());
-            if(corrections != null && corrections.get(0) != null){
-                choose.setInitialFileName(("Korrektur_" + corrections.get(0).getLecture() + "_" + corrections.get(0).getExerciseSheet()).replace(" ", "_"));
-            }else{
-                choose.setInitialFileName(correctionsDirectory.getName());
-            }
-        }
-
-         */
-
+        
         File f = choose.showSaveDialog(stage);
 
         if(f != null){
