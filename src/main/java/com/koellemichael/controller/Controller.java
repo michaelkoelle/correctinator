@@ -722,6 +722,8 @@ public class Controller{
             if(!f.getName().contains(".")) {
                 f = new File(f.getAbsolutePath() + ".zip");
             }
+
+            f.delete();
             exportAsZip(f);
         }
     }
