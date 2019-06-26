@@ -2,8 +2,6 @@ package com.koellemichael.controller;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -14,12 +12,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.ZoomEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 
 public class ImageViewController {
 
     private static final int MIN_PIXELS = 20;
     public ScrollPane sp_image;
+    public AnchorPane ap_image;
     private ImageView imageView;
     public StackPane pane;
     private ObjectProperty<Point2D> mouseDown;
@@ -34,18 +34,11 @@ public class ImageViewController {
         pane.getChildren().clear();
         pane.getChildren().add(imageView);
         pane.setAlignment(Pos.CENTER);
-        imageView.fitWidthProperty().bind(pane.widthProperty());
-        imageView.fitWidthProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                reset(imageView,imageView.getFitWidth(), imageView.getFitWidth());
-            }
-        });
-        imageView.fitHeightProperty().bind(pane.heightProperty());
+        imageView.fitWidthProperty().bind(sp_image.widthProperty().subtract(15));
+        //imageView.fitHeightProperty().bind(pane.heightProperty());
 
         reset(imageView, image.getWidth(), image.getHeight());
-        
-        this.image = new Image(image.getUrl(), pane.getPrefWidth(), pane.getPrefHeight(),true,true);
+        this.image = new Image(image.getUrl(), sp_image.getViewportBounds().getWidth(), 0,true,true);
         imageView.setImage(this.image);
 
         imageView.setOnMousePressed(this::handleMousePressed);
