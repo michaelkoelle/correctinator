@@ -2,19 +2,15 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -25,13 +21,13 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<SplitPane fx:id="split_main" xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
+<SplitPane fx:id="split_main" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.Controller">
    <items>
       <BorderPane>
          <top>
             <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
                <children>
-                   <fx:include source="menu.fxml" fx:id="menu"/>
+                   <fx:include fx:id="menu" source="menu.fxml" />
                </children>
             </VBox>
          </top>
@@ -60,6 +56,15 @@
                               <TableColumn fx:id="tc_corrector_email" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="E-Mail" />
                             <TableColumn fx:id="tc_path" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Pfad" />
                           </columns>
+                           <contextMenu>
+                              <ContextMenu>
+                                <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#onSetTODO" text="Status: TODO" />
+                                    <MenuItem mnemonicParsing="false" onAction="#onSetMARKED" text="Status: MARKED_FOR_LATER" />
+                                  <MenuItem mnemonicParsing="false" onAction="#onSetFINISHED" text="Status: FINISHED" />
+                                </items>
+                              </ContextMenu>
+                           </contextMenu>
                         </TableView>
                      </children>
                   </StackPane>

@@ -667,4 +667,16 @@ public class Controller{
             }
         }
     }
+
+    public void onSetTODO(ActionEvent actionEvent) {
+        menuController.onSetTODO(actionEvent);
+    }
+
+    public void onSetMARKED(ActionEvent actionEvent) {
+        menuController.onSetMarked(actionEvent);
+    }
+
+    public void onSetFINISHED(ActionEvent actionEvent) {
+        menuController.onSetFinished(actionEvent);
+    }
 }
