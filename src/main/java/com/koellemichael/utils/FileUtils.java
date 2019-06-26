@@ -1,5 +1,10 @@
 package com.koellemichael.utils;
 
+import com.koellemichael.model.Correction;
+import javafx.collections.ObservableList;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,6 +84,38 @@ public class FileUtils {
             zipOut.write(bytes, 0, length);
         }
         fis.close();
+    }
+
+    public static void exportAsZipWithFileChooser(File dirToZip, File initialFileDirectory, String initialFileName, Stage stage){
+        FileChooser choose = new FileChooser();
+        choose.setTitle("Abgaben als Zip speichern");
+        choose.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zip Datei(*.zip)", "*.zip"));
+
+        choose.setInitialDirectory(initialFileDirectory);
+        choose.setInitialFileName(initialFileName);
+
+        /*
+        if(correctionsDirectory!=null){
+            choose.setInitialDirectory(correctionsDirectory.getParentFile());
+            if(corrections != null && corrections.get(0) != null){
+                choose.setInitialFileName(("Korrektur_" + corrections.get(0).getLecture() + "_" + corrections.get(0).getExerciseSheet()).replace(" ", "_"));
+            }else{
+                choose.setInitialFileName(correctionsDirectory.getName());
+            }
+        }
+
+         */
+
+        File f = choose.showSaveDialog(stage);
+
+        if(f != null){
+            if(!f.getName().contains(".")) {
+                f = new File(f.getAbsolutePath() + ".zip");
+            }
+
+            f.delete();
+            FileUtils.exportAsZip(f,dirToZip);
+        }
     }
 
 }

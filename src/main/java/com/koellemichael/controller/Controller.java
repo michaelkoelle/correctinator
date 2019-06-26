@@ -5,10 +5,7 @@ import com.koellemichael.exceptions.ParseRatingFileException;
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
-import com.koellemichael.utils.FileUtils;
-import com.koellemichael.utils.PreferenceKeys;
-import com.koellemichael.utils.RatingFileParser;
-import com.koellemichael.utils.Utils;
+import com.koellemichael.utils.*;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
@@ -17,6 +14,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -60,38 +58,28 @@ public class Controller{
     public Label lbl_current_rating;
     public VBox vbox_edit;
     public Label lbl_current_max_points;
-    public MenuItem mi_open_corrections;
-    public MenuItem mi_save_current_correction;
-    public MenuItem mi_export_zip;
-    public CheckMenuItem mi_autosave;
-    public MenuItem mi_initialize;
     public Button btn_back;
     public Button btn_mark_for_later;
     public Button btn_done;
     public SplitPane split_main;
-    public AnchorPane bp_mid_main;
-    public CheckMenuItem btn_fullscreen;
-    public CheckMenuItem btn_verbose;
     public ScrollPane sb_comments;
-    public CheckMenuItem mi_autoscroll_top;
     public TextArea ta_note;
     public ScrollPane sp_note;
-    public MenuItem mi_set_todo;
-    public MenuItem mi_set_marked;
-    public MenuItem mi_set_finished;
-    public Menu mi_state_change;
-    public CheckMenuItem mi_cycle_files;
-    public MenuItem mi_save_all;
+
     public TextArea ta_global_comment;
     public AnchorPane global_comment;
-    public CheckMenuItem mi_auto_comment;
-    public MenuItem mi_autocomment_settings;
+    public MenuBar menu;
+
+    @FXML
+    public MenuController menuController;
+
 
     private Stage primaryStage = null;
-    private ObservableList<Correction> corrections;
-    private File correctionsDirectory;
+    public ObservableList<Correction> corrections;
+    public File correctionsDirectory;
     private Preferences preferences;
     private MediaViewController mediaViewController;
+
     private ChangeListener<Correction.CorrectionState> stateChangeListener;
     private ChangeListener<Number> ratingChangeListener;
 
@@ -127,26 +115,14 @@ public class Controller{
         tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
         tv_corrections.getSelectionModel().clearSelection();
 
-        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, true));
-        mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
-        mi_cycle_files.setSelected(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF, false));
-        mi_auto_comment.setSelected(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true));
-        btn_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
         primaryStage.setFullScreen(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
-        btn_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
         stateChangeListener = this::onStateChange;
-        menuDisable();
 
         sp_note.setManaged(false);
         global_comment.setManaged(false);
 
-        corrections.addListener((ListChangeListener) c -> {
-            while(c.next()){
-                menuDisable();
-            }
-        });
-
         primaryStage.setOnCloseRequest(this::closeWindowEvent);
+        menuController.initialize(primaryStage,this);
     }
 
     public void onOpenDirectory(ActionEvent actionEvent) {
@@ -346,13 +322,13 @@ public class Controller{
 
             ratingChangeListener = (observable, oldValue, newValue) -> {
                 if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
-                    c.setGlobalComment(replaceAutoCommentWithString(c.getGlobalComment(),buildAutoComment(c)));
+                    c.setGlobalComment(AutocommentUtils.replaceAutoCommentWithString(c.getGlobalComment(),AutocommentUtils.buildAutoComment(c)));
                 }
             };
             c.ratingProperty().addListener(ratingChangeListener);
 
             if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
-                c.setGlobalComment(replaceAutoCommentWithString(c.getGlobalComment(),buildAutoComment(c)));
+                c.setGlobalComment(AutocommentUtils.replaceAutoCommentWithString(c.getGlobalComment(),AutocommentUtils.buildAutoComment(c)));
             }
         }
     }
@@ -364,21 +340,7 @@ public class Controller{
         }
     }
 
-    public void menuDisable(){
-        if(!corrections.isEmpty()){
-            mi_initialize.setDisable(false);
-            mi_save_current_correction.setDisable(false);
-            mi_export_zip.setDisable(false);
-            mi_state_change.setDisable(false);
-            mi_save_all.setDisable(false);
-        }else{
-            mi_initialize.setDisable(true);
-            mi_save_current_correction.setDisable(true);
-            mi_export_zip.setDisable(true);
-            mi_state_change.setDisable(true);
-            mi_save_all.setDisable(true);
-        }
-    }
+
 
     private void suggestCreatingZip() {
         Alert d = new Alert(Alert.AlertType.CONFIRMATION);
@@ -391,12 +353,12 @@ public class Controller{
 
         res.ifPresent(type -> {
             if(type == ButtonType.YES){
-                exportAsZipWithFileChooser();
+                FileUtils.exportAsZipWithFileChooser(correctionsDirectory,correctionsDirectory.getParentFile(),("Korrektur_" + corrections.get(0).getLecture() + "_" + corrections.get(0).getExerciseSheet()).replace(" ", "_"),primaryStage);
             }
         });
     }
 
-    private void showImportSummary(){
+    public void showImportSummary(){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Zusammenfassung");
         alert.setHeaderText(null);
@@ -451,7 +413,7 @@ public class Controller{
         });
     }
 
-    private void initializeCommentSectionDialog(){
+    public void initializeCommentSectionDialog(){
         Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
         initDialog.setTitle("Initialisierung");
         initDialog.setHeaderText("Initialisierung des Kommentarfelds");
@@ -565,9 +527,7 @@ public class Controller{
         alert.showAndWait();
     }
 
-
-
-    private void notAllFilesInitializedDialog(){
+    public void notAllFilesInitializedDialog(){
         Alert d = new Alert(Alert.AlertType.WARNING);
         d.setTitle("Kommentarsektion initialisieren");
         d.setHeaderText("Einige Dateien wurden noch nicht initialisiert.");
@@ -582,8 +542,6 @@ public class Controller{
             }
         });
     }
-
-
 
     public void onBack(ActionEvent actionEvent) {
         tv_corrections.getSelectionModel().selectPrevious();
@@ -621,7 +579,7 @@ public class Controller{
             }
 
             if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
-                c.setGlobalComment(replaceAutoCommentWithString(c.getGlobalComment(),buildAutoComment(c)));
+                c.setGlobalComment(AutocommentUtils.replaceAutoCommentWithString(c.getGlobalComment(),AutocommentUtils.buildAutoComment(c)));
             }
 
             try {
@@ -656,80 +614,11 @@ public class Controller{
         }
     }
 
-    private void exportAsZipWithFileChooser(){
-        FileChooser choose = new FileChooser();
-        choose.setTitle("Abgaben als Zip speichern");
-        choose.getExtensionFilters().add(new FileChooser.ExtensionFilter("Zip Datei(*.zip)", "*.zip"));
-
-        if(correctionsDirectory!=null){
-            choose.setInitialDirectory(correctionsDirectory.getParentFile());
-            if(corrections != null && corrections.get(0) != null){
-                choose.setInitialFileName(("Korrektur_" + corrections.get(0).getLecture() + "_" + corrections.get(0).getExerciseSheet()).replace(" ", "_"));
-            }else{
-                choose.setInitialFileName(correctionsDirectory.getName());
-            }
-        }
-
-        File f = choose.showSaveDialog(primaryStage);
-
-        if(f != null){
-            if(!f.getName().contains(".")) {
-                f = new File(f.getAbsolutePath() + ".zip");
-            }
-
-            f.delete();
-            FileUtils.exportAsZip(f,correctionsDirectory);
-        }
-    }
-
-
-
-
-    public void onExportAsZIP(ActionEvent actionEvent) {
-        if(corrections.filtered(c -> (c.getState() != Correction.CorrectionState.FINISHED)).isEmpty()){
-            exportAsZipWithFileChooser();
-        }else{
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Unfertige Abgaben");
-            alert.setHeaderText("Einige Abgaben sind noch noch nicht fertig korrigiert oder beinhalten Fehler.");
-            alert.setContentText("Möchten Sie die Abgaben trotzdem exportieren?");
-
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK){
-                corrections.forEach(c -> {
-                    try {
-                        if(c.getState()== Correction.CorrectionState.TODO || c.getState() == Correction.CorrectionState.MARKED_FOR_LATER){
-                            c.setState(Correction.CorrectionState.FINISHED);
-                            RatingFileParser.saveRatingFile(c);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-
-            if(result.isPresent() && result.get()==ButtonType.CANCEL){
-                showUnfinishedCorrection();
-            }
-        }
-
-    }
-
-    private void showUnfinishedCorrection() {
+    public void showUnfinishedCorrection() {
         corrections.filtered(correction -> (correction.getState() != Correction.CorrectionState.FINISHED)).stream().findFirst().ifPresent(obj -> {
             tv_corrections.getSelectionModel().select(obj);
             int index = tv_corrections.getItems().indexOf(obj);
             scrollToIndex(index, 3);
-        });
-    }
-
-    public void onSaveCorrection(ActionEvent actionEvent) {
-        getSelectedCorrection().ifPresent(c ->{
-            try {
-                RatingFileParser.saveRatingFile(c);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         });
     }
 
@@ -740,80 +629,6 @@ public class Controller{
         }else{
             return Optional.empty();
         }
-    }
-
-    public void onInitializeCommentSection(ActionEvent actionEvent) {
-        initializeCommentSectionDialog();
-    }
-
-    public void onToggleAutosave(ActionEvent actionEvent) {
-        preferences.putBoolean(PreferenceKeys.AUTOSAVE_PREF, mi_autosave.isSelected());
-    }
-
-    public void onToggleFullscreen(ActionEvent actionEvent) {
-        primaryStage.setFullScreen(btn_fullscreen.isSelected());
-        preferences.putBoolean(PreferenceKeys.FULLSCREEN_PREF, btn_fullscreen.isSelected());
-    }
-
-    public void onExit(ActionEvent actionEvent) {
-        Window window = primaryStage.getScene().getWindow();
-        window.fireEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSE_REQUEST));
-    }
-
-    public void onToggleVerbose(ActionEvent actionEvent) {
-        preferences.putBoolean(PreferenceKeys.VERBOSE_PREF, ((CheckMenuItem)actionEvent.getSource()).isSelected());
-    }
-
-    public void onToggleAutoscrollTop(ActionEvent actionEvent) {
-        preferences.putBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF,((CheckMenuItem)actionEvent.getSource()).isSelected());
-    }
-
-    public void onSetTODO(ActionEvent actionEvent) {
-        getSelectedCorrection().ifPresent(c -> {
-            c.setState(Correction.CorrectionState.TODO);
-            sp_note.setManaged(false);
-            c.setChanged(true);
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
-                try {
-                    RatingFileParser.saveRatingFile(c);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
-    }
-
-    public void onSetMarked(ActionEvent actionEvent) {
-        getSelectedCorrection().ifPresent(c -> {
-            c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
-            sp_note.setManaged(true);
-            c.setChanged(true);
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
-                try {
-                    RatingFileParser.saveRatingFile(c);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
-    }
-
-    public void onSetFinished(ActionEvent actionEvent) {
-        getSelectedCorrection().ifPresent(c -> {
-            c.setState(Correction.CorrectionState.FINISHED);
-            sp_note.setManaged(false);
-            c.setChanged(true);
-            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
-                try {
-                    RatingFileParser.saveRatingFile(c);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
     }
 
     private void closeWindowEvent(WindowEvent event) {
@@ -850,88 +665,5 @@ public class Controller{
                 }
             }
         }
-    }
-
-    public void onToggleCycleFiles(ActionEvent actionEvent) {
-        preferences.putBoolean(PreferenceKeys.CYCLE_FILES_PREF,((CheckMenuItem) actionEvent.getSource()).isSelected());
-    }
-
-    public void onSaveAllCorrections(ActionEvent actionEvent) {
-        saveAllCorrections();
-    }
-
-    public void saveAllCorrections(){
-        corrections.forEach(c -> {
-            try {
-                RatingFileParser.saveRatingFile(c);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public static String buildAutoComment(Correction c){
-        Preferences preferences = Preferences.userRoot();
-        double percentage = (c.getRating()/c.getMaxPoints())*100;
-
-        if (percentage >= 100) {
-            return preferences.get(PreferenceKeys.COMMENT_100_PREF,"Perfekt!");
-        } else if (percentage > 80) {
-            return preferences.get(PreferenceKeys.COMMENT_80_PREF,"Sehr gut!");
-        } else if (percentage > 60) {
-            return preferences.get(PreferenceKeys.COMMENT_60_PREF,"Gut!");
-        } else if (percentage > 40) {
-            return preferences.get(PreferenceKeys.COMMENT_40_PREF,"");
-        } else if (percentage > 20) {
-            return preferences.get(PreferenceKeys.COMMENT_20_PREF,"");
-        } else if (percentage >= 0) {
-            return preferences.get(PreferenceKeys.COMMENT_0_PREF,"");
-        }
-
-        return "";
-    }
-
-    public String replaceAutoCommentWithString(String comment, String replacement){
-        Preferences preferences = Preferences.userRoot();
-
-        ArrayList<String> targets = new ArrayList<>();
-
-        targets.add(preferences.get(PreferenceKeys.COMMENT_100_PREF, "Perfekt!"));
-        targets.add(preferences.get(PreferenceKeys.COMMENT_80_PREF, "Sehr gut!"));
-        targets.add(preferences.get(PreferenceKeys.COMMENT_60_PREF, "Gut!"));
-        targets.add(preferences.get(PreferenceKeys.COMMENT_40_PREF, ""));
-        targets.add(preferences.get(PreferenceKeys.COMMENT_20_PREF, ""));
-        targets.add(preferences.get(PreferenceKeys.COMMENT_0_PREF, ""));
-
-        Optional<String> res = targets.stream().filter(s -> (comment.contains(s) && !s.trim().equals(""))).findFirst();
-
-        if(res.isPresent()){
-            return comment.replace(res.get(), replacement);
-        }else{
-            if(!comment.trim().equals("")){
-                return comment + "\n" + replacement;
-            }else{
-                return replacement;
-            }
-
-        }
-    }
-
-    public void onAutocommentSettings(ActionEvent actionEvent) {
-        Stage s = new Stage();
-        s.initModality(Modality.APPLICATION_MODAL);
-        s.initOwner(primaryStage);
-
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/autocomment.fxml"));
-            Pane p = loader.load();
-            AutocommentController controller = loader.getController();
-            controller.initialize(s,corrections);
-            s.setScene(new Scene(p));
-            s.showAndWait();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 }
