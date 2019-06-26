@@ -7,6 +7,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -53,5 +54,17 @@ public class ExerciseRatingController implements ChangeListener {
                 RatingFileParser.saveRatingFile(e.getCorrection());
             } catch (IOException ignored) {}
         }
+    }
+
+    public void onSetMaxPoints(ActionEvent actionEvent) {
+        if(e.getComment().equals("fehlt")){
+            e.setComment("");
+        }
+        e.setRating(e.getMaxPoints());
+    }
+
+    public void onMissingSolution(ActionEvent actionEvent) {
+        e.setRating(0);
+        e.setComment("fehlt");
     }
 }
