@@ -5,6 +5,7 @@ import com.koellemichael.exceptions.ParseRatingFileException;
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
 import com.koellemichael.model.ExerciseRating;
+import com.koellemichael.utils.FileUtils;
 import com.koellemichael.utils.PreferenceKeys;
 import com.koellemichael.utils.RatingFileParser;
 import com.koellemichael.utils.Utils;
@@ -307,7 +308,7 @@ public class Controller{
                 }
             };
 
-            listFiles(fileDir.getAbsolutePath(), files, ff, dir -> !dir.getName().contains("__MACOSX"));
+            FileUtils.listFiles(fileDir.getAbsolutePath(), files, ff, dir -> !dir.getName().contains("__MACOSX"));
             mediaViewController.initialize(files);
 
             ta_note.textProperty().bindBidirectional(c.noteProperty());
@@ -507,7 +508,7 @@ public class Controller{
         if(correctionsDirectory != null){
             Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
             ArrayList<File> ratingFiles = new ArrayList<>();
-            listFiles(correctionsDirectory.getAbsolutePath(),ratingFiles,file-> file.getName().matches(ratingFilePattern.pattern()), dir ->!dir.getName().contains("__MACOSX"));
+            FileUtils.listFiles(correctionsDirectory.getAbsolutePath(),ratingFiles,file-> file.getName().matches(ratingFilePattern.pattern()), dir ->!dir.getName().contains("__MACOSX"));
 
             if(!ratingFiles.isEmpty()){
                 tv_corrections.getItems().clear();
@@ -655,53 +656,6 @@ public class Controller{
         }
     }
 
-    private static void zipFile(File fileToZip, String fileName, ZipOutputStream zipOut) throws IOException {
-        if (fileToZip.isHidden()) {
-            return;
-        }
-        if (fileToZip.isDirectory()) {
-            if (fileName.endsWith("/")) {
-                zipOut.putNextEntry(new ZipEntry(fileName));
-                zipOut.closeEntry();
-            } else {
-                zipOut.putNextEntry(new ZipEntry(fileName + "/"));
-                zipOut.closeEntry();
-            }
-            File[] children = fileToZip.listFiles();
-            for (File childFile : children) {
-                zipFile(childFile, fileName + "/" + childFile.getName(), zipOut);
-            }
-            return;
-        }
-        FileInputStream fis = new FileInputStream(fileToZip);
-        ZipEntry zipEntry = new ZipEntry(fileName);
-        zipOut.putNextEntry(zipEntry);
-        byte[] bytes = new byte[1024];
-        int length;
-        while ((length = fis.read(bytes)) >= 0) {
-            zipOut.write(bytes, 0, length);
-        }
-        fis.close();
-    }
-
-    public void listFiles(String directoryName, ArrayList<File> files, FileFilter fileFilter, FileFilter dirFilter) {
-        File directory = new File(directoryName);
-        File[] fList = directory.listFiles(dirFilter);
-
-        if(fList != null){
-            List<File> allFiles = Arrays.stream(fList).filter(f -> !f.isDirectory()).filter(fileFilter::accept).collect(Collectors.toList());
-            files.addAll(allFiles);
-        }
-
-        if(fList != null) {
-            for (File file : fList) {
-                if (file.isDirectory()) {
-                    listFiles(file.getAbsolutePath(), files, fileFilter, dirFilter);
-                }
-            }
-        }
-    }
-
     private void exportAsZipWithFileChooser(){
         FileChooser choose = new FileChooser();
         choose.setTitle("Abgaben als Zip speichern");
@@ -724,34 +678,12 @@ public class Controller{
             }
 
             f.delete();
-            exportAsZip(f);
+            FileUtils.exportAsZip(f,correctionsDirectory);
         }
     }
 
 
-    private void exportAsZip(File file){
-        try {
-            if(correctionsDirectory != null){
-                File[] directoriesToZip = correctionsDirectory.listFiles();
-                if(directoriesToZip != null){
-                    List<String> directoryPathsToZip = Arrays.stream(directoriesToZip).map((File::getAbsolutePath)).collect(Collectors.toList());
-                    FileOutputStream fos = new FileOutputStream(file);
-                    ZipOutputStream zipOut = new ZipOutputStream(fos);
 
-                    for (String path:directoryPathsToZip) {
-                        File fileToZip = new File(path);
-                        zipFile(fileToZip, fileToZip.getName(), zipOut);
-                    }
-
-                    zipOut.close();
-                    fos.close();
-                    System.out.println("Saved ZIP to: " + file.getAbsolutePath());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public void onExportAsZIP(ActionEvent actionEvent) {
         if(corrections.filtered(c -> (c.getState() != Correction.CorrectionState.FINISHED)).isEmpty()){
