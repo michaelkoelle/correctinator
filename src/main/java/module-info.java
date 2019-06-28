@@ -8,6 +8,7 @@ module com.koellemichael {
     requires java.desktop;
     requires java.sql;
     requires java.prefs;
+    requires maven.model;
     exports com.koellemichael;
     exports com.koellemichael.controller;
     exports com.koellemichael.model;
