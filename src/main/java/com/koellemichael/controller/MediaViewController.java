@@ -1,6 +1,7 @@
 package com.koellemichael.controller;
 
 import com.koellemichael.utils.DesktopApi;
+import com.koellemichael.utils.FileUtils;
 import com.koellemichael.utils.PreferenceKeys;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -8,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import org.mozilla.universalchardet.UniversalDetector;
 
 import java.io.File;
 import java.io.IOException;
@@ -135,7 +137,12 @@ public class MediaViewController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/textview.fxml"));
             Pane p = loader.load();
             TextViewController controller = loader.getController();
-            String contents = new String(Files.readAllBytes(file.toPath()));
+
+            String encoding = UniversalDetector.detectCharset(file);
+            System.out.println(encoding);
+
+            //String contents = new String(Files.readAllBytes(file.toPath()));
+            String contents = FileUtils.readStringFromFile(file, encoding);
             controller.initialize(contents,mimeType);
             p_media.getChildren().add(p);
         } catch (IOException ex) {

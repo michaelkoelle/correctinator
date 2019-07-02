@@ -103,4 +103,24 @@ public class FileUtils {
         }
     }
 
+    public static String readStringFromFile(File file, String encoding){
+        try {
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(
+                            new FileInputStream(file), encoding));
+
+            String str;
+            StringBuilder content = new StringBuilder();
+
+            while ((str = in.readLine()) != null) {
+                content.append(str).append("\n");
+            }
+
+            in.close();
+            return content.toString();
+        } catch (Exception ignored) {
+            return "ERROR";
+        }
+    }
+
 }
