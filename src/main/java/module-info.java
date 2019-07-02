@@ -8,7 +8,7 @@ module com.koellemichael {
     requires java.desktop;
     requires java.sql;
     requires java.prefs;
-    requires maven.model;
+    requires gson;
     requires com.github.albfernandez.juniversalchardet;
     exports com.koellemichael;
     exports com.koellemichael.controller;

@@ -7,7 +7,7 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.input.KeyCodeCombination?>
 
-<MenuBar xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.MenuController">
+<MenuBar xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.MenuController">
     <menus>
         <Menu mnemonicParsing="false" text="Abgaben">
             <items>
@@ -63,5 +63,11 @@
                 <CheckMenuItem fx:id="mi_verbose" mnemonicParsing="false" onAction="#onToggleVerbose" text="Verbose" />
             </items>
         </Menu>
+      <Menu mnemonicParsing="false" text="Hilfe">
+        <items>
+            <MenuItem mnemonicParsing="false" onAction="#onCheckForUpdates" text="Auf Updates überprüfen" />
+          <MenuItem mnemonicParsing="false" onAction="#onOpenDocs" text="Dokumentation" />
+        </items>
+      </Menu>
     </menus>
 </MenuBar>

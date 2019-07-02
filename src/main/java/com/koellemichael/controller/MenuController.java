@@ -1,9 +1,7 @@
 package com.koellemichael.controller;
 
 import com.koellemichael.model.Correction;
-import com.koellemichael.utils.FileUtils;
-import com.koellemichael.utils.PreferenceKeys;
-import com.koellemichael.utils.RatingFileParser;
+import com.koellemichael.utils.*;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
@@ -254,5 +252,21 @@ public class MenuController {
 
     public void onToggleWrapText(ActionEvent actionEvent) {
         preferences.putBoolean(PreferenceKeys.WRAP_TEXT_PREF, ((CheckMenuItem)actionEvent.getSource()).isSelected());
+    }
+
+    public void onCheckForUpdates(ActionEvent actionEvent) {
+        try {
+            if(Utils.isNewerVersionAvailiable()){
+                Dialogs.showNewerVersionAvailableDialog();
+            }else{
+                Dialogs.showNoNewerVersionAvailableDialog();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void onOpenDocs(ActionEvent actionEvent) {
+        Utils.openWebsite("https://github.com/koellemichael/correctinator");
     }
 }
