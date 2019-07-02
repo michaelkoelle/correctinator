@@ -13,7 +13,20 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-
+        /*
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model;
+        if ((new File("pom.xml")).exists())
+            model = reader.read(new FileReader("pom.xml"));
+        else
+            model = reader.read(
+                    new InputStreamReader(
+                            Application.class.getResourceAsStream(
+                                    "/META-INF/maven/de.scrum-master.stackoverflow/aspectj-introduce-method/pom.xml"
+                            )
+                    )
+            );
+        */
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         double width = primaryScreenBounds.getWidth() / 1.2;
         double height = primaryScreenBounds.getHeight() / 1.2;
