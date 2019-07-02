@@ -87,7 +87,7 @@ jobs:
           title: v$VERSION
           description: This release is version v$VERSION #$CHANGES.
           file-path: ~/correctinator/workspace/artifacts/
-          pre-release: true
+          pre-release: false
 
 workflows:
   version: 2
