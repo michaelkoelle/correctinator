@@ -38,9 +38,7 @@ public class App extends Application {
         String currentVersion = properties.getProperty("version");
         primaryStage.setTitle("Correctinator v" + currentVersion);
 
-        boolean isNewerVersionAvailiable = Utils.isNewerVersionAvailiable();
-
-        if(isNewerVersionAvailiable){
+        if(Utils.isNewerVersionAvailiable()){
             Dialogs.showNewerVersionAvailableDialog();
         }
     }
