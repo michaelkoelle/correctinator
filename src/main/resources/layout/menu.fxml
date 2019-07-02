@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.input.KeyCodeCombination?>
-<MenuBar xmlns="http://javafx.com/javafx"
-         xmlns:fx="http://javafx.com/fxml"
-         fx:controller="com.koellemichael.controller.MenuController">
+
+<MenuBar xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.MenuController">
     <menus>
         <Menu mnemonicParsing="false" text="Abgaben">
             <items>
@@ -60,7 +58,8 @@
                 <CheckMenuItem fx:id="mi_autosave" mnemonicParsing="false" onAction="#onToggleAutosave" text="Autosave" />
                 <CheckMenuItem fx:id="mi_cycle_files" mnemonicParsing="false" onAction="#onToggleCycleFiles" text="Cycle Files" />
                 <CheckMenuItem fx:id="mi_autoscroll_top" mnemonicParsing="false" onAction="#onToggleAutoscrollTop" selected="true" text="Automatisches Hochscrollen" />
-                <CheckMenuItem fx:id="mi_auto_comment" mnemonicParsing="false" text="Automatischer Kommentar" />
+                <CheckMenuItem fx:id="mi_auto_comment" mnemonicParsing="false" onAction="#onToggleAutoComment" text="Automatischer Kommentar" />
+            <CheckMenuItem fx:id="mi_wrap_text" mnemonicParsing="false" onAction="#onToggleWrapText" text="Automatischer Zeilenumbruch TextViewer" />
                 <CheckMenuItem fx:id="mi_verbose" mnemonicParsing="false" onAction="#onToggleVerbose" text="Verbose" />
             </items>
         </Menu>

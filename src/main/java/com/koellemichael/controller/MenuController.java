@@ -36,6 +36,7 @@ public class MenuController {
     public CheckMenuItem mi_autoscroll_top;
     public CheckMenuItem mi_cycle_files;
     public CheckMenuItem mi_auto_comment;
+    public CheckMenuItem mi_wrap_text;
 
     private Stage primaryStage;
     private Preferences preferences;
@@ -52,7 +53,7 @@ public class MenuController {
         mi_auto_comment.setSelected(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true));
         mi_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
         mi_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
-
+        mi_wrap_text.setSelected(preferences.getBoolean(PreferenceKeys.WRAP_TEXT_PREF,false));
 
         menuDisable();
         mainController.corrections.addListener((ListChangeListener) c -> {
@@ -245,5 +246,13 @@ public class MenuController {
             }
         }
 
+    }
+
+    public void onToggleAutoComment(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.AUTOCOMMENT_PREF, ((CheckMenuItem)actionEvent.getSource()).isSelected());
+    }
+
+    public void onToggleWrapText(ActionEvent actionEvent) {
+        preferences.putBoolean(PreferenceKeys.WRAP_TEXT_PREF, ((CheckMenuItem)actionEvent.getSource()).isSelected());
     }
 }

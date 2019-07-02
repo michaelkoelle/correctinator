@@ -15,4 +15,6 @@ public class PreferenceKeys {
     public static final String COMMENT_20_PREF = "Comment20";
     public static final String COMMENT_0_PREF = "Comment0";
     public static final String LAST_OPENED_DIR_PREF = "lastopeneddir";
+    public static final String WRAP_TEXT_PREF = "lastopeneddir";
+
 }
