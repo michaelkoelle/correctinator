@@ -11,8 +11,14 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import org.mozilla.universalchardet.UniversalDetector;
 
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.rtf.RTFEditorKit;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -106,12 +112,12 @@ public class MediaViewController {
                 case "image/png":
                 case "image/svg+xml":
                 case "image/tiff": openImage(file); break;
+                case "text/rtf":
                 case "text/css":
                 case "text/html":
                 case "text/javascript":
                 case "text/plain":
                 case "text/richtext":
-                case "text/rtf":
                 case "text/tab-separated-values":
                 case "text/comma-separated-values":
                 case "text/xml":
@@ -134,18 +140,33 @@ public class MediaViewController {
 
     private void openText(File file, String mimeType) {
         try {
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout/textview.fxml"));
             Pane p = loader.load();
             TextViewController controller = loader.getController();
 
+            //Determine Encoding
             String encoding = UniversalDetector.detectCharset(file);
-            System.out.println(encoding);
+            if(encoding == null){
+                encoding = Charset.defaultCharset().toString();
+            }
 
-            //String contents = new String(Files.readAllBytes(file.toPath()));
-            String contents = FileUtils.readStringFromFile(file, encoding);
+            //Converting File to String
+            String contents;
+            if(mimeType.equals("text/rtf")){
+                RTFEditorKit rtfParser = new RTFEditorKit();
+                Document document = rtfParser.createDefaultDocument();
+                rtfParser.read(new ByteArrayInputStream(Files.readAllBytes(file.toPath())), document, 0);
+                String text = document.getText(0, document.getLength());
+                contents = new String(text.getBytes(encoding));
+            }else{
+                contents = FileUtils.readStringFromFile(file, encoding);
+            }
+
+
             controller.initialize(contents,mimeType);
             p_media.getChildren().add(p);
-        } catch (IOException ex) {
+        } catch (IOException | BadLocationException ex) {
             ex.printStackTrace();
         }
     }

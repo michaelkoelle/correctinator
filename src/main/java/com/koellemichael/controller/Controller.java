@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -123,6 +124,7 @@ public class Controller{
         menuController.initialize(primaryStage,this);
 
         if(!preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,"").equals("")){
+            System.out.println(preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,"errorf"));
             File dir = new File(preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,""));
             if(dir.isDirectory() && dir.exists()){
                 correctionsDirectory = dir;

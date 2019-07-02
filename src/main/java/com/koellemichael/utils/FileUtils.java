@@ -119,6 +119,7 @@ public class FileUtils {
             in.close();
             return content.toString();
         } catch (Exception ignored) {
+            ignored.printStackTrace();
             return "ERROR";
         }
     }
