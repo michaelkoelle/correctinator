@@ -1,12 +1,36 @@
 package com.koellemichael.utils;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Hyperlink;
+import javafx.util.Callback;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Properties;
 
 public class Dialogs {
+
+    public interface DialogHandler{
+        void handle();
+    }
+
+    public static void showAreYouSureDialog(String question, DialogHandler callback){
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Sind Sie sich sicher?");
+        dialog.setHeaderText(null);
+        dialog.setContentText(question);
+        dialog.getButtonTypes().clear();
+        dialog.getButtonTypes().addAll(ButtonType.YES, ButtonType.CANCEL);
+
+        Optional<ButtonType> buttonType = dialog.showAndWait();
+        buttonType.ifPresent(type -> {
+            if(type==ButtonType.YES){
+                callback.handle();
+            }
+        });
+    }
+
     public static void showNewerVersionAvailableDialog() throws IOException {
         Properties properties = new Properties();
         properties.load(Dialogs.class.getResourceAsStream("/correctinator.properties"));
