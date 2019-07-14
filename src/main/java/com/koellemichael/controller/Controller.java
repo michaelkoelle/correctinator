@@ -124,7 +124,6 @@ public class Controller{
         menuController.initialize(primaryStage,this);
 
         if(!preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,"").equals("")){
-            System.out.println(preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,"errorf"));
             File dir = new File(preferences.get(PreferenceKeys.LAST_OPENED_DIR_PREF,""));
             if(dir.isDirectory() && dir.exists()){
                 correctionsDirectory = dir;

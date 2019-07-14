@@ -7,7 +7,7 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.input.KeyCodeCombination?>
 
-<MenuBar xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.MenuController">
+<MenuBar xmlns="http://javafx.com/javafx/8.0.999-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.koellemichael.controller.MenuController">
     <menus>
         <Menu mnemonicParsing="false" text="Abgaben">
             <items>
@@ -61,12 +61,14 @@
                 <CheckMenuItem fx:id="mi_auto_comment" mnemonicParsing="false" onAction="#onToggleAutoComment" text="Automatischer Kommentar" />
             <CheckMenuItem fx:id="mi_wrap_text" mnemonicParsing="false" onAction="#onToggleWrapText" text="Automatischer Zeilenumbruch TextViewer" />
                 <CheckMenuItem fx:id="mi_verbose" mnemonicParsing="false" onAction="#onToggleVerbose" text="Verbose" />
+            <MenuItem mnemonicParsing="false" onAction="#onResetToDefaultSettings" text="Einstellungen zurücksetzen" />
             </items>
         </Menu>
       <Menu mnemonicParsing="false" text="Hilfe">
         <items>
             <MenuItem mnemonicParsing="false" onAction="#onCheckForUpdates" text="Auf Updates überprüfen" />
           <MenuItem mnemonicParsing="false" onAction="#onOpenDocs" text="Dokumentation" />
+          <MenuItem mnemonicParsing="false" onAction="#onResetProgramData" text="Programmdaten löschen" />
         </items>
       </Menu>
     </menus>

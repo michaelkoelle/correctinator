@@ -12,6 +12,7 @@ import javafx.stage.*;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 public class MenuController {
@@ -45,15 +46,9 @@ public class MenuController {
         this.preferences = Preferences.userRoot();
         this.mainController = mainController;
 
-        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, true));
-        mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
-        mi_cycle_files.setSelected(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF, false));
-        mi_auto_comment.setSelected(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true));
-        mi_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
-        mi_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
-        mi_wrap_text.setSelected(preferences.getBoolean(PreferenceKeys.WRAP_TEXT_PREF,false));
-
+        initCheckMenuItemValues();
         menuDisable();
+
         mainController.corrections.addListener((ListChangeListener) c -> {
             while(c.next()){
                 menuDisable();
@@ -62,7 +57,7 @@ public class MenuController {
 
     }
 
-    public void menuDisable(){
+    private void menuDisable(){
         if(!mainController.corrections.isEmpty()){
             mi_initialize.setDisable(false);
             mi_save_current_correction.setDisable(false);
@@ -94,7 +89,7 @@ public class MenuController {
         saveAllCorrections();
     }
 
-    public void saveAllCorrections(){
+    private void saveAllCorrections(){
         mainController.corrections.forEach(c -> {
             try {
                 RatingFileParser.saveRatingFile(c);
@@ -268,5 +263,39 @@ public class MenuController {
 
     public void onOpenDocs(ActionEvent actionEvent) {
         Utils.openWebsite("https://github.com/koellemichael/correctinator");
+    }
+
+    public void onResetToDefaultSettings(ActionEvent actionEvent) {
+        Dialogs.showAreYouSureDialog("Wollen Sie wirklich alle Einstellungen zurücksetzen?", () -> {
+            preferences.putBoolean(PreferenceKeys.AUTOSAVE_PREF, true);
+            preferences.putBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true);
+            preferences.putBoolean(PreferenceKeys.CYCLE_FILES_PREF, false);
+            preferences.putBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true);
+            preferences.putBoolean(PreferenceKeys.VERBOSE_PREF, false);
+            preferences.putBoolean(PreferenceKeys.FULLSCREEN_PREF, false);
+            preferences.putBoolean(PreferenceKeys.WRAP_TEXT_PREF, false);
+            initCheckMenuItemValues();
+        });
+    }
+
+    private void initCheckMenuItemValues() {
+        mi_autosave.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF, true));
+        mi_autoscroll_top.setSelected(preferences.getBoolean(PreferenceKeys.AUTOSCROLL_TOP_PREF, true));
+        mi_cycle_files.setSelected(preferences.getBoolean(PreferenceKeys.CYCLE_FILES_PREF, false));
+        mi_auto_comment.setSelected(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true));
+        mi_verbose.setSelected(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false));
+        mi_fullscreen.setSelected(preferences.getBoolean(PreferenceKeys.FULLSCREEN_PREF,false));
+        mi_wrap_text.setSelected(preferences.getBoolean(PreferenceKeys.WRAP_TEXT_PREF,false));
+    }
+
+    public void onResetProgramData(ActionEvent actionEvent) {
+        Dialogs.showAreYouSureDialog("Wollen Sie wirklich alle Programmdaten löschen?", () -> {
+            try {
+                preferences.clear();
+                initCheckMenuItemValues();
+            } catch (BackingStoreException e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
