@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -355,6 +354,13 @@ public class Controller{
 
         res.ifPresent(type -> {
             if(type == ButtonType.YES){
+                corrections.forEach(c -> {
+                    try {
+                        RatingFileParser.saveRatingFile(c);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
                 FileUtils.exportAsZipWithFileChooser(correctionsDirectory,correctionsDirectory.getParentFile(),("Korrektur_" + corrections.get(0).getLecture() + "_" + corrections.get(0).getExerciseSheet()).replace(" ", "_"),primaryStage);
             }
         });
