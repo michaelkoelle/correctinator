@@ -1,0 +1,10 @@
+export const SUBMISSION_STATES = {
+  TODO: "TODO",
+  MARKED_FOR_LATER: "MARKED_FOR_LATER",
+  FINISHED: "FINISHED",
+  PARSE_ERROR: "PARSE_ERROR",
+  NOT_INITIALIZED: "NOT_INITIALIZED"
+};
+
+export default class Submission{};
+
