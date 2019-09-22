@@ -67,7 +67,7 @@ const configureStore = () => {
   const persistedReducer = persistReducer(persistConfig, rootReducer);
 
   // Create Store
-  const store = createStore(persistedReducer, undefined, enhancer);
+  const store = createStore(persistedReducer, {}, enhancer);
 
   if (module.hot) {
     module.hot.accept(

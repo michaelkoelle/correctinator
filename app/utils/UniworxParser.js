@@ -1,7 +1,18 @@
+import { normalize } from 'normalizr';
 import { SUBMISSION_STATES } from '../constants/submission';
+import Comment from '../model/Comment';
+import Lecture from '../model/Lecture';
+import Task from '../model/Task';
+import SubmissionCorrection from '../model/SubmissionCorrection';
+import Rating from '../model/Rating';
+import Corrector from '../model/Corrector';
+import Submission from '../model/Submission';
+import { submissionCorrectionSchema } from '../model/Schema';
+import Exercise from '../model/Exercise';
 
-export function parse(content) {
-  // https://regex101.com/r/MgTRms/1
+export function parse(content, directory, ratingFile, files) {
+
+  // https://regex101.com/r/MgTRms/2
   const regex = new RegExp("= Bitte nur Bewertung und Kommentare ändern =\n"
     + "=============================================\n"
     + "========== UniWorx Bewertungsdatei ==========\n"
@@ -17,58 +28,47 @@ export function parse(content) {
     + "Bewertung: (\\d*[.|,]?\\d*).*\n"
     + "=============================================\n"
     + "Kommentare:\n"
-    + "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*?)\\s*(?:\\/\\*(.*)\\*\\/)?\\s*\n"
+    + "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n?(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*?)\\s*(?:\\/\\*(.*)\\*\\/)?\\s*\n"
     + "============ Ende der Kommentare ============",'gm');
 
   const match = regex.exec(content);
-
-  const submission = {
-    submissionId: undefined,
-    maxpoints: 0.0,
-    state: SUBMISSION_STATES.TODO,
-    lecture: undefined,
-    exercise: undefined,
-    corrector: undefined,
-    comment: undefined,
-    note: undefined,
-    tasks: []
-  };
+  let state = SUBMISSION_STATES.TODO;
 
   if(match){
-    const [ , lecture, exercise, correctorName, correctorEmail, submissionId, maxpoints, score, tasks, comment, note] = match;
+    const [ , lectureName, exerciseName, correctorName, correctorEmail, submissionId, maxPoints, score, tasks, commentText, annotation] = match;
 
     if(score.trim() !== ""){
-      submission.state = SUBMISSION_STATES.FINISHED;
+      state = SUBMISSION_STATES.FINISHED;
     }
 
-    if(note){
-      submission.state = SUBMISSION_STATES.MARKED_FOR_LATER;
+    if(annotation){
+      state = SUBMISSION_STATES.MARKED_FOR_LATER;
     }
 
     if(tasks === "\n" || tasks.trim().length === 0){
-      submission.state = SUBMISSION_STATES.NOT_INITIALIZED;
+      state = SUBMISSION_STATES.NOT_INITIALIZED;
     }
 
-    submission.submissionId = submissionId;
-    submission.score = extractFloatFromString(score);
-    submission.maxpoints = extractFloatFromString(maxpoints);
-    submission.lecture = lecture;
-    submission.exercise = exercise;
-    submission.corrector = {
-      name: correctorName,
-      email: correctorEmail
-    };
-    submission.comment = {
-      text: comment
-    };
-    submission.note = note;
-    submission.tasks = parseTasks(tasks)
+    const corrector = new Corrector(correctorName, correctorEmail.toLowerCase());
+    const lecture = new Lecture(lectureName);
 
+    const exercise = new Exercise(exerciseName, extractFloatFromString(maxPoints), lecture, []);
+    const submission = new Submission(submissionId, files, exercise);
+
+    const exerciseRating = new Rating(extractFloatFromString(score), undefined, exercise, corrector, submission);
+    exerciseRating.comment = new Comment(commentText, exerciseRating);
+
+    const corr = new SubmissionCorrection(state, annotation, ratingFile, files, exercise, parseTasks(tasks, corrector, lecture, submission, [exerciseRating], exercise));
+
+
+    const data = normalize(corr, submissionCorrectionSchema);
+    console.log(data);
+    //console.log(denormalize(0, correctionSchema, data.entities))
   }else{
-    submission.state = SUBMISSION_STATES.PARSE_ERROR;
+    state = SUBMISSION_STATES.PARSE_ERROR;
   }
 
-  return submission;
+  return {};
 }
 
 export function stringify() {
@@ -84,35 +84,35 @@ function extractFloatFromString(s){
 }
 
 
-function parseTasks(contents, tasks = [], parent = undefined) {
+function parseTasks(contents, corrector, lecture, submission, ratings = [], parent = undefined) {
   const regex = new RegExp("(?=(?:^[^\\s][^:|)]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))", 'gm');
 
   if(contents === undefined){
-    return tasks;
+    return ratings;
   }
 
-  const taskSplit = contents.split(regex);
+  const ratingsSplit = contents.split(regex);
 
-  if(!taskSplit){
+  if(!ratingsSplit){
     // TODO: File not initialized
   }
 
-  taskSplit.forEach(subtask => {
-    const t = parseTask(subtask);
-    t.parent = parent;
-    if(parent){
-      parent.subtasks.push(t);
-    }else{
-      tasks.push(t);
-    }
+  ratingsSplit.forEach(subRating => {
+    const r = parseTask(subRating, corrector, lecture, submission, parent);
+    r.task.parent = parent;
 
-    if(countSubtasks(subtask)>1){
-      parseTasks(unwrapParentTask(subtask), tasks, t);
+    if(parent !== undefined && parent.subTasks){
+      parent.subTasks.push(r.task)
+    }
+    ratings.push(r);
+
+    if(countSubtasks(subRating)>1){
+      parseTasks(unwrapParentTask(subRating), corrector, lecture, submission, ratings, r.task);
     }
 
   });
 
-  return tasks;
+  return ratings;
 }
 
 function unwrapParentTask(content){
@@ -122,7 +122,7 @@ function unwrapParentTask(content){
   return lines.join('\n');
 }
 
-function parseTask(contents){
+function parseTask(contents, corrector, lecture, submission, parent = undefined){
   // https://regex101.com/r/G1jcxf/2
   const regex = new RegExp("(?: |\\t)*([^\\n]+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)[\\t| ]*\\n?(\\t*\\S.*)?", 'gms');
 
@@ -135,6 +135,27 @@ function parseTask(contents){
     comment = lines.join('\n');
   }
 
+  const r = new Rating(
+    extractFloatFromString(match[2]),
+    undefined,
+    new Task(match[1], extractFloatFromString(match[3]), parent, []),
+    corrector,
+    submission
+  );
+
+  r.comment = new Comment(comment, r);
+
+  return r;
+
+  /*
+  return {
+    score: extractFloatFromString(match[2]),
+    comment: {text: comment},
+    task: {name: match[1], maxPoints: extractFloatFromString(match[3]), subTasks: []},
+    subRatings: []
+  }
+*/
+  /*
   return {
     name: match[1],
     rating: {
@@ -146,6 +167,7 @@ function parseTask(contents){
     },
     subtasks: []
   };
+  */
 }
 
 
@@ -199,7 +221,7 @@ public static int countPatternInString(String input, Pattern pattern){
   return input.split(pattern.toString(),-1).length - 1;
 }
 
-public static ExerciseRating parseExerciseRating(String plain, Correction c) throws ParseRatingFileCommentSectionException {
+public static ExerciseRating parseExerciseRating(String plain, SubmissionCorrection c) throws ParseRatingFileCommentSectionException {
   Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
   Scanner lineScanner = new Scanner(plain);
   String line;
@@ -230,7 +252,7 @@ public static ExerciseRating parseExerciseRating(String plain, Correction c) thr
   throw new ParseRatingFileCommentSectionException(plain);
 }
 
-public static Exercise parseExercise(String plain, Correction c) throws ParseRatingFileCommentSectionException {
+public static Exercise parseExercise(String plain, SubmissionCorrection c) throws ParseRatingFileCommentSectionException {
   Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
   Scanner lineScanner = new Scanner(plain);
   String line;

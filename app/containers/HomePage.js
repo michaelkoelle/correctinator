@@ -6,8 +6,10 @@ import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import SubmissionsTable from '../components/SubmissionsTable';
 import Overview from '../components/Overview';
-import {openSubmissions} from '../utils/FileAccess'
 import Task from '../components/Task';
+import { openSubmissions } from '../actions/actionCreators';
+import { store } from '../index';
+
 
 type Props = {};
 
@@ -17,7 +19,7 @@ export default class HomePage extends Component<Props> {
   render() {
     return (
       <div>
-        <Button variant="contained" onClick={openSubmissions}>
+        <Button variant="contained" onClick={() => store.dispatch(openSubmissions())}>
           Open Submissions
         </Button>
         <SubmissionsTable/>

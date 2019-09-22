@@ -11,6 +11,7 @@ export const persistor = persistStore(store);
 
 persistor.purge();
 
+
 render(
   <AppContainer>
     <Root store={store} history={history} />
