@@ -4,11 +4,13 @@ import MUIDataTable from "mui-datatables";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { setCurrentRow } from '../actions/actionCreators';
+import { denormalize } from 'normalizr';
+import { stateSchema, submissionCorrectionSchema } from '../model/Schema';
 
 function SubmissionsTable(props) {
   const columns = [
     {
-      name: 'submissionId',
+      name: 'id',
       label: 'Submission-Id'
     },
     {
@@ -16,27 +18,27 @@ function SubmissionsTable(props) {
       label: 'State'
     },
     {
-      name: 'rating',
-      label: 'Rating'
+      name: 'score',
+      label: 'Score'
     },
     {
-      name: 'maxpoints',
+      name: 'maxPoints',
       label: 'Max. Points'
     },
     {
-      name: 'exercise',
+      name: 'exerciseName',
       label: 'Exercise Sheet'
     },
     {
-      name: 'lecture',
+      name: 'lectureName',
       label: 'Lecture'
     },
     {
-      name: 'corrector',
+      name: 'correctorName',
       label: 'Corrector'
     },
     {
-      name: 'email',
+      name: 'correctorEmail',
       label: 'E-Mail'
     },
     {
@@ -69,9 +71,28 @@ function SubmissionsTable(props) {
   );
 }
 
-const mapStateToProps = (state) => ({
-  submissions: state.project.submissions
-});
+const mapStateToProps = (state) => {
+
+  if(state.db && state.db.entities){
+    console.log("mapStateToProps");
+    const submissionCorrections = denormalize(state.db.result, stateSchema, state.db.entities);
+    return {
+      submissions: submissionCorrections.map(submissionCorrection => ({
+        id: "N/A",
+        state: submissionCorrection.state,
+        score: "N/A",
+        maxPoints: submissionCorrection.exercise.maxPoints,
+        exerciseName: submissionCorrection.exercise.name,
+        lectureName: submissionCorrection.exercise.lecture.name,
+        correctorName: "N/A",
+        correctorEmail: "N/A",
+        fileCount: submissionCorrection.filePaths,
+        directory: submissionCorrection.ratingFilePath,
+      }))
+    };
+  }
+
+};
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({ setCurrentRow }, dispatch);
 

@@ -6,7 +6,8 @@ import { Paper, TextField, Typography, Grid } from '@material-ui/core';
 import Box from '@material-ui/core/Box';
 
 function Task(props) {
-  //console.log(props);
+  console.log(props);
+  /*
   if(props.current.tasks){
     const task = props.current.tasks[0];
     const {comment, name, rating, maxpoints, subtasks} = task;
@@ -21,6 +22,7 @@ function Task(props) {
       </Paper>
     );
   }
+  */
   return(<div/>);
 }
 
@@ -95,9 +97,11 @@ function TaskLabel(props){
 }
 
 const mapStateToProps = (state) => {
-  if(state.project.current !== undefined && state.project.submissions && state.project.submissions.length > 0){
+  if(state.project.current !== undefined && state.db.entities && state.db.entities.submissionCorrections){
+    console.log(state.db.entities.submissionCorrections);
+    console.log(state.db.entities.submissionCorrections[state.project.current]);
     return {
-      current: state.project.submissions[state.project.current]
+      current: state.db.entities.submissionCorrections[state.project.current]
     };
   }
   return {current: {}};
