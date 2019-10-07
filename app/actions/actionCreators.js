@@ -15,6 +15,8 @@ import {
 } from '../constants/actionTypes';
 import { getAllFilesInDirectory, openDirectory } from '../utils/FileAccess';
 import { parse } from '../utils/UniworxParser';
+import { normalize } from 'normalizr';
+import { stateSchema } from '../model/Schema';
 
 const ratingFilePattern = new RegExp('bewertung_([0-9]+)\\.txt', 'g');
 
@@ -51,7 +53,7 @@ export function loadSubmissions(dirPath) {
     });
 
     if(submissions.length > 0){
-      dispatch(setSubmissions(submissions)); // TODO normalize
+      dispatch(setSubmissions(normalize(submissions, stateSchema)));
     }
   }
 }
