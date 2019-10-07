@@ -37,7 +37,7 @@ export default function project(state = {path: "", current: 0}, action: Action) 
         path: action.path
       });
 
-
+/*
     case SET_SUBMISSIONS:
       return Object.assign({}, state, {
         submissions: action.submissions
@@ -50,6 +50,8 @@ export default function project(state = {path: "", current: 0}, action: Action) 
       });
 
 
+ */
+
     case SET_CURRENT_ROW:
       return Object.assign({}, state, {
         current: action.rowMeta
@@ -57,7 +59,8 @@ export default function project(state = {path: "", current: 0}, action: Action) 
 
 
     case NEXT_SUBMISSION:
-      if(state.current < state.submissions.length-1){
+      console.log(state);
+      if(state.current < state.db.entities.submissionCorrections.length-1){
         return Object.assign({}, state, {
           current: state.current + 1
         });
