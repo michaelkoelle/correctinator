@@ -32,21 +32,21 @@ export function parse(content, directory, ratingFile, files) {
     + "============ Ende der Kommentare ============",'gm');
 
   const match = regex.exec(content);
-  let state = SUBMISSION_STATES.TODO;
+  const correction = new SubmissionCorrection(SUBMISSION_STATES.TODO);
 
   if(match){
     const [ , lectureName, exerciseName, correctorName, correctorEmail, submissionId, maxPoints, score, tasks, commentText, annotation] = match;
 
     if(score.trim() !== ""){
-      state = SUBMISSION_STATES.FINISHED;
+      correction.state = SUBMISSION_STATES.FINISHED;
     }
 
     if(annotation){
-      state = SUBMISSION_STATES.MARKED_FOR_LATER;
+      correction.state = SUBMISSION_STATES.MARKED_FOR_LATER;
     }
 
     if(tasks === "\n" || tasks.trim().length === 0){
-      state = SUBMISSION_STATES.NOT_INITIALIZED;
+      correction.state = SUBMISSION_STATES.NOT_INITIALIZED;
     }
 
     const corrector = new Corrector(correctorName, correctorEmail.toLowerCase());
@@ -58,17 +58,20 @@ export function parse(content, directory, ratingFile, files) {
     const exerciseRating = new Rating(extractFloatFromString(score), undefined, exercise, corrector, submission);
     exerciseRating.comment = new Comment(commentText, exerciseRating);
 
-    const corr = new SubmissionCorrection(state, annotation, ratingFile, files, exercise, parseTasks(tasks, corrector, lecture, submission, [exerciseRating], exercise));
+    correction.annotation = annotation;
+    correction.ratingFilePath = ratingFile;
+    correction.filePaths = files;
+    correction.exercise = exercise;
+    correction.ratings = parseTasks(tasks, corrector, lecture, submission, [exerciseRating], exercise);
 
-
-    const data = normalize(corr, submissionCorrectionSchema);
+    const data = normalize(correction, submissionCorrectionSchema);
     console.log(data);
-    //console.log(denormalize(0, correctionSchema, data.entities))
+    //console.log(denormalize(0, correctionSchema, data.db))
   }else{
-    state = SUBMISSION_STATES.PARSE_ERROR;
+    correction.state = SUBMISSION_STATES.PARSE_ERROR;
   }
 
-  return {};
+  return correction;
 }
 
 export function stringify() {
