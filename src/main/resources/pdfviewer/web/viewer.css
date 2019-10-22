@@ -12,8 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#toolbarViewerRight {
-    display:none;
+
+#presentationMode {
+  display:none;
+}
+
+#openFile {
+  display:none;
+}
+#print {
+  display:none;
+}
+
+#download {
+  display:none;
+}
+
+#viewBookmark {
+  display:none;
 }
 
 .textLayer {

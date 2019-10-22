@@ -23,7 +23,7 @@ public class RatingFileParser {
     public static Correction parseFile(String path) throws ParseRatingFileException, IOException, FileNotInitializedException {
 
         Pattern p = Pattern.compile(
-                "= Bitte nur Bewertung und Kommentare ändern =\\n" +
+                "(?m)= Bitte nur Bewertung und Kommentare ändern =\\n" +
                 "=============================================\\n" +
                 "========== UniWorx Bewertungsdatei ==========\\n" +
                 "======= diese Datei ist UTF8 encodiert ======\\n" +
@@ -38,7 +38,7 @@ public class RatingFileParser {
                 "Bewertung: (\\d*[.|,]?\\d*).*\\n" +
                 "=============================================\\n" +
                 "Kommentare:\\n" +
-                "(.*)\\n*" +
+                "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*?)\\s*(?>\\/\\*(.*)\\*\\/)?\\s*" +
                 "============ Ende der Kommentare ============",Pattern.DOTALL | Pattern.MULTILINE);
 
         Correction c = new Correction();
@@ -55,7 +55,22 @@ public class RatingFileParser {
             c.setCorrectorEmail(matcher.group(4));
             c.setId(matcher.group(5));
             c.setMaxPoints(extractDoubleFromString(matcher.group(6)));
-            c.setRating(extractDoubleFromString(matcher.group(7)));
+
+            if(!matcher.group(7).trim().equals("")){
+                c.setState(Correction.CorrectionState.FINISHED);
+                c.setRating(extractDoubleFromString(matcher.group(7)));
+            }else {
+                c.setState(Correction.CorrectionState.TODO);
+            }
+
+            if(matcher.group(10) != null){
+                c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+                c.setNote(matcher.group(10));
+            }
+
+            if(matcher.group(9) != null){
+                c.setGlobalComment(matcher.group(9));
+            }
 
             String commentSection = matcher.group(8);
 
@@ -68,6 +83,7 @@ public class RatingFileParser {
             e.setCorrection(c);
             parseExercises(commentSection, e);
             c.setExercise(e);
+
         }else{
             throw new ParseRatingFileException(fileContents);
         }
@@ -76,6 +92,9 @@ public class RatingFileParser {
     }
 
     public static String buildRatingFile(Correction c){
+        boolean finished = (c.getState() == Correction.CorrectionState.FINISHED);
+        boolean marked = (c.getState() == Correction.CorrectionState.MARKED_FOR_LATER);
+
         DecimalFormat format = new DecimalFormat("0.#");
         String ratingFileContent =
                 "= Bitte nur Bewertung und Kommentare ändern =\n" +
@@ -90,7 +109,7 @@ public class RatingFileParser {
                 "Abgabe-Id: " + c.getId() + "\n" +
                 "Maximalpunktzahl: " + format.format(c.getMaxPoints()) + " Punkte\n" +
                 "=============================================\n" +
-                "Bewertung: " + format.format(c.getRating()) + "\n" +
+                "Bewertung: " + ((finished)?format.format(c.getRating()):"") + "\n" +
                 "=============================================\n" +
                 "Kommentare:\n";
 
@@ -108,7 +127,16 @@ public class RatingFileParser {
             }
         }
 
+        if(c.getGlobalComment() != null && c.getGlobalComment().trim().length()>0){
+            ratingFileContent += "\n" + c.getGlobalComment().trim() + "\n";
+        }
+
+        if(marked){
+            ratingFileContent += "/*"+ c.getNote() +"*/\n";
+        }
+
         ratingFileContent += "============ Ende der Kommentare ============\n";
+
         return ratingFileContent;
     }
 
@@ -149,11 +177,8 @@ public class RatingFileParser {
             lastEnd = m.end();
         }
 
-        if(lastEnd != str.length()) {
-            String nonDelim = str.substring(lastEnd);
-            parts.add(lastDelim+nonDelim);
-        }
-
+        String nonDelim = str.substring(lastEnd);
+        parts.add(lastDelim+nonDelim);
 
         return parts.toArray(new String[]{});
     }

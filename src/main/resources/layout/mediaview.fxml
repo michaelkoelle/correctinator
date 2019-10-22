@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
@@ -44,7 +46,14 @@
                                </Button>
                            </children>
                        </HBox>
-                         <Button mnemonicParsing="false" onAction="#onReloadFile" text="🔃" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="0.0" />
+                         <Button mnemonicParsing="false" onAction="#onReloadFile" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="0.0">
+                     <graphic>
+                        <ImageView fitWidth="17.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/reload.png" />
+                           </image>
+                        </ImageView>
+                     </graphic></Button>
                   <Button layoutX="379.0" layoutY="10.0" mnemonicParsing="false" onAction="#onOpenCurrentDirectory" text="Ordner öffnen" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="0.0" />
                </children>
                <padding>

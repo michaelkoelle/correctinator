@@ -2,17 +2,16 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.ContextMenu?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -28,46 +27,7 @@
          <top>
             <VBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
                <children>
-                  <MenuBar>
-                    <menus>
-                      <Menu mnemonicParsing="false" text="Abgaben">
-                        <items>
-                          <MenuItem fx:id="mi_open_corrections" mnemonicParsing="false" onAction="#onOpenDirectory" text="Abgaben öffnen">
-                                 <accelerator>
-                                    <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                                 </accelerator></MenuItem>
-                              <MenuItem fx:id="mi_save_current_correction" mnemonicParsing="false" onAction="#onSaveCorrection" text="Aktuelle Abgabe speichern">
-                                 <accelerator>
-                                    <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                                 </accelerator></MenuItem>
-                              <MenuItem fx:id="mi_export_zip" mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren">
-                                 <accelerator>
-                                    <KeyCodeCombination alt="UP" code="E" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                                 </accelerator></MenuItem>
-                              <MenuItem fx:id="mi_initialize" mnemonicParsing="false" onAction="#onInitializeCommentSection" text="Kommentarfeld initialisieren">
-                                 <accelerator>
-                                    <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                                 </accelerator></MenuItem>
-                              <MenuItem mnemonicParsing="false" onAction="#onExit" text="Beenden" />
-                        </items>
-                      </Menu>
-                        <Menu mnemonicParsing="false" text="Ansicht">
-                          <items>
-                              <CheckMenuItem fx:id="btn_fullscreen" mnemonicParsing="false" onAction="#onToggleFullscreen" text="Vollbild">
-                                 <accelerator>
-                                    <KeyCodeCombination alt="UP" code="F1" control="UP" meta="ANY" shift="UP" shortcut="UP" />
-                                 </accelerator>
-                              </CheckMenuItem>
-                          </items>
-                        </Menu>
-                        <Menu mnemonicParsing="false" text="Einstellungen">
-                          <items>
-                              <CheckMenuItem fx:id="mi_autosave" mnemonicParsing="false" onAction="#onToggleAutosave" text="Autosave" />
-                              <CheckMenuItem fx:id="btn_verbose" mnemonicParsing="false" onAction="#onToggleVerbose" text="Verbose" />
-                          </items>
-                        </Menu>
-                    </menus>
-                  </MenuBar>
+                   <fx:include fx:id="menu" source="menu.fxml" />
                </children>
             </VBox>
          </top>
@@ -96,6 +56,15 @@
                               <TableColumn fx:id="tc_corrector_email" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="E-Mail" />
                             <TableColumn fx:id="tc_path" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Pfad" />
                           </columns>
+                           <contextMenu>
+                              <ContextMenu>
+                                <items>
+                                    <MenuItem mnemonicParsing="false" onAction="#onSetTODO" text="Status: TODO" />
+                                    <MenuItem mnemonicParsing="false" onAction="#onSetMARKED" text="Status: MARKED_FOR_LATER" />
+                                  <MenuItem mnemonicParsing="false" onAction="#onSetFINISHED" text="Status: FINISHED" />
+                                </items>
+                              </ContextMenu>
+                           </contextMenu>
                         </TableView>
                      </children>
                   </StackPane>
@@ -176,14 +145,45 @@
                                     <Button fx:id="btn_done" mnemonicParsing="false" onAction="#onDone" text="Speichern/Nächste Abgabe" />
                                  </children>
                                  <VBox.margin>
-                                    <Insets bottom="5.0" top="5.0" />
+                                    <Insets bottom="10.0" top="5.0" />
                                  </VBox.margin>
                               </HBox>
-                              <ScrollPane fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                              <ScrollPane fx:id="sp_note" fitToHeight="true" fitToWidth="true" prefHeight="60.0" prefWidth="722.0">
                                 <content>
-                                    <VBox fx:id="vbox_edit">
+                                  <AnchorPane minHeight="0.0" minWidth="0.0">
+                                       <children>
+                                          <TextArea fx:id="ta_note" promptText="Markierungs Notiz" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                       </children>
+                                    </AnchorPane>
+                                </content>
+                                 <VBox.margin>
+                                    <Insets bottom="10.0" left="20.0" right="20.0" />
+                                 </VBox.margin>
+                              </ScrollPane>
+                              <ScrollPane fx:id="sb_comments" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                                <content>
+                                    <VBox>
+                                       <children>
+                                          <VBox fx:id="vbox_edit">
+                                             <VBox.margin>
+                                                <Insets />
+                                             </VBox.margin></VBox>
+                                          <AnchorPane fx:id="global_comment">
+                                             <children>
+                                                <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Weitere Kommentare:" textAlignment="CENTER" AnchorPane.bottomAnchor="64.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                   <font>
+                                                      <Font size="17.0" />
+                                                   </font>
+                                                </Label>
+                                                <TextArea fx:id="ta_global_comment" layoutX="10.0" layoutY="31.0" prefHeight="60.0" prefWidth="700.0" promptText="Kommentar für die gesamte Abgabe" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="30.0" />
+                                             </children>
+                                             <VBox.margin>
+                                                <Insets bottom="20.0" top="20.0" />
+                                             </VBox.margin>
+                                          </AnchorPane>
+                                       </children>
                                        <padding>
-                                          <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
+                                          <Insets left="10.0" right="10.0" />
                                        </padding>
                                     </VBox>
                                 </content>
