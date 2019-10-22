@@ -1,9 +1,7 @@
-import Model from './Model';
+import { Model, attr, fk } from "redux-orm";
 
-export default class Lecture extends Model {
-  constructor(name) {
-    super();
-    this.id = Lecture.incrementId();
-    this.name = name;
-  }
-}
+export default class Lecture extends Model {}
+Lecture.modelName = 'Lecture';
+Lecture.fields = {
+  name: attr()
+};

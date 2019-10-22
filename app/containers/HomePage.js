@@ -1,12 +1,6 @@
 // @flow
 import React, { Component } from 'react';
-import SplitPane from 'react-split-pane';
-import FileViewer from 'react-file-viewer';
-import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
-import SubmissionsTable from '../components/SubmissionsTable';
-import Overview from '../components/Overview';
-import Task from '../components/Task';
 import { openSubmissions } from '../actions/actionCreators';
 import { store } from '../index';
 
@@ -22,9 +16,6 @@ export default class HomePage extends Component<Props> {
         <Button variant="contained" onClick={() => store.dispatch(openSubmissions())}>
           Open Submissions
         </Button>
-        <SubmissionsTable/>
-        <Overview/>
-        <Task/>
       </div>
     );
   }

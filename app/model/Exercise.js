@@ -1,8 +1,8 @@
+import {attr, fk} from "redux-orm";
 import Task from './Task';
 
-export default class Exercise extends Task {
-  constructor(name, maxPoints, lecture, subTasks) {
-    super(name, maxPoints, undefined, subTasks);
-    this.lecture = lecture;
-  }
-}
+export default class Exercise extends Task {}
+Exercise.modelName = 'Exercise';
+Exercise.fields = {
+  lectureId: fk("Lecture")
+};

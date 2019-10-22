@@ -4,8 +4,6 @@ import MUIDataTable from "mui-datatables";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import { setCurrentRow } from '../actions/actionCreators';
-import { denormalize } from 'normalizr';
-import { stateSchema, submissionCorrectionSchema } from '../model/Schema';
 
 function SubmissionsTable(props) {
   const columns = [
@@ -75,7 +73,7 @@ const mapStateToProps = (state) => {
 
   if(state.db && state.db.entities){
     console.log("mapStateToProps");
-    const submissionCorrections = denormalize(state.db.result, stateSchema, state.db.entities);
+    const submissionCorrections = state.db.entities;
     return {
       submissions: submissionCorrections.map(submissionCorrection => ({
         id: "N/A",
