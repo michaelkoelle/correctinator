@@ -249,44 +249,7 @@ public class Controller{
                 }
             }
 
-            ArrayList<File> files = new ArrayList<>();
-            File fileDir = new File(c.getPath()).getParentFile();
-            FileFilter ff = (file) ->{
-                Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
-                if(ratingFilePattern.matcher(file.getName()).find()){
-                    return false;
-                }
-                try {
-                    String mimeType = Files.probeContentType(Paths.get(file.toURI()));
-                    if(mimeType == null){
-                        return false;
-                    }
-                    switch (mimeType){
-                        case "application/pdf":
-                        case "image/bmp":
-                        case "image/gif":
-                        case "image/jpeg":
-                        case "image/png":
-                        case "image/svg+xml":
-                        case "image/tiff":
-                        case "text/css":
-                        case "text/html":
-                        case "text/javascript":
-                        case "text/plain":
-                        case "text/richtext":
-                        case "text/rtf":
-                        case "text/tab-separated-values":
-                        case "text/comma-separated-values":
-                        case "text/xml":
-                        default: return true;
-                    }
-                } catch (IOException e) {
-                    return false;
-                }
-            };
-
-            FileUtils.listFiles(fileDir.getAbsolutePath(), files, ff, dir -> !dir.getName().contains("__MACOSX"));
-            mediaViewController.initialize(files);
+            mediaViewController.initialize(getSolutionsFromCorrection(c));
 
             ta_note.textProperty().bindBidirectional(c.noteProperty());
             c.noteProperty().addListener((observableValue1, s, t1) -> {
@@ -341,7 +304,47 @@ public class Controller{
         }
     }
 
+    public ArrayList<File> getSolutionsFromCorrection(Correction c){
+        ArrayList<File> files = new ArrayList<>();
+        File fileDir = new File(c.getPath()).getParentFile();
+        FileFilter ff = (file) ->{
+            Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
+            if(ratingFilePattern.matcher(file.getName()).find()){
+                return false;
+            }
+            try {
+                String mimeType = Files.probeContentType(Paths.get(file.toURI()));
+                if(mimeType == null){
+                    return false;
+                }
+                switch (mimeType){
+                    case "application/pdf":
+                    case "image/bmp":
+                    case "image/gif":
+                    case "image/jpeg":
+                    case "image/png":
+                    case "image/svg+xml":
+                    case "image/tiff":
+                    case "text/css":
+                    case "text/html":
+                    case "text/javascript":
+                    case "text/plain":
+                    case "text/richtext":
+                    case "text/rtf":
+                    case "text/tab-separated-values":
+                    case "text/comma-separated-values":
+                    case "text/xml":
+                    default: return true;
+                }
+            } catch (IOException e) {
+                return false;
+            }
+        };
 
+        FileUtils.listFiles(fileDir.getAbsolutePath(), files, ff, dir -> !dir.getName().contains("__MACOSX"));
+
+        return files;
+    }
 
     private void suggestCreatingZip() {
         Alert d = new Alert(Alert.AlertType.CONFIRMATION);
