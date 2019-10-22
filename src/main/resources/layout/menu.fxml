@@ -32,6 +32,7 @@
                     </items>
                 </Menu>
                 <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem fx:id="mi_auto_correction" mnemonicParsing="false" onAction="#onAutoCorrection" text="Automatische Korrektur" />
                 <MenuItem fx:id="mi_export_zip" mnemonicParsing="false" onAction="#onExportAsZIP" text="Als ZIP exportieren">
                     <accelerator>
                         <KeyCodeCombination alt="UP" code="E" control="UP" meta="UP" shift="UP" shortcut="DOWN" />

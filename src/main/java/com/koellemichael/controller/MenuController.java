@@ -1,19 +1,36 @@
 package com.koellemichael.controller;
 
 import com.koellemichael.model.Correction;
+import com.koellemichael.model.Exercise;
+import com.koellemichael.model.ExerciseLabel;
+import com.koellemichael.model.ExerciseRating;
 import com.koellemichael.utils.*;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.*;
+import org.mozilla.universalchardet.UniversalDetector;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.SQLOutput;
+import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MenuController {
 
@@ -295,6 +312,132 @@ public class MenuController {
                 initCheckMenuItemValues();
             } catch (BackingStoreException e) {
                 e.printStackTrace();
+            }
+        });
+    }
+
+
+
+    public void onAutoCorrection(ActionEvent actionEvent) {
+        Alert initDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        initDialog.setTitle("Automatische Korrektur");
+        initDialog.setHeaderText("Automatische Korrektur von Single Choice Aufgaben");
+        initDialog.getButtonTypes().clear();
+        initDialog.getButtonTypes().add(ButtonType.CANCEL);
+        initDialog.getButtonTypes().add(ButtonType.FINISH);
+        TextArea textArea = new TextArea();
+
+        ObservableList<String> list = FXCollections.observableArrayList(mainController.corrections.get(0).getExercise().getSubExercises().stream().flatMap(Utils::flatten).filter(exercise -> exercise instanceof ExerciseRating).map(Exercise::getName).collect(Collectors.toList()));
+        ChoiceBox<String> choiceBox = new ChoiceBox<>(list);
+        choiceBox.getSelectionModel().selectLast();
+
+        VBox vBox = new VBox(choiceBox, textArea);
+        textArea.setText(preferences.get(PreferenceKeys.SINGLE_CHOICE_SOLUTION, ""));
+        initDialog.getDialogPane().setContent(vBox);
+        Optional<ButtonType> b = initDialog.showAndWait();
+        b.ifPresent(buttonType -> {
+            if(buttonType==ButtonType.FINISH){
+                int[] autoCorrectionCount = {0};
+                String solution = textArea.getText();
+                preferences.put(PreferenceKeys.SINGLE_CHOICE_SOLUTION, solution);
+
+                Pattern p = Pattern.compile("(\\w)[.|\\)]\\s*\\(?([i|v|x]+)\\)?(?> *(.*))?",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                Matcher matcher = p.matcher(solution);
+                Map<String, String> solutionMap = new HashMap<>();
+                Map<String, String> solutionTextMap = new HashMap<>();
+                while(matcher.find()){
+                    String task = matcher.group(1);
+                    String sol = matcher.group(2);
+                    String solText = matcher.group(3);
+
+                    solutionMap.put(task, sol);
+                    solutionTextMap.put(task, solText);
+                }
+
+                mainController.corrections.forEach((c) -> {
+                    ArrayList<File> files = mainController.getSolutionsFromCorrection(c);
+                    final int[] found = {0};
+                    Map<String, String> submission = new HashMap<>();
+                    files.forEach(f -> {
+                        if(FileUtils.getFileExtension(f).equals("txt")){
+                            System.out.println("Text File gefunden: " + f.getPath());
+                            //Determine Encoding
+                            String encoding = null;
+                            try {
+                                encoding = UniversalDetector.detectCharset(f);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if(encoding == null){
+                                encoding = Charset.defaultCharset().toString();
+                            }
+                            String contents = FileUtils.readStringFromFile(f, encoding);
+
+                            Matcher matcher1 = p.matcher(contents);
+                            boolean foundMatch = false;
+
+                            while(matcher1.find()){
+                                foundMatch = true;
+                                String task = matcher1.group(1);
+                                String sol = matcher1.group(2);
+                                submission.put(task, sol);
+                            }
+
+                            if(foundMatch){
+                                found[0]++;
+                            }
+                        }
+                    });
+
+                    if(found[0] == 1){
+                        double[] score = {0.0};
+                        ArrayList<String> incorrectTasks = new ArrayList<>();
+                        solutionMap.forEach((k,v) ->{
+                            if(submission.containsKey(k)){
+                                if(v.equals(submission.get(k))){
+                                    score[0] += 1.0;
+                                }else{
+                                    incorrectTasks.add(k);
+                                }
+                            }
+                        });
+
+                        Optional<Exercise> e = c.getExercise().getSubExercises().stream().flatMap(Utils::flatten).filter(exercise -> exercise instanceof ExerciseRating && exercise.getName().equals(choiceBox.getValue())).findFirst();
+                        if(e.isPresent()){
+                            ExerciseRating exercise = (ExerciseRating) e.get();
+                            exercise.setAutoGen(true);
+                            exercise.ratingProperty().set(score[0]);
+                            exercise.commentProperty().set(incorrectTasks.stream().map(task -> task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task)).reduce("", (s, acc) -> acc + "\n" + s));
+                            c.setChanged(true);
+
+                            autoCorrectionCount[0]++;
+
+                            if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
+                                try {
+                                    RatingFileParser.saveRatingFile(c);
+                                } catch (IOException ex) {
+                                    ex.printStackTrace();
+                                }
+                            }
+
+
+                        }
+
+                    }
+
+                });
+
+                if(autoCorrectionCount[0]>0){
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Zusammenfassung");
+                    alert.setHeaderText(null);
+                    StringBuilder content = new StringBuilder();
+
+                    content.append("Es wurde die ").append(choiceBox.getValue().replace(":","").replace(")","")).append(" bei ").append(autoCorrectionCount[0]).append(" Abgaben automatisch korrigiert!");
+
+                    alert.setContentText(content.toString());
+                    alert.showAndWait();
+                }
             }
         });
     }

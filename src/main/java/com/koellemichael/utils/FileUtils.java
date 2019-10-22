@@ -124,4 +124,13 @@ public class FileUtils {
         }
     }
 
+    public static String getFileExtension(File f){
+        String fileName = f.getName();
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) {
+            return fileName.substring(i+1);
+        }
+        return "";
+    }
+
 }

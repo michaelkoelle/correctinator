@@ -1,6 +1,7 @@
 # Correctinator [![CircleCI](https://circleci.com/gh/koellemichael/correctinator/tree/master.svg?style=svg)](https://circleci.com/gh/koellemichael/correctinator/tree/master)
 
 Ein Korrekturprogramm ([Download](#download)) mit Media Viewer für UniWorx Bewertungsdateien.
+![alt text](https://i.imgur.com/RHtnqcW.png "Correctinator")
 
 
 ## Workflow
@@ -29,12 +30,31 @@ Beispiel:
 - **Automatischer Kommentar**: Bei Änderung der Bewertung bzw. nach dem Wechseln der Abgabe (momentan nur Button "Nächste Abgabe") wird zur Abgabe ein vordefinierter Kommentar, abhängig von der erreichten Punktzahl, hinzugefügt. Weitere Informationen im Abschnitt [Automatischer Kommentar](#automatischer-kommentar).
 - **Verbose**: Zeigt nach dem Öffnen von Abgaben eine Zusammenfassung des Imports an.
 
-### Media Viewer
+## Media Viewer
 - **PDF Viewer**: Es wird eine Beta Version der Open-Scource Library PDF.js verwendet. Es kann also zu Darstellungfehlern kommen. Wenn man sich nicht sicher ist, sollte die Datei über die "Ordner öffnen" Funktion in einem anderen Viewer geöffnet werden. Bei großen PDF-Dateien und PDF-Dateien, die Bilder enthalten, kommt es zu etwas längeren Ladezeiten (je nach Leistung des PCs).
 - **Image Viewer**: Man kann zoomen und das Bild per Drag and Drop verschieben. Und es gibt Touchpad Support für Mac :)
 - **Text Viewer**: Das Encoding wird nicht immer erkannt. Es gibt kein Text-Highlighting. Aus irgendeinem Grund gibt es einen Zeilenumbruch, wenn der Text länger ist als der Viewer.
 
-### Automatischer Kommentar
+## Automatische Korrektur von Single Choice Aufgaben
+Single Choice Aufgaben können automatisch korrigiert werden. Dazu muss die Lösung der Aufgabe in einer separaten .txt Datei abgegeben werden und folgendem Format entsprechen:<br>
+\<**Aufgabenname**>[**)**|**:**] \<**Lösung**><br>
+\<**Aufgabenname**>[**)**|**:**] \<**Lösung**><br>
+\<**Aufgabenname**>[**)**|**:**] \<**Lösung**><br>
+...<br>
+<br>
+Über den Menüpunkt "Automatische Korrektur" wird die Aufgabe ausgewählt, die Lösung eingegeben und die Korrektur durchgeführt.
+Änhlich wie die Abgabe der Studenten muss auch die Lösung ein bestimmtes Format haben:<br>
+\<**Aufgabenname**>[**)**|**:**] \<**Lösung**> \<**Bemerkung**><br>
+\<**Aufgabenname**>[**)**|**:**] \<**Lösung**> \<**Bemerkung**><br>
+\<**Aufgabenname**>[**)**|**:**] \<**Lösung**> \<**Bemerkung**><br>
+...<br>
+<br>
+**Ein Beispiel**:
+![alt text](https://i.imgur.com/SUV77Cw.png "Beispiel Automatische Korrektur")
+
+Die Bemerkung wird dem Studenten bei einer inkorrekten Antwort als Kommentar eingefügt.
+
+## Automatischer Kommentar
 Mit dieser Funktion können abhängig von der erreichten Punktzahl automatische Kommentare zur Abgabe hinzugefügt werden. Man kann Kommentare über den Menüpunkt "Automatischer Kommentar Einstellungen" definieren. Die Kommentare sollten jedoch nur einmal definiert werden. Beim Import von älteren Abgaben und einer veränderten Definition kann es zu doppelten Kommentaren kommen, da das Programm keinen Verlauf der bisherigen Kommentardefinitionen speichert.
 
 # Download

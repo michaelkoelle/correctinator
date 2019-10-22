@@ -7,6 +7,7 @@ public class ExerciseRating extends Exercise {
     private SimpleDoubleProperty maxPoints;
     private SimpleStringProperty comment;
     private SimpleDoubleProperty rating;
+    private boolean autoGen = false;
 
     public ExerciseRating(String name, Exercise parent) {
         super(name, parent);
@@ -58,5 +59,13 @@ public class ExerciseRating extends Exercise {
 
     public void setComment(String comment) {
         this.comment.set(comment);
+    }
+
+    public boolean isAutoGen() {
+        return autoGen;
+    }
+
+    public void setAutoGen(boolean autoGen) {
+        this.autoGen = autoGen;
     }
 }
