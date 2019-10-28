@@ -156,7 +156,7 @@ public class Controller{
             if(c.isChanged()){
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
-                        RatingFileParser.saveRatingFile(c);
+                        Uni2WorkParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -170,7 +170,7 @@ public class Controller{
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.OK){
                         try {
-                            RatingFileParser.saveRatingFile(c);
+                            Uni2WorkParser.saveRatingFile(c);
                         } catch (IOException e) {
                             errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
                         }
@@ -256,7 +256,7 @@ public class Controller{
                 c.setChanged(true);
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
-                        RatingFileParser.saveRatingFile(c);
+                        Uni2WorkParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -268,7 +268,7 @@ public class Controller{
                 c.setChanged(true);
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
-                        RatingFileParser.saveRatingFile(c);
+                        Uni2WorkParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -308,7 +308,7 @@ public class Controller{
         ArrayList<File> files = new ArrayList<>();
         File fileDir = new File(c.getPath()).getParentFile();
         FileFilter ff = (file) ->{
-            Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
+            Pattern ratingFilePattern = Pattern.compile("bewertung_(.+)\\.txt");
             if(ratingFilePattern.matcher(file.getName()).find()){
                 return false;
             }
@@ -359,7 +359,7 @@ public class Controller{
             if(type == ButtonType.YES){
                 corrections.forEach(c -> {
                     try {
-                        RatingFileParser.saveRatingFile(c);
+                        Uni2WorkParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -392,7 +392,7 @@ public class Controller{
     private void initializeCommentSection(List<Correction> notInitialized, String initText){
         notInitialized.forEach(c-> {
             try {
-                RatingFileParser.initializeComments(c,initText);
+                Uni2WorkParser.initializeComments(c,initText);
             } catch (IOException e) {
                 errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" konnte nicht gelesen werden! ");
             } catch (ParseRatingFileException e) {
@@ -479,7 +479,7 @@ public class Controller{
 
     public void reloadRatingFiles(){
         if(correctionsDirectory != null){
-            Pattern ratingFilePattern = Pattern.compile("bewertung_([0-9]+)\\.txt");
+            Pattern ratingFilePattern = Pattern.compile("bewertung_(.+)\\.txt");
             ArrayList<File> ratingFiles = new ArrayList<>();
             FileUtils.listFiles(correctionsDirectory.getAbsolutePath(),ratingFiles,file-> file.getName().matches(ratingFilePattern.pattern()), dir ->!dir.getName().contains("__MACOSX"));
 
@@ -493,7 +493,8 @@ public class Controller{
                         String id = m.group(1);
                         Correction c;
                         try {
-                            c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
+                            //c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
+                            c = Uni2WorkParser.parseFile(ratingFile.getAbsolutePath());
                         } catch (IOException | ParseRatingFileException e) {
                             c = new Correction();
                             c.setState(Correction.CorrectionState.PARSE_ERROR);
@@ -573,7 +574,7 @@ public class Controller{
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    RatingFileParser.saveRatingFile(c);
+                    Uni2WorkParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -594,7 +595,7 @@ public class Controller{
             }
 
             try {
-                RatingFileParser.saveRatingFile(c);
+                Uni2WorkParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -648,7 +649,7 @@ public class Controller{
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 changedCorrections.forEach(c -> {
                     try {
-                        RatingFileParser.saveRatingFile(c);
+                        Uni2WorkParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -665,7 +666,7 @@ public class Controller{
                 if (result.isPresent() && result.get() == ButtonType.OK){
                     changedCorrections.forEach(c -> {
                         try {
-                            RatingFileParser.saveRatingFile(c);
+                            Uni2WorkParser.saveRatingFile(c);
                         } catch (IOException e) {
                             errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
                         }

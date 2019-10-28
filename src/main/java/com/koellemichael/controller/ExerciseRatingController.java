@@ -2,23 +2,20 @@ package com.koellemichael.controller;
 
 import com.koellemichael.model.ExerciseRating;
 import com.koellemichael.utils.PreferenceKeys;
-import com.koellemichael.utils.RatingFileParser;
+import com.koellemichael.utils.Uni2WorkParser;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.prefs.Preferences;
 
@@ -72,7 +69,7 @@ public class ExerciseRatingController implements ChangeListener {
         Preferences pref = Preferences.userRoot();
         if(pref.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false)){
             try {
-                RatingFileParser.saveRatingFile(e.getCorrection());
+                Uni2WorkParser.saveRatingFile(e.getCorrection());
             } catch (IOException ignored) {}
         }
     }

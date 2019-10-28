@@ -109,7 +109,7 @@ public class MenuController {
     private void saveAllCorrections(){
         mainController.corrections.forEach(c -> {
             try {
-                RatingFileParser.saveRatingFile(c);
+                Uni2WorkParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -167,7 +167,7 @@ public class MenuController {
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    RatingFileParser.saveRatingFile(c);
+                    Uni2WorkParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -183,7 +183,7 @@ public class MenuController {
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    RatingFileParser.saveRatingFile(c);
+                    Uni2WorkParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -199,7 +199,7 @@ public class MenuController {
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    RatingFileParser.saveRatingFile(c);
+                    Uni2WorkParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -211,7 +211,7 @@ public class MenuController {
     public void onSaveCorrection(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c ->{
             try {
-                RatingFileParser.saveRatingFile(c);
+                Uni2WorkParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -243,7 +243,7 @@ public class MenuController {
                     try {
                         if(c.getState()== Correction.CorrectionState.TODO || c.getState() == Correction.CorrectionState.MARKED_FOR_LATER){
                             c.setState(Correction.CorrectionState.FINISHED);
-                            RatingFileParser.saveRatingFile(c);
+                            Uni2WorkParser.saveRatingFile(c);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -414,7 +414,7 @@ public class MenuController {
 
                             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                                 try {
-                                    RatingFileParser.saveRatingFile(c);
+                                    Uni2WorkParser.saveRatingFile(c);
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                 }
