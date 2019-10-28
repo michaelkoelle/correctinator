@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class RatingFileParser {
+public class UniworxParser {
 
     public static Correction parseFile(String path) throws ParseRatingFileException, IOException, FileNotInitializedException {
 
