@@ -4234,7 +4234,7 @@ var defaultOptions = {
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   defaultUrl: {
-    value: 'compressed.tracemonkey-pldi-09.pdf',
+    value: '',
     kind: OptionKind.VIEWER
   },
   defaultZoomValue: {
@@ -15313,6 +15313,7 @@ document.webL10n = function (window, document, undefined) {
     setLanguage: function setLanguage(lang, callback) {
       loadLocale(lang, function () {
         if (callback) callback();
+        translateFragment();
       });
     },
     getDirection: function getDirection() {
