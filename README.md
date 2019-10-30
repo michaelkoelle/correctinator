@@ -1,6 +1,6 @@
 # Correctinator [![CircleCI](https://circleci.com/gh/koellemichael/correctinator/tree/master.svg?style=svg)](https://circleci.com/gh/koellemichael/correctinator/tree/master)
 
-Ein Korrekturprogramm ([Download](#download)) mit Media Viewer für UniWorx Bewertungsdateien.
+Ein Korrekturprogramm ([Download](#download)) mit Media Viewer für Uni2Work Bewertungsdateien.
 ![alt text](https://i.imgur.com/RHtnqcW.png "Correctinator")
 
 
