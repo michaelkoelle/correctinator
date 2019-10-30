@@ -1,4 +1,5 @@
 package com.koellemichael.controller;
+import netscape.javascript.JSObject;
 
 import com.koellemichael.utils.PreferenceKeys;
 import javafx.application.Platform;
@@ -23,6 +24,8 @@ public class PDFViewController implements ChangeListener {
     private WebEngine engine;
     private File pdf;
     private Preferences preferences;
+    private final JavaBridge bridge = new JavaBridge();
+
 
     public void initialize(File pdf){
         this.pdf = pdf;
@@ -30,33 +33,30 @@ public class PDFViewController implements ChangeListener {
 
         engine.setJavaScriptEnabled(true);
         engine.setUserStyleSheetLocation(getClass().getResource("/pdfviewer/web/viewer.css").toExternalForm());
-        engine.load(getClass().getResource("/pdfviewer/web/viewer.html").toExternalForm());
         engine.getLoadWorker().stateProperty().addListener(this);
+        engine.load(getClass().getResource("/pdfviewer/web/viewer.html").toExternalForm());
+        engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) ->
+        {
+            JSObject window = (JSObject) engine.executeScript("window");
+            window.setMember("java", bridge);
+            engine.executeScript("console.log = function(message)\n" +
+                    "{\n" +
+                    "    java.log(message);\n" +
+                    "};");
+        });
 
-        preferences = Preferences.userRoot();
     }
 
     private void loadPDF(File pdf){
-        Platform.runLater(() -> {
-            try {
-                byte[] data = Files.readAllBytes(Paths.get(pdf.getAbsolutePath()));
-                String base64 = Base64.getEncoder().encodeToString(data);
-                engine.executeScript("openFileFromBase64('" + base64 + "')");
+        try {
+            byte[] data = Files.readAllBytes(Paths.get(pdf.getAbsolutePath()));
+            String base64 = Base64.getEncoder().encodeToString(data);
+            engine.executeScript("openFileFromBase64('" + base64 + "')");
+            System.out.println("LOAD PDF: " + pdf.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-                if(preferences.getBoolean(PreferenceKeys.VERBOSE_PREF,false)){
-                    Alert deb = new Alert(Alert.AlertType.INFORMATION);
-                    deb.setTitle("DEBUG");
-                    deb.setHeaderText(null);
-                    String sb = "Absoluter PDF Pfad: " + pdf.getAbsolutePath() + "\n" +
-                                "Relativer PDF Pfad: " + pdf.getPath() + "\n" +
-                                "Paths: " + Paths.get(pdf.getAbsolutePath()) + "\n";
-                    deb.setContentText(sb);
-                    deb.showAndWait();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
     }
 
     private void changeLanguage(Locale locale) {
@@ -65,9 +65,20 @@ public class PDFViewController implements ChangeListener {
 
     @Override
     public void changed(ObservableValue observableValue, Object oldValue, Object newValue) {
+        System.out.println(newValue);
         if (newValue == Worker.State.SUCCEEDED) {
             changeLanguage(Locale.GERMAN);
             loadPDF(pdf);
         }
     }
+
+
+    public class JavaBridge
+    {
+        public void log(String text)
+        {
+            System.out.println(text);
+        }
+    }
+
 }

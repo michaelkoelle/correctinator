@@ -10,6 +10,7 @@ module com.koellemichael {
     requires java.prefs;
     requires gson;
     requires com.github.albfernandez.juniversalchardet;
+    requires jdk.jsobject;
     exports com.koellemichael;
     exports com.koellemichael.controller;
     exports com.koellemichael.model;

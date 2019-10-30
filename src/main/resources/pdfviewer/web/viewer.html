@@ -35,42 +35,35 @@ See https://github.com/adobe-type-tools/cmap-resources
 <!-- This snippet is used in production (included from viewer.html) -->
 <link rel="resource" type="application/l10n" href="locale/locale.properties">
 <script src="../build/pdf.js"></script>
-
-
     <script src="viewer.js"></script>
-    <head>
-
-      <!-- ... -->
-      <script src="viewer.js"></script>
-      
-      <script src="viewer.js"></script>
-    <!-- CUSTOM BLOCK -->
     <script>
+
       var openFileFromBase64 = function(data) {
         var arr = base64ToArrayBuffer(data);
         PDFViewerApplication.open(arr);
+        //setTimeout(() => {PDFViewerApplication.open(arr);}, 1000);
+        //setTimeout(() => {PDFViewerApplication.open(arr);}, 2000);
+        //setTimeout(() => {PDFViewerApplication.open(arr);}, 3000);
       }
- 
-    var changeLanguage = function(language) {
-         var mozL10n = document.mozL10n || document.webL10n;
-         if(mozL10n !== null){ 
-              mozL10n.setLanguage(language);
-          }
-    }
-     
-    function base64ToArrayBuffer(base64) {
-      var binary_string = window.atob(base64);
-      var len = binary_string.length;
-      var bytes = new Uint8Array( len );
-      for (var i = 0; i < len; i++)        {
+
+      var changeLanguage = function(language) {
+        var mozL10n = document.mozL10n || document.webL10n;
+        if(mozL10n !== null){
+          mozL10n.setLanguage(language);
+        }
+      }
+
+      function base64ToArrayBuffer(base64) {
+        var binary_string = window.atob(base64);
+        var len = binary_string.length;
+        var bytes = new Uint8Array( len );
+        for (var i = 0; i < len; i++)        {
           bytes[i] = binary_string.charCodeAt(i);
+        }
+        return bytes.buffer;
       }
-      return bytes.buffer;
-    }
-</script>
-<!-- end of CUSTOM BLOCK -->
-      
-      </head>
+    </script>
+    <!-- end of CUSTOM BLOCK -->
   </head>
 
   <body tabindex="1" class="loadingInProgress">

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Array;
 import java.sql.SQLOutput;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
@@ -343,6 +344,7 @@ public class MenuController {
 
                 Pattern p = Pattern.compile("(\\w)[.|\\)]\\s*\\(?([i|v|x]+)\\)?(?> *(.*))?",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
                 Pattern pSol = Pattern.compile("(\\w)[.|\\)][ |\\t]*\\(?([i|v|x]+)\\)?",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                Pattern pBlock = Pattern.compile("(?>\\w[.|\\)][ |\\t]*\\(?[i|v|x]+\\)?.*\\s+)+",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
                 Matcher matcher = p.matcher(solution);
                 Map<String, String> solutionMap = new HashMap<>();
                 Map<String, String> solutionTextMap = new HashMap<>();
@@ -359,9 +361,9 @@ public class MenuController {
                     ArrayList<File> files = mainController.getSolutionsFromCorrection(c);
                     final int[] found = {0};
                     Map<String, String> submission = new HashMap<>();
+
                     files.forEach(f -> {
                         if(FileUtils.getFileExtension(f).equals("txt")){
-                            System.out.println("Text File gefunden: " + f.getPath());
                             //Determine Encoding
                             String encoding = null;
                             try {
@@ -374,14 +376,41 @@ public class MenuController {
                             }
                             String contents = FileUtils.readStringFromFile(f, encoding);
 
-                            Matcher matcher1 = pSol.matcher(contents);
-                            boolean foundMatch = false;
+                            Matcher matcherBlock = pBlock.matcher(contents);
 
+                            String longestBlock = "";
+                            int groups = 0;
+
+                            while(matcherBlock.find()){
+                                String block = matcherBlock.group(0);
+
+                                Matcher matcher1 = pSol.matcher(block);
+                                Map<String, String> submissionTemp = new HashMap<>();
+                                while(matcher1.find()){
+                                    String task = matcher1.group(1);
+                                    String sol = matcher1.group(2);
+                                    submissionTemp.put(task, sol);
+                                }
+
+                                if( submissionTemp.size() > groups){
+                                    longestBlock = block;
+                                    groups = submissionTemp.size();
+                                }
+                            }
+
+                            boolean foundMatch = false;
+                            Matcher matcher1 = pSol.matcher(longestBlock);
+                            Map<String, String> submissionTemp = new HashMap<>();
                             while(matcher1.find()){
                                 foundMatch = true;
                                 String task = matcher1.group(1);
                                 String sol = matcher1.group(2);
-                                submission.put(task, sol);
+                                submissionTemp.put(task, sol);
+                            }
+
+                            if(submissionTemp.size() > submission.size()){
+                                submission.clear();
+                                submission.putAll(submissionTemp);
                             }
 
                             if(foundMatch){
@@ -390,7 +419,10 @@ public class MenuController {
                         }
                     });
 
-                    if(found[0] == 1){
+
+
+                    if(!submission.isEmpty()){
+                        System.out.println(Arrays.asList(submission));
                         double[] score = {0.0};
                         ArrayList<String> incorrectTasks = new ArrayList<>();
                         solutionMap.forEach((k,v) ->{
