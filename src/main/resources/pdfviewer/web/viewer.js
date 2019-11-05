@@ -15313,6 +15313,7 @@ document.webL10n = function (window, document, undefined) {
     setLanguage: function setLanguage(lang, callback) {
       loadLocale(lang, function () {
         if (callback) callback();
+        translateFragment();
       });
     },
     getDirection: function getDirection() {

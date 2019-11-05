@@ -11,6 +11,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -90,8 +91,9 @@ public class Uni2WorkParser {
     public static String buildRatingFile(Correction c){
         boolean finished = (c.getState() == Correction.CorrectionState.FINISHED);
         boolean marked = (c.getState() == Correction.CorrectionState.MARKED_FOR_LATER);
-
-        DecimalFormat format = new DecimalFormat("0.#");
+        DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
+        dfs.setDecimalSeparator('.');
+        DecimalFormat format = new DecimalFormat("0.#", dfs);
         String ratingFileContent =
                         "= Bitte nur Bewertung und Kommentare ändern =\n" +
                         "=============================================\n" +
