@@ -2,7 +2,6 @@ package com.koellemichael.controller;
 
 import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
-import com.koellemichael.model.ExerciseLabel;
 import com.koellemichael.model.ExerciseRating;
 import com.koellemichael.utils.*;
 import javafx.collections.FXCollections;
@@ -12,20 +11,14 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.*;
 import org.mozilla.universalchardet.UniversalDetector;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Array;
-import java.sql.SQLOutput;
 import java.util.*;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -353,8 +346,8 @@ public class MenuController {
                     String sol = matcher.group(2);
                     String solText = matcher.group(3);
 
-                    solutionMap.put(task, sol);
-                    solutionTextMap.put(task, solText);
+                    solutionMap.put(task.toLowerCase(), sol.toLowerCase());
+                    solutionTextMap.put(task.toLowerCase(), solText);
                 }
 
                 mainController.corrections.forEach((c) -> {
@@ -389,7 +382,7 @@ public class MenuController {
                                 while(matcher1.find()){
                                     String task = matcher1.group(1);
                                     String sol = matcher1.group(2);
-                                    submissionTemp.put(task, sol);
+                                    submissionTemp.put(task.toLowerCase(), sol.toLowerCase());
                                 }
 
                                 if( submissionTemp.size() > groups){
@@ -405,7 +398,7 @@ public class MenuController {
                                 foundMatch = true;
                                 String task = matcher1.group(1);
                                 String sol = matcher1.group(2);
-                                submissionTemp.put(task, sol);
+                                submissionTemp.put(task.toLowerCase(), sol.toLowerCase());
                             }
 
                             if(submissionTemp.size() > submission.size()){
