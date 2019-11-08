@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 public class Uni2WorkParser {
 
     public static Correction parseFile(String path) throws ParseRatingFileException, IOException, FileNotInitializedException {
-        //https://regex101.com/r/TwuLi3/1
+        //old https://regex101.com/r/TwuLi3/1
+        //https://regex101.com/r/TwuLi3/2
         Pattern p = Pattern.compile(
                 "= Bitte nur Bewertung und Kommentare ändern =\\s+" +
                         "=============================================\\s+" +
@@ -37,7 +38,7 @@ public class Uni2WorkParser {
                         "=============================================\\s+" +
                         "Bewertung:[ ]*(\\d*[.|,]?\\d*).*\\s+" +
                         "=========== Beginn der Kommentare ===========\\s+" +
-                        "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*)\\s*(?>\\/\\*(.*)\\*\\/)?\\s*", Pattern.MULTILINE);
+                        "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\n]*\\n*))*\\s*)*\\s*)\\s*(?>(.+?)\\s*(?>\\/\\*(.*)\\*\\/)|(.*))\\s*", Pattern.MULTILINE|Pattern.DOTALL);
 
         Correction c = new Correction();
         c.setPath(path);
@@ -67,7 +68,11 @@ public class Uni2WorkParser {
 
             if(matcher.group(8) != null){
                 c.setGlobalComment(matcher.group(8));
+            } else if(matcher.group(10) != null) {
+                c.setGlobalComment(matcher.group(10));
             }
+
+
 
             String commentSection = matcher.group(7);
 
