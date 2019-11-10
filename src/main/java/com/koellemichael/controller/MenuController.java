@@ -335,9 +335,9 @@ public class MenuController {
                 String solution = textArea.getText();
                 preferences.put(PreferenceKeys.SINGLE_CHOICE_SOLUTION, solution);
 
-                Pattern p = Pattern.compile("(\\w)[.|\\)]\\s*\\(?([i|v|x]+)\\)?(?> *(.*))?",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-                Pattern pSol = Pattern.compile("(\\w)[.|\\)][ |\\t]*\\(?([i|v|x]+)\\)?",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-                Pattern pBlock = Pattern.compile("(?>\\w[.|\\)][ |\\t]*\\(?[i|v|x]+\\)?.*\\s+)+",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                Pattern p = Pattern.compile("(\\w)[.|\\)]\\s*\\(?([i|v|x|\\d]+)\\)?(?> *(.*))?",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                Pattern pSol = Pattern.compile("(\\w)[.|\\)][ |\\t]*\\(?([i|v|x|\\d]+)\\)?",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                Pattern pBlock = Pattern.compile("(?>(?>\\w[.|\\)][ |\\t]*\\(?[i|v|x|\\d]+\\)?.*)\\s*)+",Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
                 Matcher matcher = p.matcher(solution);
                 Map<String, String> solutionMap = new HashMap<>();
                 Map<String, String> solutionTextMap = new HashMap<>();
