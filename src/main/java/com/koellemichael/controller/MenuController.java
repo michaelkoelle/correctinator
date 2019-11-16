@@ -372,10 +372,11 @@ public class MenuController {
                             Matcher matcherBlock = pBlock.matcher(contents);
 
                             String longestBlock = "";
-                            int groups = 0;
+                            long groups = 0;
 
                             while(matcherBlock.find()){
                                 String block = matcherBlock.group(0);
+                                System.out.println(block);
 
                                 Matcher matcher1 = pSol.matcher(block);
                                 Map<String, String> submissionTemp = new HashMap<>();
@@ -385,11 +386,16 @@ public class MenuController {
                                     submissionTemp.put(task.toLowerCase(), sol.toLowerCase());
                                 }
 
+                                System.out.println(submissionTemp.toString() + " Count:" + submissionTemp.size());
+
                                 if( submissionTemp.size() > groups){
                                     longestBlock = block;
                                     groups = submissionTemp.size();
                                 }
+
                             }
+                            System.out.println("Longest Block: " + longestBlock);
+                            System.out.println("########################################");
 
                             boolean foundMatch = false;
                             Matcher matcher1 = pSol.matcher(longestBlock);
