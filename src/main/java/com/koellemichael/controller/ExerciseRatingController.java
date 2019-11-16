@@ -62,6 +62,7 @@ public class ExerciseRatingController implements ChangeListener {
         e.changed();
 
         if(e.isAutoGen()){
+            e.setAutoGen(false);
             //exercise_label_container.setBackground(new Background(new BackgroundFill(Color.web("#f4f4f4"), CornerRadii.EMPTY, Insets.EMPTY)));
             exercise_rating_container.getChildren().remove(autoGenLabel);
         }
