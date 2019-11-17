@@ -427,17 +427,17 @@ public class MenuController {
                     if(!submission.isEmpty()){
                         System.out.println(Arrays.asList(submission));
                         double[] score = {0.0};
-                        ArrayList<String> incorrectTasks = new ArrayList<>();
-                        ArrayList<String> missingTasks = new ArrayList<>();
+                        Map<String,Boolean> incorrectOrMissingTasks = new HashMap<>(); //false = incorrect, true = missing
+
                         solutionMap.forEach((k,v) ->{
                             if(submission.containsKey(k)){
                                 if(v.equals(submission.get(k))){
                                     score[0] += 1.0;
                                 }else{
-                                    incorrectTasks.add(k);
+                                    incorrectOrMissingTasks.put(k,false);
                                 }
                             } else {
-                                missingTasks.add(k);
+                                incorrectOrMissingTasks.put(k,true);
                             }
                         });
 
@@ -446,9 +446,16 @@ public class MenuController {
                             ExerciseRating exercise = (ExerciseRating) e.get();
                             exercise.setAutoGen(true);
                             exercise.ratingProperty().set(score[0]);
-                            String iTasks = incorrectTasks.stream().map(task -> task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task)).reduce("", (s, acc) -> acc + "\n" + s);
-                            String mTasks = missingTasks.stream().map(task -> task + ") fehlt").reduce("", (s, acc) -> acc + "\n" + s);
-                            exercise.commentProperty().set(iTasks + mTasks);
+                            String imTasks = incorrectOrMissingTasks.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((entry) -> {
+                                boolean missing = entry.getValue();
+                                String task = entry.getKey();
+                                if(missing){
+                                    return task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task);
+                                }else{
+                                    return task + ") fehlt";
+                                }
+                            }).reduce("", (s, acc) -> s + acc +  "\n");
+                            exercise.commentProperty().set(imTasks);
                             c.setChanged(true);
 
                             autoCorrectionCount[0]++;
