@@ -372,10 +372,11 @@ public class MenuController {
                             Matcher matcherBlock = pBlock.matcher(contents);
 
                             String longestBlock = "";
-                            int groups = 0;
+                            long groups = 0;
 
                             while(matcherBlock.find()){
                                 String block = matcherBlock.group(0);
+                                System.out.println(block);
 
                                 Matcher matcher1 = pSol.matcher(block);
                                 Map<String, String> submissionTemp = new HashMap<>();
@@ -385,11 +386,16 @@ public class MenuController {
                                     submissionTemp.put(task.toLowerCase(), sol.toLowerCase());
                                 }
 
+                                System.out.println(submissionTemp.toString() + " Count:" + submissionTemp.size());
+
                                 if( submissionTemp.size() > groups){
                                     longestBlock = block;
                                     groups = submissionTemp.size();
                                 }
+
                             }
+                            System.out.println("Longest Block: " + longestBlock);
+                            System.out.println("########################################");
 
                             boolean foundMatch = false;
                             Matcher matcher1 = pSol.matcher(longestBlock);
@@ -398,6 +404,10 @@ public class MenuController {
                                 foundMatch = true;
                                 String task = matcher1.group(1);
                                 String sol = matcher1.group(2);
+
+                                if(Utils.isInteger(sol)){
+                                    sol = RomanNumber.toRoman(Integer.parseInt(sol));
+                                }
                                 submissionTemp.put(task.toLowerCase(), sol.toLowerCase());
                             }
 
@@ -417,14 +427,17 @@ public class MenuController {
                     if(!submission.isEmpty()){
                         System.out.println(Arrays.asList(submission));
                         double[] score = {0.0};
-                        ArrayList<String> incorrectTasks = new ArrayList<>();
+                        Map<String,Boolean> incorrectOrMissingTasks = new HashMap<>(); //false = incorrect, true = missing
+
                         solutionMap.forEach((k,v) ->{
                             if(submission.containsKey(k)){
                                 if(v.equals(submission.get(k))){
                                     score[0] += 1.0;
                                 }else{
-                                    incorrectTasks.add(k);
+                                    incorrectOrMissingTasks.put(k,false);
                                 }
+                            } else {
+                                incorrectOrMissingTasks.put(k,true);
                             }
                         });
 
@@ -433,7 +446,16 @@ public class MenuController {
                             ExerciseRating exercise = (ExerciseRating) e.get();
                             exercise.setAutoGen(true);
                             exercise.ratingProperty().set(score[0]);
-                            exercise.commentProperty().set(incorrectTasks.stream().map(task -> task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task)).reduce("", (s, acc) -> acc + "\n" + s));
+                            String imTasks = incorrectOrMissingTasks.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((entry) -> {
+                                boolean missing = entry.getValue();
+                                String task = entry.getKey();
+                                if(missing){
+                                    return task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task);
+                                }else{
+                                    return task + ") fehlt";
+                                }
+                            }).reduce("", (s, acc) -> s + acc +  "\n");
+                            exercise.commentProperty().set(imTasks);
                             c.setChanged(true);
 
                             autoCorrectionCount[0]++;
