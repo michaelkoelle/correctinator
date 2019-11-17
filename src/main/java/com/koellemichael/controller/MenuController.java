@@ -428,6 +428,7 @@ public class MenuController {
                         System.out.println(Arrays.asList(submission));
                         double[] score = {0.0};
                         ArrayList<String> incorrectTasks = new ArrayList<>();
+                        ArrayList<String> missingTasks = new ArrayList<>();
                         solutionMap.forEach((k,v) ->{
                             if(submission.containsKey(k)){
                                 if(v.equals(submission.get(k))){
@@ -435,6 +436,8 @@ public class MenuController {
                                 }else{
                                     incorrectTasks.add(k);
                                 }
+                            } else {
+                                missingTasks.add(k);
                             }
                         });
 
@@ -443,7 +446,9 @@ public class MenuController {
                             ExerciseRating exercise = (ExerciseRating) e.get();
                             exercise.setAutoGen(true);
                             exercise.ratingProperty().set(score[0]);
-                            exercise.commentProperty().set(incorrectTasks.stream().map(task -> task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task)).reduce("", (s, acc) -> acc + "\n" + s));
+                            String iTasks = incorrectTasks.stream().map(task -> task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task)).reduce("", (s, acc) -> acc + "\n" + s);
+                            String mTasks = missingTasks.stream().map(task -> task + ") fehlt").reduce("", (s, acc) -> acc + "\n" + s);
+                            exercise.commentProperty().set(iTasks + mTasks);
                             c.setChanged(true);
 
                             autoCorrectionCount[0]++;
