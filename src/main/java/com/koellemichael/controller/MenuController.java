@@ -449,7 +449,7 @@ public class MenuController {
                             String imTasks = incorrectOrMissingTasks.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((entry) -> {
                                 boolean missing = entry.getValue();
                                 String task = entry.getKey();
-                                if(missing){
+                                if(!missing){
                                     return task + ") " + solutionMap.get(task)+ " " + solutionTextMap.get(task);
                                 }else{
                                     return task + ") fehlt";
