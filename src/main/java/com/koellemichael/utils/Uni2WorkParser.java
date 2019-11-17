@@ -34,7 +34,7 @@ public class Uni2WorkParser {
                         "  Veranstaltung: (.+)\\s+" +
                         "  Blatt: (.+)\\s+" +
                         "  Korrektor: (.+)\\s+" +
-                        "  Bewertung\\w*: (?>Maximal )?(\\d*[.|,]?\\d*).*" +
+                        "  Bewertung\\w*: (?>Maximal )?(\\d*[.|,]?\\d*).*\\s+" +
                         "Abgabe-Id: (.+)\\s+" +
                         "=============================================\\s+" +
                         "Bewertung:[ ]*(\\d*[.|,]?\\d*).*\\s+" +
@@ -109,7 +109,7 @@ public class Uni2WorkParser {
                         "  Veranstaltung: "+ c.getLecture() + "\n" +
                         "  Blatt: " + c.getExerciseSheet() + "\n" +
                         "  Korrektor: " + c.getCorrector() + "\n" +
-                        "  Bewertung: " + format.format(c.getMaxPoints()) + " Punkte\n" +
+                        "  Bewertungsschema: Maximal " + format.format(c.getMaxPoints()) + " Punkt(e)\n" +
                         "Abgabe-Id: " + c.getId() + "\n" +
                         "=============================================\n" +
                         "Bewertung: " + ((finished)?format.format(c.getRating()):"") + "\n" +
@@ -194,7 +194,7 @@ public class Uni2WorkParser {
                         "  Veranstaltung: (.+)\\s+" +
                         "  Blatt: (.+)\\s+" +
                         "  Korrektor: (.+)\\s+" +
-                        "  Bewertung: (\\d*[.|,]?\\d*).*\\s+" +
+                        "  Bewertung\\w*: (?>Maximal )?(\\d*[.|,]?\\d*).*\\s+" +
                         "Abgabe-Id: (.+)\\s+" +
                         "=============================================\\s+" +
                         "Bewertung:[ ]*(\\d*[.|,]?\\d*).*\\s+" +
