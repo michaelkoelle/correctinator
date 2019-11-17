@@ -108,4 +108,8 @@ public class Utils {
             }
         }
     }
+
+    public static boolean isInteger(String i){
+        return i.matches("\\d+");
+    }
 }

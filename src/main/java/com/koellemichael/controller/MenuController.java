@@ -404,6 +404,10 @@ public class MenuController {
                                 foundMatch = true;
                                 String task = matcher1.group(1);
                                 String sol = matcher1.group(2);
+
+                                if(Utils.isInteger(sol)){
+                                    sol = RomanNumber.toRoman(Integer.parseInt(sol));
+                                }
                                 submissionTemp.put(task.toLowerCase(), sol.toLowerCase());
                             }
 
