@@ -24,6 +24,7 @@ public class Uni2WorkParser {
     public static Correction parseFile(String path) throws ParseRatingFileException, IOException, FileNotInitializedException {
         //old https://regex101.com/r/TwuLi3/1
         //https://regex101.com/r/TwuLi3/2
+        //https://regex101.com/r/TwuLi3/3
         Pattern p = Pattern.compile(
                 "= Bitte nur Bewertung und Kommentare ändern =\\s+" +
                         "=============================================\\s+" +
@@ -33,7 +34,7 @@ public class Uni2WorkParser {
                         "  Veranstaltung: (.+)\\s+" +
                         "  Blatt: (.+)\\s+" +
                         "  Korrektor: (.+)\\s+" +
-                        "  Bewertung: (\\d*[.|,]?\\d*).*\\s+" +
+                        "  Bewertung\\w*: (?>Maximal )?(\\d*[.|,]?\\d*).*" +
                         "Abgabe-Id: (.+)\\s+" +
                         "=============================================\\s+" +
                         "Bewertung:[ ]*(\\d*[.|,]?\\d*).*\\s+" +

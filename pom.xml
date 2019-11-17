@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.koellemichael</groupId>
     <artifactId>correctinator</artifactId>
-    <version>0.5.9</version>
+    <version>0.5.10</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
