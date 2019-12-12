@@ -54,4 +54,12 @@ public class Dialogs {
         dialog.setContentText("Correctinator ist auf dem neusten Stand!");
         dialog.showAndWait();
     }
+
+    public static void showNoInternetConnectionDialog(){
+        Alert dialog = new Alert(Alert.AlertType.INFORMATION);
+        dialog.setTitle("Keine Internet Verbindung");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Version konnte nicht überprüft werden, da keine Verbindung zum Internet besteht!");
+        dialog.showAndWait();
+    }
 }

@@ -16,7 +16,7 @@ import java.util.Properties;
 public class App extends Application {
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Correctinator");
 
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
@@ -38,8 +38,12 @@ public class App extends Application {
         String currentVersion = properties.getProperty("version");
         primaryStage.setTitle("Correctinator v" + currentVersion);
 
-        if(Utils.isNewerVersionAvailiable()){
-            Dialogs.showNewerVersionAvailableDialog();
+        try{
+            if(Utils.isNewerVersionAvailiable()){
+                Dialogs.showNewerVersionAvailableDialog();
+            }
+        } catch (Exception e){
+
         }
     }
 

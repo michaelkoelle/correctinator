@@ -268,7 +268,7 @@ public class MenuController {
                 Dialogs.showNoNewerVersionAvailableDialog();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Dialogs.showNoInternetConnectionDialog();
         }
     }
 
