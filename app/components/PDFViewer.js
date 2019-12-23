@@ -22,10 +22,6 @@ export default class PDFViewer extends React.Component {
     this.setState({ numPages });
   };
 
-  onDocumentLoadError = ( error ) => {
-    console.error(`Fehler:${  error.message}`);
-  };
-
   render() {
     const { numPages } = this.state;
     const { path, scale, rotation } = this.props;
