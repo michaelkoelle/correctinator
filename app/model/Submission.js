@@ -1,10 +1,10 @@
-import Model from './Model';
+import {Model, attr, fk} from "redux-orm";
+import Comment from "./Comment";
 
-export default class Submission extends Model {
-  constructor(id, filePaths, exercise) {
-    super();
-    this.id = id;
-    this.filePaths = filePaths;
-    this.exercise = exercise
-  }
-}
+export default class Submission extends Model {}
+
+Submission.modelName = 'Submission';
+Submission.fields = {
+  filePaths: attr(),
+  exerciseId: fk('Exercise'),
+};

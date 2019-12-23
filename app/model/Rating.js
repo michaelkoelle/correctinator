@@ -1,13 +1,11 @@
-import Model from './Model';
+import {Model, attr, fk} from "redux-orm";
 
-export default class Rating extends Model {
-  constructor(score, comment, task, corrector, submission) {
-    super();
-    this.id = Rating.incrementId();
-    this.score = score;
-    this.comment = comment;
-    this.task = task;
-    this.corrector = corrector;
-    this.submission = submission;
-  }
-}
+export default class Rating extends Model {}
+Rating.modelName = 'Rating';
+Rating.fields = {
+  score: attr(),
+  commentId: fk('Comment'),
+  taskId: fk('Task'),
+  correctorId: fk('Corrector'),
+  submissionId: fk('Submission')
+};

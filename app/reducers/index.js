@@ -1,13 +1,16 @@
 // @flow
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
+import { createReducer } from "redux-orm";
+import orm from "../orm";
 import project from './project';
-import db from './db';
+import ormReducer from "./ormReducer";
 
 export default function createRootReducer(history: History) {
   return combineReducers({
     router: connectRouter(history),
     project,
-    db
+    orm: createReducer(orm),
+    ormReducer
   });
 }

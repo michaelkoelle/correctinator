@@ -1,17 +1,14 @@
-import { normalize } from 'normalizr';
 import { SUBMISSION_STATES } from '../constants/submission';
 import Comment from '../model/Comment';
-import Lecture from '../model/Lecture';
 import Task from '../model/Task';
-import SubmissionCorrection from '../model/SubmissionCorrection';
 import Rating from '../model/Rating';
-import Corrector from '../model/Corrector';
-import Submission from '../model/Submission';
-import { submissionCorrectionSchema } from '../model/Schema';
-import Exercise from '../model/Exercise';
+import orm from "../orm";
+import SubmissionCorrection from "../model/SubmissionCorrection";
+import {store} from "../index";
+import {createSubmissionCorrection, openSubmissions} from "../actions/actionCreators";
 
 export function parse(content, directory, ratingFile, files) {
-
+  const session = orm.session();
   // https://regex101.com/r/MgTRms/2
   const regex = new RegExp("= Bitte nur Bewertung und Kommentare ändern =\n"
     + "=============================================\n"
@@ -28,11 +25,11 @@ export function parse(content, directory, ratingFile, files) {
     + "Bewertung: (\\d*[.|,]?\\d*).*\n"
     + "=============================================\n"
     + "Kommentare:\n"
-    + "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n?(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*?)\\s*(?:\\/\\*(.*)\\*\\/)?\\s*\n"
+    + "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n?(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*?)\\s*(?:\\/\\*(.*)\\*\\/)?\\s*"
     + "============ Ende der Kommentare ============",'gm');
 
   const match = regex.exec(content);
-  const correction = new SubmissionCorrection(SUBMISSION_STATES.TODO);
+  const correction = {state: SUBMISSION_STATES.TODO};
 
   if(match){
     const [ , lectureName, exerciseName, correctorName, correctorEmail, submissionId, maxPoints, score, tasks, commentText, annotation] = match;
@@ -49,23 +46,24 @@ export function parse(content, directory, ratingFile, files) {
       correction.state = SUBMISSION_STATES.NOT_INITIALIZED;
     }
 
-    const corrector = new Corrector(correctorName, correctorEmail.toLowerCase());
-    const lecture = new Lecture(lectureName);
+    const corrector = {name: correctorName, email: correctorEmail.toLowerCase()};
+    console.log(session.Corrector.create({name: correctorName, email: correctorEmail.toLowerCase()}));
+    const lecture = {name: lectureName};
 
-    const exercise = new Exercise(exerciseName, extractFloatFromString(maxPoints), lecture, []);
-    const submission = new Submission(submissionId, files, exercise);
-
-    const exerciseRating = new Rating(extractFloatFromString(score), undefined, exercise, corrector, submission);
-    exerciseRating.comment = new Comment(commentText, exerciseRating);
+    const exercise = {name: exerciseName, maxPoints: extractFloatFromString(maxPoints), lectureId: lecture};
+    const submission = {id: submissionId, filePaths: files, exerciseId: exercise};
+    const exerciseRating = {score: extractFloatFromString(score), taskId: exercise, correctorId: corrector, submissionId: submission, comment: {text: commentText}};
 
     correction.annotation = annotation;
     correction.ratingFilePath = ratingFile;
     correction.filePaths = files;
     correction.exercise = exercise;
-    correction.ratings = parseTasks(tasks, corrector, lecture, submission, [exerciseRating], exercise);
+    //correction.ratings = parseTasks(tasks, corrector, lecture, submission, [exerciseRating], exercise);
 
-    const data = normalize(correction, submissionCorrectionSchema);
-    console.log(data);
+    //const data = normalize(correction, submissionCorrectionSchema);
+    session.SubmissionCorrection.create(correction);
+    store.dispatch(createSubmissionCorrection(correction));
+    //console.log(session.SubmissionCorrection.create(correction));
     //console.log(denormalize(0, correctionSchema, data.db))
   }else{
     correction.state = SUBMISSION_STATES.PARSE_ERROR;

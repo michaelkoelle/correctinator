@@ -1,11 +1,12 @@
 import Submission from './Submission';
+import {Model, attr, fk} from "redux-orm";
 
-export default class SubmissionCorrection extends Submission {
-  constructor(state, annotation, ratingFilePath, filePaths, exercise, ratings) {
-    super(SubmissionCorrection.incrementId(), filePaths, exercise);
-    this.state = state;
-    this.annotation = annotation;
-    this.ratingFilePath = ratingFilePath;
-    this.ratings = ratings;
-  }
-}
+
+export default class SubmissionCorrection extends Submission {}
+
+SubmissionCorrection.modelName = 'SubmissionCorrection';
+SubmissionCorrection.fields = {
+  state: attr(),
+  annotation: attr(),
+  ratingFilePath: attr(),
+};

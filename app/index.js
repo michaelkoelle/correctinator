@@ -1,8 +1,10 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
-import { persistStore, PURGE} from "redux-persist";
+import { persistStore } from "redux-persist";
+// eslint-disable-next-line import/no-cycle
 import Root from './containers/Root';
+// eslint-disable-next-line import/no-cycle
 import { configureStore, history } from './store/configureStore';
 import './app.global.css';
 
@@ -10,7 +12,6 @@ export const store = configureStore();
 export const persistor = persistStore(store);
 
 persistor.purge();
-
 
 render(
   <AppContainer>
