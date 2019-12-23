@@ -1,0 +1,16 @@
+.Pages {
+  padding-bottom: 10px;
+}
+
+.PageCenter{
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.errorText{
+  padding-left: 10px;
+}
+
+.errorIcon{
+  padding: 10px;
+}

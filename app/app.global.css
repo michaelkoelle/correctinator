@@ -11,7 +11,7 @@ body {
   height: 100vh;
   background-color: #232c39;
   font-family: Arial, Helvetica, Helvetica Neue, serif;
-  overflow-y: hidden;
+  overflow-y: auto;
   -webkit-app-region: drag;
 }
 
