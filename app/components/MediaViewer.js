@@ -3,11 +3,13 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
+import mime from 'mime-types';
 import { Typography } from '@material-ui/core';
 import PropTypes from 'prop-types';
 import styles from './MediaViewer.module.css';
 import PDFViewer from './PDFViewer';
 import { clamp } from '../utils/MathUtil';
+import ImageViewer from './ImageViewer';
 
 export default class MediaViewer extends React.Component {
 
@@ -73,10 +75,18 @@ export default class MediaViewer extends React.Component {
 
   render() {
     const { files, index, scale, rotation } = this.state;
+    const type = mime.lookup(files[index]);
+    let viewer = [];
+    switch (type) {
+      case "application/pdf": viewer = <PDFViewer path={files[index]} scale={scale} rotation={rotation}/>; break;
+      case "image/jpeg": viewer = <ImageViewer path={files[index]} scale={scale} rotation={rotation}/>; break;
+      default: console.error("DEFAULT");
+    }
+    console.log(type);
 
     return (
-      <div>
-        <AppBar position="sticky" className={styles.AppBar}>
+      <div className={styles.Container}>
+        <AppBar position="fixed" className={styles.AppBar}>
           <Toolbar variant="dense">
             <Button color="inherit" onClick={this.onZoomOut} disabled={scale===MediaViewer.minZoom}><Icon className="fas fa-search-minus" /></Button>
             <Button color="inherit" onClick={this.onZoomIn} disabled={scale===MediaViewer.maxZoom}><Icon className="fas fa-search-plus"/></Button>
@@ -85,10 +95,12 @@ export default class MediaViewer extends React.Component {
             <Button color="inherit" onClick={this.onNextFile}><Icon className="fas fa-forward"/></Button>
             <Button color="inherit" onClick={this.onRotateLeft}><Icon className="fas fa-reply"/></Button>
             <Button color="inherit" onClick={this.onRotateRight}><Icon className="fas fa-share"/></Button>
-
           </Toolbar>
         </AppBar>
-        <PDFViewer path={files[index]} scale={scale} rotation={rotation}/>
+        <div className={styles.Content}>
+          {viewer}
+        </div>
+
       </div>
     );
   }

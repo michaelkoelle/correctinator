@@ -9659,6 +9659,11 @@ mime-db@1.40.0:
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.40.0.tgz#a65057e998db090f732a68f6c276d387d4126c32"
   integrity sha512-jYdeOMPy9vnxEqFRRo6ZvTZ8d9oPb+k18PKoYNYUe2stVEBPPwsln/qWzdbmaIvnhZ9v2P+CuecK+fpUfsV2mA==
 
+mime-db@1.42.0:
+  version "1.42.0"
+  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.42.0.tgz#3e252907b4c7adb906597b4b65636272cf9e7bac"
+  integrity sha512-UbfJCR4UAVRNgMpfImz05smAXK7+c+ZntjaA26ANtkXLlOe947Aag5zdIcKQULAiF9Cq4WxBi9jUs5zkA84bYQ==
+
 "mime-db@>= 1.40.0 < 2":
   version "1.41.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.41.0.tgz#9110408e1f6aa1b34aef51f2c9df3caddf46b6a0"
@@ -9670,6 +9675,13 @@ mime-types@^2.1.12, mime-types@~2.1.17, mime-types@~2.1.19, mime-types@~2.1.24:
   integrity sha512-WaFHS3MCl5fapm3oLxU4eYDw77IQM2ACcxQ9RIxfaC3ooc6PFuBMGZZsYpvoXS5D5QTWPieo1jjLdAm3TBP3cQ==
   dependencies:
     mime-db "1.40.0"
+
+mime-types@latest:
+  version "2.1.25"
+  resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.25.tgz#39772d46621f93e2a80a856c53b86a62156a6437"
+  integrity sha512-5KhStqB5xpTAeGqKBAMgwaYMnQik7teQN4IAzC7npDv6kzeU6prfkR67bc87J1kWMPGkoaZSq1npmexMgkmEVg==
+  dependencies:
+    mime-db "1.42.0"
 
 mime@1.6.0:
   version "1.6.0"
@@ -11535,7 +11547,7 @@ prop-types-exact@^1.2.0:
     object.assign "^4.1.0"
     reflect.ownkeys "^0.2.0"
 
-prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2, prop-types@latest:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -11787,6 +11799,16 @@ react-data-grid@^5.0.5:
   resolved "https://registry.yarnpkg.com/react-data-grid/-/react-data-grid-5.0.5.tgz#529f5acd4750ae0461e9da66f9f30d6f597eed76"
   integrity sha512-OR4LDoOpN4yj3NexaxYFS2OEIYFUk2V5lascPTHgtTMwwkb163tEPqQSertkv2YAJu+YBzIm8epW8+UMip1LPw==
 
+react-dom@^16.3.2:
+  version "16.12.0"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.12.0.tgz#0da4b714b8d13c2038c9396b54a92baea633fe11"
+  integrity sha512-LMxFfAGrcS3kETtQaCkTKjMiifahaMySFDn71fZUNpPHZQEzmk/GiAeIT8JSOrHB23fnuCOMruL2a8NYlw+8Gw==
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.2"
+    scheduler "^0.18.0"
+
 react-dom@^16.7.0-alpha.2:
   version "16.9.0"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.9.0.tgz#5e65527a5e26f22ae3701131bcccaee9fb0d3962"
@@ -11950,6 +11972,23 @@ react-transition-group@^4.0.0, react-transition-group@^4.3.0:
     loose-envify "^1.4.0"
     prop-types "^15.6.2"
 
+react-viewer@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/react-viewer/-/react-viewer-3.1.0.tgz#bd968d7fcfce77587ae01c350f161c9b16dee9dc"
+  integrity sha512-UwlK+xxP70cP1OE1omk9DSXNJCpHFbUDgyJ1pihUMUV6YfgVkBZhlSbXozn81oBV9cOx/7FEQ6D842sfnsUzcQ==
+  dependencies:
+    classnames "^2.2.5"
+
+react-viewerjs@^0.1.9:
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/react-viewerjs/-/react-viewerjs-0.1.9.tgz#71079f5a9f11e3e58f5171df3f19804a8ab46a93"
+  integrity sha1-cQefWp8R4+WPUXHfPxmASoq0apM=
+  dependencies:
+    prop-types "^15.5.8"
+    react "^16.3.2"
+    react-dom "^16.3.2"
+    viewerjs "^1.0.0-rc.1"
+
 react-virtualized@^9.21.1:
   version "9.21.1"
   resolved "https://registry.yarnpkg.com/react-virtualized/-/react-virtualized-9.21.1.tgz#4dbbf8f0a1420e2de3abf28fbb77120815277b3a"
@@ -11969,6 +12008,15 @@ react-visibility-sensor@^5.0.2:
   integrity sha512-cTUHqIK+zDYpeK19rzW6zF9YfT4486TIgizZW53wEZ+/GPBbK7cNS0EHyJVyHYacwFEvvHLEKfgJndbemWhB/w==
   dependencies:
     prop-types "^15.7.2"
+
+react@^16.3.2:
+  version "16.12.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-16.12.0.tgz#0c0a9c6a142429e3614834d5a778e18aa78a0b83"
+  integrity sha512-fglqy3k5E+81pA8s+7K0/T3DBCF0ZDOher1elBFzF7O6arXJgzyu/FW+COxFvAWXJoJN9KIZbT2LXlukwphYTA==
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.2"
 
 react@^16.7.0-alpha.2:
   version "16.9.0"
@@ -12743,6 +12791,14 @@ scheduler@^0.15.0:
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.15.0.tgz#6bfcf80ff850b280fed4aeecc6513bc0b4f17f8e"
   integrity sha512-xAefmSfN6jqAa7Kuq7LIJY0bwAPG3xlCj0HMEBQk1lxYiDKZscY2xJ5U/61ZTrYbmNQbXa+gc7czPkVo11tnCg==
+  dependencies:
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+
+scheduler@^0.18.0:
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.18.0.tgz#5901ad6659bc1d8f3fdaf36eb7a67b0d6746b1c4"
+  integrity sha512-agTSHR1Nbfi6ulI0kYNK0203joW2Y5W4po4l+v03tOoiJKpTBbxpNhWDvqc/4IcOw+KLmSiQLTasZ4cab2/UWQ==
   dependencies:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
@@ -14807,6 +14863,11 @@ vfile@^3.0.0:
     replace-ext "1.0.0"
     unist-util-stringify-position "^1.0.0"
     vfile-message "^1.0.0"
+
+viewerjs@^1.0.0-rc.1, viewerjs@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/viewerjs/-/viewerjs-1.5.0.tgz#debea9492189fa41223cc567de915d79435899d0"
+  integrity sha512-ZiJ0vrXDvomLSY3ixaZCJtmdenomsvPPQwZKwvtXUMCiO2HHtFGoB/KqpS9QzABSeKaRLfcENp1uRYJ7l1MkYQ==
 
 vm-browserify@^1.0.1:
   version "1.1.0"

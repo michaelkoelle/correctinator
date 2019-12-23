@@ -268,8 +268,10 @@
     "history": "^4.7.2",
     "lodash.throttle": "^4.1.1",
     "material-table": "^1.49.0",
+    "mime-types": "latest",
     "mui-datatables": "^2.8.1",
     "normalizr": "^3.4.1",
+    "prop-types": "latest",
     "react": "^16.7.0-alpha.2",
     "react-dom": "^16.7.0-alpha.2",
     "react-file-viewer": "^1.1.0",
@@ -279,6 +281,8 @@
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "react-split-pane": "^0.1.87",
+    "react-viewer": "^3.1.0",
+    "react-viewerjs": "^0.1.9",
     "react-virtualized": "^9.21.1",
     "redux": "^4.0.1",
     "redux-orm": "^0.13.3",
@@ -288,7 +292,7 @@
     "source-map-support": "^0.5.9",
     "styled-components": "^4.3.2",
     "typeface-roboto": "^0.0.75",
-    "prop-types": "latest"
+    "viewerjs": "^1.5.0"
   },
   "devEngines": {
     "node": ">=7.x",
