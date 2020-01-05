@@ -22,7 +22,7 @@ export default class ImageViewer extends React.Component {
     if(rotation === 90 || rotation === 270){
       width = window.innerHeight * 0.9;
     }
-    console.log(width);
+
     const dyn = {
       transform: `rotate(${rotation}deg)`,
       width: width * scale,

@@ -19,12 +19,14 @@ export default class HomePage extends Component<Props> {
 
   render() {
     return (
-      <div>
+      <div style={{background: 'red'}}>
         <MediaViewer files={["C:\\Users\\Michi\\Downloads\\abgaben_Blatt09_Rechnerarchitektur\\215652\\Uebungsblatt 09 - Abgabe.pdf",
           "C:\\Users\\Michi\\Downloads\\abgaben_Blatt09_Rechnerarchitektur\\215697\\9. Ab H.pdf",
           "C:\\Users\\Michi\\Downloads\\abgaben_Blatt09_Rechnerarchitektur\\215708\\BLATT9\\BLATT9.pd",
           "C:\\Users\\Michi\\Downloads\\nasamoonrock.jpg",
-          "D:\\Programming\\correctinator\\app\\samples\\image.jpeg"
+          "D:\\Programming\\correctinator\\app\\samples\\image.jpeg",
+          "D:\\Programming\\correctinator\\app\\samples\\server.txt",
+          "D:\\Programming\\correctinator\\app\\samples\\server.java"
         ]}/>
       </div>
     );

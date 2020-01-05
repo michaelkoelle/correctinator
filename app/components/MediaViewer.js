@@ -10,6 +10,8 @@ import styles from './MediaViewer.module.css';
 import PDFViewer from './PDFViewer';
 import { clamp } from '../utils/MathUtil';
 import ImageViewer from './ImageViewer';
+import Backdrop from '@material-ui/core/Backdrop/Backdrop';
+import PlainTextViewer from './PlainTextViewer';
 
 export default class MediaViewer extends React.Component {
 
@@ -77,12 +79,14 @@ export default class MediaViewer extends React.Component {
     const { files, index, scale, rotation } = this.state;
     const type = mime.lookup(files[index]);
     let viewer = [];
+    console.log(type);
     switch (type) {
       case "application/pdf": viewer = <PDFViewer path={files[index]} scale={scale} rotation={rotation}/>; break;
       case "image/jpeg": viewer = <ImageViewer path={files[index]} scale={scale} rotation={rotation}/>; break;
-      default: console.error("DEFAULT");
+      case "text/plain": viewer = <PlainTextViewer path={files[index]} scale={scale} rotation={rotation}/>; break;
+      case "text/x-java-source": viewer = <PlainTextViewer path={files[index]} scale={scale} rotation={rotation}/>; break;
+      default: viewer = <Backdrop open><Icon className={["fas fa-exclamation-triangle", styles.errorIcon]}/><Typography variant="h6" className={styles.errorText}> File could not be loaded!</Typography></Backdrop>;
     }
-    console.log(type);
 
     return (
       <div className={styles.Container}>
