@@ -3,17 +3,25 @@ package com.koellemichael.utils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.koellemichael.exceptions.FileNotInitializedException;
+import com.koellemichael.exceptions.ParseRatingFileCommentSectionException;
+import com.koellemichael.model.Correction;
 import com.koellemichael.model.Exercise;
+import com.koellemichael.model.ExerciseRating;
 
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class Utils {
@@ -111,5 +119,134 @@ public class Utils {
 
     public static boolean isInteger(String i){
         return i.matches("\\d+");
+    }
+
+    public static String fileContentsToString(File f, Charset charset) throws IOException {
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), charset));
+        StringBuilder res = new StringBuilder();
+        String str;
+        while ((str = in.readLine()) != null) {
+            res.append(str).append("\n");
+        }
+        in.close();
+
+        return res.toString();
+    }
+
+    private static String[] splitWithDelimiters(String str, String regex) {
+        List<String> parts = new ArrayList<>();
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(str);
+
+        String lastDelim = "";
+        int lastEnd = 0;
+        while(m.find()) {
+            int start = m.start();
+            if(lastEnd != start) {
+                String nonDelim = str.substring(lastEnd, start);
+                parts.add(lastDelim + nonDelim);
+            }
+            lastDelim= m.group();
+            lastEnd = m.end();
+        }
+
+        String nonDelim = str.substring(lastEnd);
+        parts.add(lastDelim+nonDelim);
+
+        return parts.toArray(new String[]{});
+    }
+
+    public static void parseExercises(String exercises, Exercise parent) throws ParseRatingFileCommentSectionException, FileNotInitializedException {
+        Pattern patternTest = Pattern.compile("(?m)^[^\\r\\t\\f\\v].*", Pattern.MULTILINE);
+        Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
+
+        String[] exerciseSplit = splitWithDelimiters(exercises, patternTest.pattern());
+
+        if(exerciseSplit.length == 0){
+            throw new FileNotInitializedException();
+        }
+
+        for(String s : exerciseSplit){
+            int count = countPatternInString(s, patternExercise);
+            if(count > 1) {
+                Exercise e = parseExercise(s, parent.getCorrection());
+                Scanner scanner = new Scanner(s);
+
+                StringBuilder newS = new StringBuilder();
+
+                while (scanner.hasNextLine()){
+                    String line = scanner.nextLine();
+                    if(line.startsWith("\t")){
+                        newS.append(line.substring(1)).append("\n");
+                    }
+                }
+
+                if(parent != null){
+                    parent.addSubExercise(e);
+                }
+                e.setParent(parent);
+                parseExercises(newS.toString(),e);
+            }else{
+                Exercise e = parseExerciseRating(s, parent.getCorrection());
+                if(parent != null){
+                    parent.addSubExercise(e);
+                }
+                e.setParent(parent);
+            }
+        }
+    }
+
+    public static int countPatternInString(String input, Pattern pattern){
+        return input.split(pattern.toString(),-1).length - 1;
+    }
+
+    public static ExerciseRating parseExerciseRating(String plain, Correction c) throws ParseRatingFileCommentSectionException {
+        Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
+        Scanner lineScanner = new Scanner(plain);
+        String line;
+        if(lineScanner.hasNext()){
+            line = lineScanner.nextLine();
+            Matcher matcher = patternExercise.matcher(line);
+            if(matcher.find()){
+                ExerciseRating  e = new ExerciseRating();
+                e.setCorrection(c);
+                e.setName(matcher.group(2));
+                e.setRating(Double.parseDouble(matcher.group(3).replace(",",".")));
+                e.setMaxPoints(Double.parseDouble(matcher.group(4).replace(",",".")));
+
+                while (lineScanner.hasNext()){
+                    String l = lineScanner.nextLine();
+                    if(l.startsWith("\t")){
+                        e.setComment(e.getComment()+ l.substring(1) +"\n");
+                    }
+                    else{
+                        e.setComment(e.getComment()+ l +"\n");
+                    }
+                }
+
+                return e;
+            }
+        }
+
+        throw new ParseRatingFileCommentSectionException(plain);
+    }
+
+    public static Exercise parseExercise(String plain, Correction c) throws ParseRatingFileCommentSectionException {
+        Pattern patternExercise = Pattern.compile("( |\\t)*(.+[:|)])\\s*(\\d+[,|\\.]\\d+|\\d+)\\/(\\d+[,|\\.]\\d+|\\d+)");
+        Scanner lineScanner = new Scanner(plain);
+        String line;
+        if(lineScanner.hasNext()){
+            line = lineScanner.nextLine();
+            Matcher matcher = patternExercise.matcher(line);
+            if(matcher.find()){
+                Exercise  e = new Exercise();
+                e.setCorrection(c);
+                e.setName(matcher.group(2));
+                return e;
+            }
+        }
+
+        throw new ParseRatingFileCommentSectionException(plain);
     }
 }

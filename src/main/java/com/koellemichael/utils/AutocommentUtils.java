@@ -10,7 +10,7 @@ public class AutocommentUtils {
 
     public static String buildAutoComment(Correction c){
         Preferences preferences = Preferences.userRoot();
-        double percentage = (c.getRating()/c.getMaxPoints())*100;
+        double percentage = (c.getPoints()/c.getSheet().getGrading().getMax())*100;
 
         if (percentage >= 100) {
             return preferences.get(PreferenceKeys.COMMENT_100_PREF,"Perfekt!");
@@ -30,6 +30,7 @@ public class AutocommentUtils {
     }
 
     public static String replaceAutoCommentWithString(String comment, String replacement){
+        if(comment == null) return null;
         Preferences preferences = Preferences.userRoot();
 
         ArrayList<String> targets = new ArrayList<>();

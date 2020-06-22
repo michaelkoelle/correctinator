@@ -2,7 +2,7 @@ package com.koellemichael.controller;
 
 import com.koellemichael.model.ExerciseRating;
 import com.koellemichael.utils.PreferenceKeys;
-import com.koellemichael.utils.Uni2WorkParser;
+import com.koellemichael.utils.Uni2WorkYAMLParser;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -70,7 +70,7 @@ public class ExerciseRatingController implements ChangeListener {
         Preferences pref = Preferences.userRoot();
         if(pref.getBoolean(PreferenceKeys.AUTOSAVE_PREF, false)){
             try {
-                Uni2WorkParser.saveRatingFile(e.getCorrection());
+                Uni2WorkYAMLParser.saveRatingFile(e.getCorrection());
             } catch (IOException ignored) {}
         }
     }

@@ -52,7 +52,6 @@ public class Controller{
     public TableColumn<Correction, String> tc_exercise_sheet;
     public TableColumn<Correction, String> tc_lecture;
     public TableColumn<Correction, String> tc_corrector;
-    public TableColumn<Correction, String> tc_corrector_email;
 
     public ProgressBar pb_correction;
     public Label lbl_current_id;
@@ -88,27 +87,25 @@ public class Controller{
         corrections = FXCollections.observableArrayList(e -> new Observable[]{
                 e.stateProperty(),
                 e.changedProperty(),
-                e.maxPointsProperty(),
-                e.idProperty(),
-                e.correctorEmailProperty(),
-                e.correctorProperty(),
-                e.exerciseSheetProperty(),
-                e.lectureProperty(),
+                e.getSheet().getGrading().maxProperty(),
+                e.submissionProperty(),
+                e.rated_byProperty(),
+                e.getSheet().nameProperty(),
+                e.courseProperty(),
                 e.pathProperty(),
                 e.exerciseProperty()
         });
 
-        tc_id.setCellValueFactory(cell -> cell.getValue().idProperty());
+        tc_id.setCellValueFactory(cell -> cell.getValue().submissionProperty());
         tc_path.setCellValueFactory(cell -> cell.getValue().pathProperty());
-        tc_rating.setCellValueFactory(cell -> cell.getValue().ratingProperty());
+        tc_rating.setCellValueFactory(cell -> cell.getValue().pointsProperty());
         tc_changed.setCellValueFactory(cell -> cell.getValue().changedProperty());
         tc_state.setCellValueFactory(cell -> cell.getValue().stateProperty());
 
-        tc_max_points.setCellValueFactory(cell -> cell.getValue().maxPointsProperty());
-        tc_exercise_sheet.setCellValueFactory(cell -> cell.getValue().exerciseSheetProperty());
-        tc_lecture.setCellValueFactory(cell -> cell.getValue().lectureProperty());
-        tc_corrector.setCellValueFactory(cell -> cell.getValue().correctorProperty());
-        tc_corrector_email.setCellValueFactory(cell -> cell.getValue().correctorEmailProperty());
+        tc_max_points.setCellValueFactory(cell -> cell.getValue().getSheet().getGrading().maxProperty());
+        tc_exercise_sheet.setCellValueFactory(cell -> cell.getValue().getSheet().nameProperty());
+        tc_lecture.setCellValueFactory(cell -> cell.getValue().courseProperty());
+        tc_corrector.setCellValueFactory(cell -> cell.getValue().rated_byProperty());
 
         tv_corrections.getSelectionModel().selectedItemProperty().addListener(this::onSelectionChanged);
         tv_corrections.getSelectionModel().clearSelection();
@@ -152,11 +149,11 @@ public class Controller{
         if(oldSelection instanceof Correction){
             Correction c = (Correction) oldSelection;
             c.stateProperty().removeListener(stateChangeListener);
-            c.ratingProperty().removeListener(ratingChangeListener);
+            c.pointsProperty().removeListener(ratingChangeListener);
             if(c.isChanged()){
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
-                        Uni2WorkParser.saveRatingFile(c);
+                        Uni2WorkYAMLParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -170,7 +167,7 @@ public class Controller{
                     Optional<ButtonType> result = alert.showAndWait();
                     if (result.isPresent() && result.get() == ButtonType.OK){
                         try {
-                            Uni2WorkParser.saveRatingFile(c);
+                            Uni2WorkYAMLParser.saveRatingFile(c);
                         } catch (IOException e) {
                             errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
                         }
@@ -184,9 +181,9 @@ public class Controller{
         if(newSelection instanceof Correction){
             Correction c = (Correction) newSelection;
             c.stateProperty().addListener(stateChangeListener);
-            lbl_current_id.textProperty().bind(c.idProperty());
-            lbl_current_rating.textProperty().bind(Bindings.convert(c.ratingProperty()));
-            lbl_current_max_points.textProperty().bind(Bindings.convert(c.maxPointsProperty()));
+            lbl_current_id.textProperty().bind(c.submissionProperty());
+            lbl_current_rating.textProperty().bind(Bindings.convert(c.pointsProperty()));
+            lbl_current_max_points.textProperty().bind(Bindings.convert(c.getSheet().getGrading().maxProperty()));
             vbox_edit.getChildren().clear();
 
             global_comment.setManaged(true);
@@ -256,7 +253,7 @@ public class Controller{
                 c.setChanged(true);
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
-                        Uni2WorkParser.saveRatingFile(c);
+                        Uni2WorkYAMLParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -268,7 +265,7 @@ public class Controller{
                 c.setChanged(true);
                 if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                     try {
-                        Uni2WorkParser.saveRatingFile(c);
+                        Uni2WorkYAMLParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -289,7 +286,7 @@ public class Controller{
                     c.setGlobalComment(AutocommentUtils.replaceAutoCommentWithString(c.getGlobalComment(),AutocommentUtils.buildAutoComment(c)));
                 }
             };
-            c.ratingProperty().addListener(ratingChangeListener);
+            c.pointsProperty().addListener(ratingChangeListener);
 
             if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
                 c.setGlobalComment(AutocommentUtils.replaceAutoCommentWithString(c.getGlobalComment(),AutocommentUtils.buildAutoComment(c)));
@@ -359,12 +356,12 @@ public class Controller{
             if(type == ButtonType.YES){
                 corrections.forEach(c -> {
                     try {
-                        Uni2WorkParser.saveRatingFile(c);
+                        Uni2WorkYAMLParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 });
-                FileUtils.exportAsZipWithFileChooser(correctionsDirectory,correctionsDirectory.getParentFile(),("Korrektur_" + corrections.get(0).getLecture() + "_" + corrections.get(0).getExerciseSheet()).replace(" ", "_"),primaryStage);
+                FileUtils.exportAsZipWithFileChooser(correctionsDirectory,correctionsDirectory.getParentFile(),("Korrektur_" + corrections.get(0).getCourse() + "_" + corrections.get(0).getSheet().getName()).replace(" ", "_"),primaryStage);
             }
         });
     }
@@ -392,11 +389,13 @@ public class Controller{
     private void initializeCommentSection(List<Correction> notInitialized, String initText){
         notInitialized.forEach(c-> {
             try {
-                Uni2WorkParser.initializeComments(c,initText);
+                Uni2WorkYAMLParser.initializeComments(c,initText);
             } catch (IOException e) {
                 errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" konnte nicht gelesen werden! ");
             } catch (ParseRatingFileException e) {
                 errorDialog("Fehlerhafte Bewertungsdatei", "Die Bewertungsdatei \"" + c.getPath() + "\" ist fehlerhaft! ");
+            } catch (FileNotInitializedException e){
+
             }
         });
 
@@ -493,18 +492,11 @@ public class Controller{
                         String id = m.group(1);
                         Correction c;
                         try {
-                            //c = RatingFileParser.parseFile(ratingFile.getAbsolutePath());
-                            c = Uni2WorkParser.parseFile(ratingFile.getAbsolutePath());
+                            c = Uni2WorkYAMLParser.parseFile(ratingFile.getAbsolutePath());
                         } catch (IOException | ParseRatingFileException e) {
-                            c = new Correction();
-                            c.setState(Correction.CorrectionState.PARSE_ERROR);
-                            c.setPath(ratingFile.getAbsolutePath());
-                            c.setId(id);
+                            c = new Correction(id, ratingFile.getAbsolutePath(), Correction.CorrectionState.PARSE_ERROR);
                         } catch (FileNotInitializedException e) {
-                            c = new Correction();
-                            c.setState(Correction.CorrectionState.NOT_INITIALIZED);
-                            c.setPath(ratingFile.getAbsolutePath());
-                            c.setId(id);
+                            c = new Correction(id, ratingFile.getAbsolutePath(), Correction.CorrectionState.NOT_INITIALIZED);
                         }
                         corrections.add(c);
                     }
@@ -564,17 +556,19 @@ public class Controller{
 
             if(c.getState()== Correction.CorrectionState.MARKED_FOR_LATER){
                 c.setState(Correction.CorrectionState.TODO);
+                c.setRating_done(false);
                 ((Button) actionEvent.getSource()).setText("Markieren");
                 sp_note.setManaged(false);
             }else {
                 c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+                c.setRating_done(false);
                 ((Button) actionEvent.getSource()).setText("Markierung entfernen");
                 sp_note.setManaged(true);
             }
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    Uni2WorkParser.saveRatingFile(c);
+                    Uni2WorkYAMLParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -590,12 +584,16 @@ public class Controller{
                 c.setState(Correction.CorrectionState.FINISHED);
             }
 
+            if(!c.isRating_done()){
+                c.setRating_done(true);
+            }
+
             if(preferences.getBoolean(PreferenceKeys.AUTOCOMMENT_PREF, true)){
                 c.setGlobalComment(AutocommentUtils.replaceAutoCommentWithString(c.getGlobalComment(),AutocommentUtils.buildAutoComment(c)));
             }
 
             try {
-                Uni2WorkParser.saveRatingFile(c);
+                Uni2WorkYAMLParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -649,7 +647,7 @@ public class Controller{
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 changedCorrections.forEach(c -> {
                     try {
-                        Uni2WorkParser.saveRatingFile(c);
+                        Uni2WorkYAMLParser.saveRatingFile(c);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -666,7 +664,7 @@ public class Controller{
                 if (result.isPresent() && result.get() == ButtonType.OK){
                     changedCorrections.forEach(c -> {
                         try {
-                            Uni2WorkParser.saveRatingFile(c);
+                            Uni2WorkYAMLParser.saveRatingFile(c);
                         } catch (IOException e) {
                             errorDialog("Fehler beim speichern der Datei", "Die Datei \"" + c.getPath() + "\" konnte nicht gespeichert werden");
                         }
