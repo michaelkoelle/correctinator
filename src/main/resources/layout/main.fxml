@@ -53,7 +53,6 @@
                               <TableColumn fx:id="tc_state" editable="false" maxWidth="1.7976931348623157E308" minWidth="60.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Status" />
                               <TableColumn fx:id="tc_changed" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Änderung" />
                               <TableColumn fx:id="tc_corrector" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Korrektor" />
-                              <TableColumn fx:id="tc_corrector_email" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="E-Mail" />
                             <TableColumn fx:id="tc_path" editable="false" maxWidth="1.7976931348623157E308" minWidth="80.0" prefWidth="-1.0" style="-fx-alignment: CENTER;" text="Pfad" />
                           </columns>
                            <contextMenu>

@@ -103,7 +103,7 @@ public class MenuController {
     private void saveAllCorrections(){
         mainController.corrections.forEach(c -> {
             try {
-                Uni2WorkParser.saveRatingFile(c);
+                Uni2WorkYAMLParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -157,11 +157,12 @@ public class MenuController {
     public void onSetTODO(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
             c.setState(Correction.CorrectionState.TODO);
+            c.setRating_done(false);
             mainController.sp_note.setManaged(false);
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    Uni2WorkParser.saveRatingFile(c);
+                    Uni2WorkYAMLParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -173,11 +174,12 @@ public class MenuController {
     public void onSetMarked(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
             c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
+            c.setRating_done(false);
             mainController.sp_note.setManaged(true);
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    Uni2WorkParser.saveRatingFile(c);
+                    Uni2WorkYAMLParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -189,11 +191,12 @@ public class MenuController {
     public void onSetFinished(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c -> {
             c.setState(Correction.CorrectionState.FINISHED);
+            c.setRating_done(true);
             mainController.sp_note.setManaged(false);
             c.setChanged(true);
             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                 try {
-                    Uni2WorkParser.saveRatingFile(c);
+                    Uni2WorkYAMLParser.saveRatingFile(c);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -205,7 +208,7 @@ public class MenuController {
     public void onSaveCorrection(ActionEvent actionEvent) {
         getSelectedCorrection().ifPresent(c ->{
             try {
-                Uni2WorkParser.saveRatingFile(c);
+                Uni2WorkYAMLParser.saveRatingFile(c);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -223,7 +226,7 @@ public class MenuController {
 
     public void onExportAsZIP(ActionEvent actionEvent) {
         if(mainController.corrections.filtered(c -> (c.getState() != Correction.CorrectionState.FINISHED)).isEmpty()){
-            FileUtils.exportAsZipWithFileChooser(mainController.correctionsDirectory,mainController.correctionsDirectory.getParentFile(),("Korrektur_" + mainController.corrections.get(0).getLecture() + "_" + mainController.corrections.get(0).getExerciseSheet()).replace(" ", "_"),primaryStage);
+            FileUtils.exportAsZipWithFileChooser(mainController.correctionsDirectory,mainController.correctionsDirectory.getParentFile(),("Korrektur_" + mainController.corrections.get(0).getCourse() + "_" + mainController.corrections.get(0).getSheet().getName()).replace(" ", "_"),primaryStage);
 
         }else{
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -237,7 +240,7 @@ public class MenuController {
                     try {
                         if(c.getState()== Correction.CorrectionState.TODO || c.getState() == Correction.CorrectionState.MARKED_FOR_LATER){
                             c.setState(Correction.CorrectionState.FINISHED);
-                            Uni2WorkParser.saveRatingFile(c);
+                            Uni2WorkYAMLParser.saveRatingFile(c);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -462,7 +465,7 @@ public class MenuController {
 
                             if(preferences.getBoolean(PreferenceKeys.AUTOSAVE_PREF,true)){
                                 try {
-                                    Uni2WorkParser.saveRatingFile(c);
+                                    Uni2WorkYAMLParser.saveRatingFile(c);
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                 }

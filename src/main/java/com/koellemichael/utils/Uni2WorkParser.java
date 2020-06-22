@@ -41,39 +41,41 @@ public class Uni2WorkParser {
                         "=========== Beginn der Kommentare ===========\\s+" +
                         "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\n]*\\n*))*\\s*)*\\s*)\\s*(?>(.+?)\\s*(?>\\/\\*(.*)\\*\\/)|(.*))\\s*", Pattern.MULTILINE|Pattern.DOTALL);
 
-        Correction c = new Correction();
-        c.setPath(path);
 
         String fileContents = fileContentsToString(new File(path),StandardCharsets.UTF_8);
 
         Matcher matcher = p.matcher(fileContents);
 
         if(matcher.find()){
-            c.setLecture(matcher.group(1));
-            c.setExerciseSheet(matcher.group(2));
-            c.setCorrector(matcher.group(3));
-            c.setId(matcher.group(5));
-            c.setMaxPoints(extractDoubleFromString(matcher.group(4)));
+
+            String course = matcher.group(1);
+            double maxPoints = extractDoubleFromString(matcher.group(4));
+            String sheetName = matcher.group(2);
+            String rated_by = matcher.group(3);
+            String email = matcher.group(4);
+            String submission = matcher.group(5);
+            Correction.CorrectionState state;
+            double points = 0;
+            String note = "";
+            String globalComment = "";
 
             if(!matcher.group(6).trim().equals("")){
-                c.setState(Correction.CorrectionState.FINISHED);
-                c.setRating(extractDoubleFromString(matcher.group(6)));
+                state = Correction.CorrectionState.FINISHED;
+                points = extractDoubleFromString(matcher.group(6));
             }else {
-                c.setState(Correction.CorrectionState.TODO);
+                state = Correction.CorrectionState.TODO;
             }
 
             if(matcher.group(9) != null){
-                c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
-                c.setNote(matcher.group(9));
+                state = Correction.CorrectionState.MARKED_FOR_LATER;
+                note = matcher.group(9);
             }
 
             if(matcher.group(8) != null){
-                c.setGlobalComment(matcher.group(8));
+                globalComment = matcher.group(8);
             } else if(matcher.group(10) != null) {
-                c.setGlobalComment(matcher.group(10));
+                globalComment = matcher.group(10);
             }
-
-
 
             String commentSection = matcher.group(7);
 
@@ -83,15 +85,14 @@ public class Uni2WorkParser {
             }
 
             Exercise e = new Exercise();
+            Correction c = new Correction(course, maxPoints, sheetName, rated_by, email, submission, points, path, globalComment, e, state, note);
             e.setCorrection(c);
             parseExercises(commentSection, e);
             c.setExercise(e);
-
+            return c;
         }else{
             throw new ParseRatingFileException(fileContents);
         }
-
-        return c;
     }
 
     public static String buildRatingFile(Correction c){
@@ -106,13 +107,13 @@ public class Uni2WorkParser {
                         "========== Uni2work Bewertungsdatei =========\n" +
                         "======= diese Datei ist UTF8 encodiert ======\n" +
                         "Informationen zum Übungsblatt:\n" +
-                        "  Veranstaltung: "+ c.getLecture() + "\n" +
-                        "  Blatt: " + c.getExerciseSheet() + "\n" +
-                        "  Korrektor: " + c.getCorrector() + "\n" +
-                        "  Bewertungsschema: Maximal " + format.format(c.getMaxPoints()) + " Punkt(e)\n" +
-                        "Abgabe-Id: " + c.getId() + "\n" +
+                        "  Veranstaltung: "+ c.getCourse() + "\n" +
+                        "  Blatt: " + c.getSheet().getName() + "\n" +
+                        "  Korrektor: " + c.getRated_by() + "\n" +
+                        "  Bewertungsschema: Maximal " + format.format(c.getSheet().getGrading().getMax()) + " Punkt(e)\n" +
+                        "Abgabe-Id: " + c.getSubmission() + "\n" +
                         "=============================================\n" +
-                        "Bewertung: " + ((finished)?format.format(c.getRating()):"") + "\n" +
+                        "Bewertung: " + ((finished)?format.format(c.getPoints()):"") + "\n" +
                         "=========== Beginn der Kommentare ===========\n";
 
         if(c.getExercise() != null){

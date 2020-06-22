@@ -3,9 +3,7 @@ package com.koellemichael.utils;
 import com.koellemichael.exceptions.FileNotInitializedException;
 import com.koellemichael.exceptions.ParseRatingFileCommentSectionException;
 import com.koellemichael.exceptions.ParseRatingFileException;
-import com.koellemichael.model.Correction;
-import com.koellemichael.model.Exercise;
-import com.koellemichael.model.ExerciseRating;
+import com.koellemichael.model.*;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -41,35 +39,36 @@ public class UniworxParser {
                 "\\s*((?:(?:(?:[^\\n]*[:|)])\\s*(?:\\d+[,|\\.]\\d+|\\d+)\\/(?:\\d+[,|\\.]\\d+|\\d+))\\s*\\n(?:^(?:\\t+[^\\t\\n]+\\n*))*\\s*)*\\s*)\\s*(.*?)\\s*(?>\\/\\*(.*)\\*\\/)?\\s*" +
                 "============ Ende der Kommentare ============",Pattern.DOTALL | Pattern.MULTILINE);
 
-        Correction c = new Correction();
-        c.setPath(path);
-
         String fileContents = fileContentsToString(new File(path),StandardCharsets.UTF_8);
 
         Matcher matcher = p.matcher(fileContents);
 
         if(matcher.find()){
-            c.setLecture(matcher.group(1));
-            c.setExerciseSheet(matcher.group(2));
-            c.setCorrector(matcher.group(3));
-            c.setCorrectorEmail(matcher.group(4));
-            c.setId(matcher.group(5));
-            c.setMaxPoints(extractDoubleFromString(matcher.group(6)));
+            String course = matcher.group(1);
+            double maxPoints = extractDoubleFromString(matcher.group(6));
+            String sheetName = matcher.group(2);
+            String rated_by = matcher.group(3);
+            String email = matcher.group(4);
+            String submission = matcher.group(5);
+            Correction.CorrectionState state;
+            double points = 0;
+            String note = "";
+            String globalComment = "";
 
             if(!matcher.group(7).trim().equals("")){
-                c.setState(Correction.CorrectionState.FINISHED);
-                c.setRating(extractDoubleFromString(matcher.group(7)));
+                state = Correction.CorrectionState.FINISHED;
+                points = extractDoubleFromString(matcher.group(7));
             }else {
-                c.setState(Correction.CorrectionState.TODO);
+                state = Correction.CorrectionState.TODO;
             }
 
             if(matcher.group(10) != null){
-                c.setState(Correction.CorrectionState.MARKED_FOR_LATER);
-                c.setNote(matcher.group(10));
+                state = Correction.CorrectionState.MARKED_FOR_LATER;
+                note = matcher.group(10);
             }
 
             if(matcher.group(9) != null){
-                c.setGlobalComment(matcher.group(9));
+                globalComment = matcher.group(9);
             }
 
             String commentSection = matcher.group(8);
@@ -80,15 +79,14 @@ public class UniworxParser {
             }
 
             Exercise e = new Exercise();
+            Correction c = new Correction(course, maxPoints, sheetName, rated_by, email, submission, points, path, globalComment, e, state, note);
             e.setCorrection(c);
             parseExercises(commentSection, e);
             c.setExercise(e);
-
+            return c;
         }else{
             throw new ParseRatingFileException(fileContents);
         }
-
-        return c;
     }
 
     public static String buildRatingFile(Correction c){
@@ -102,14 +100,14 @@ public class UniworxParser {
                 "========== UniWorx Bewertungsdatei ==========\n" +
                 "======= diese Datei ist UTF8 encodiert ======\n" +
                 "Informationen zum Übungsblatt:\n" +
-                "Veranstaltung: " + c.getLecture() + "\n" +
-                "Blatt: " + c.getExerciseSheet() + "\n" +
-                "Korrektor: " + c.getCorrector() + "\n" +
-                "E-Mail: " + c.getCorrectorEmail() + "\n" +
-                "Abgabe-Id: " + c.getId() + "\n" +
-                "Maximalpunktzahl: " + format.format(c.getMaxPoints()) + " Punkte\n" +
+                "Veranstaltung: " + c.getCourse() + "\n" +
+                "Blatt: " + c.getSheet().getName() + "\n" +
+                "Korrektor: " + c.getRated_by() + "\n" +
+                "E-Mail: " + c.getEmail() + "\n" +
+                "Abgabe-Id: " + c.getSubmission() + "\n" +
+                "Maximalpunktzahl: " + format.format(c.getSheet().getGrading().getMax()) + " Punkte\n" +
                 "=============================================\n" +
-                "Bewertung: " + ((finished)?format.format(c.getRating()):"") + "\n" +
+                "Bewertung: " + ((finished)?format.format(c.getPoints()):"") + "\n" +
                 "=============================================\n" +
                 "Kommentare:\n";
 
