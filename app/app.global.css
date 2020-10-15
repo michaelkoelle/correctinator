@@ -2,43 +2,18 @@
  * @NOTE: Prepend a `~` to css file paths that are in your node_modules
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
-@import "~@fortawesome/fontawesome-free/css/all.css";
+@import '~@fortawesome/fontawesome-free/css/all.css';
 @import "containers/SplitPane.css";
-
 body {
   position: relative;
-  color: white;
-  height: 100vh;
-  background-color: #232c39;
+  color: black;
+  background-color: white;
   font-family: Arial, Helvetica, Helvetica Neue, serif;
-  overflow-y: auto;
-  -webkit-app-region: drag;
+  height:calc(100vh);
+  overflow: hidden;
+  margin: 0px;
 }
 
-h2 {
-  margin: 0;
-  font-size: 2.25rem;
-  font-weight: bold;
-  letter-spacing: -0.025em;
-  color: #fff;
-}
-
-p {
-  font-size: 24px;
-}
-
-li {
-  list-style: none;
-}
-
-a {
-  color: white;
-  opacity: 0.75;
-  text-decoration: none;
-}
-
-a:hover {
-  opacity: 1;
-  text-decoration: none;
-  cursor: pointer;
+#root {
+  height: 100%;
 }

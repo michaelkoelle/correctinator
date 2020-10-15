@@ -1,3 +1,7 @@
 {
-  "HOME": "/"
+  "HOME": "/",
+  "COUNTER": "/counter",
+  "SCHEMAGENERATOR": "/schemagenerator",
+  "OVERVIEW": "/overview",
+  "CORRECTIONVIEW": "/correctionview"
 }

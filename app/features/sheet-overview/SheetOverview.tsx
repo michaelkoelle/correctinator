@@ -136,12 +136,13 @@ export default function SheetOverview(props: any) {
                       </IconButton>
                       // eslint-disable-next-line prettier/prettier
                     )}
-                    subheader={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
+                    // eslint-disable-next-line prettier/prettier
+                    subheader={(
                       <>
                         <div>{`${sheet.school} - ${sheet.course} ${sheet.term} - ${sheet.rated_by}`}</div>
                       </>
-                    }
+                      // eslint-disable-next-line prettier/prettier
+                    )}
                     title={sheet.sheet.name}
                   />
                   <CardContent>
