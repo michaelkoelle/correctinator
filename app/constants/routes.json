@@ -3,5 +3,6 @@
   "COUNTER": "/counter",
   "SCHEMAGENERATOR": "/schemagenerator",
   "OVERVIEW": "/overview",
+  "SHEETOVERVIEW": "/sheetoverview",
   "CORRECTIONVIEW": "/correctionview"
 }

@@ -7,6 +7,7 @@ import HomePage from './containers/HomePage';
 import SchemeGeneratorPage from './containers/SchemeGeneratorPage';
 import OverviewPage from './containers/OverviewPage';
 import CorrectionViewPage from './containers/CorrectionViewPage';
+import SheetOverviewPage from './containers/SheetOverviewPage';
 import FramelessTitleBar from './containers/FramelessTitleBar';
 
 // Lazily load routes and code split with webpack
@@ -23,6 +24,7 @@ export default function Routes() {
     <App>
       <FramelessTitleBar />
       <Switch>
+        <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
         <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
         <Route path={routes.OVERVIEW} component={OverviewPage} />
         <Route path={routes.SCHEMAGENERATOR} component={SchemeGeneratorPage} />

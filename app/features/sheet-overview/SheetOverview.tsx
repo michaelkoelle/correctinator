@@ -64,7 +64,7 @@ export default function SheetOverview(props: any) {
       }
     };
     */
-    console.log(submissions);
+    // console.log(submissions);
   }
 
   function getStatusScheme(sheet, subs) {

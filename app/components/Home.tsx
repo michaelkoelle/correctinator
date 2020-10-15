@@ -33,6 +33,8 @@ export default function Home(): JSX.Element {
     <div className={styles.container} data-tid="container">
       <h2>correctinator v1.0</h2>
       <br />
+      <Link to={routes.SHEETOVERVIEW}>to Sheet Overview</Link>
+      <br />
       <Link to={routes.SCHEMAGENERATOR}>to Schema Generator</Link>
       <br />
       <Link to={routes.OVERVIEW}>to Overview</Link>

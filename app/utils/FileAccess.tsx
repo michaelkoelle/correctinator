@@ -1,9 +1,7 @@
-import { COPYFILE_EXCL } from 'constants';
 import YAML from 'yaml';
 import { OpenDialogReturnValue, remote } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
-import lodash, { forEach } from 'lodash';
 import deepEqual from 'deep-equal';
 import archiver from 'archiver';
 
@@ -200,6 +198,7 @@ export function getUniqueSheets(submissions: any[]) {
       school: sub.school,
       course: sub.course,
       sheet: sub.sheet,
+      rated_by: sub.rated_by,
     };
     return s;
   });
