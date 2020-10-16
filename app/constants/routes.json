@@ -1,5 +1,6 @@
 {
   "HOME": "/",
+  "NEWHOME": "/newhome",
   "COUNTER": "/counter",
   "SCHEMAGENERATOR": "/schemagenerator",
   "OVERVIEW": "/overview",

@@ -1,3 +1,4 @@
+import { Tabs, Tab } from '@material-ui/core';
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import routes from '../constants/routes.json';
@@ -26,12 +27,14 @@ export default function Home(): JSX.Element {
       setSelected(subs[0]);
     }
   }
-  useEffect(() => console.log(submissions));
+
   useEffect(() => loadSubmissions(), []);
 
   return (
     <div className={styles.container} data-tid="container">
       <h2>correctinator v1.0</h2>
+      <br />
+      <Link to={routes.NEWHOME}>to New Home</Link>
       <br />
       <Link to={routes.SHEETOVERVIEW}>to Sheet Overview</Link>
       <br />
