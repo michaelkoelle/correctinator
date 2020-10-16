@@ -85,7 +85,7 @@ export default function MediaViewer(props: any) {
     setFileIndex(Math.abs((fileIndex + (files.length - 1)) % files.length));
   }
 
-  if (files.length === 0 || fs.existsSync(files[fileIndex])) {
+  if (files.length === 0 || !fs.existsSync(files[fileIndex])) {
     return <div>File not found!</div>;
   }
   const type = mime.lookup(files[fileIndex]);
