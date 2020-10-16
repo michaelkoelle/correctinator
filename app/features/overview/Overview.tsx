@@ -200,7 +200,7 @@ export default function Overview() {
   useEffect(() => loadSubmissions(), []);
   console.log(selected.map((sub) => sub.id));
   return (
-    <Container>
+    <div>
       <Link to={routes.HOME}>
         <ArrowBackIcon style={{ fill: 'black' }} />
       </Link>
@@ -250,6 +250,6 @@ export default function Overview() {
         <LoadingItemList progress={summaryProgress} />
         <LinearProgress variant="determinate" value={progress} />
       </Dialog>
-    </Container>
+    </div>
   );
 }
