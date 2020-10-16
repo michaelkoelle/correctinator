@@ -29,8 +29,10 @@ const useStyle = makeStyles({
 });
 
 export default function Home(): JSX.Element {
-  const [value, setValue] = React.useState(0);
+  const [tab, setTab] = React.useState(0);
   const [submissions, setSubmissions] = React.useState([]) as any;
+  const [corrections, setCorrections] = React.useState([]) as any;
+  const [schemaSheet, setSchemaSheet] = React.useState({}) as any;
   const [selected, setSelected] = React.useState({}) as any;
   const classes = useStyle();
 
@@ -38,7 +40,7 @@ export default function Home(): JSX.Element {
     _event: React.ChangeEvent<unknown>,
     newValue: number
   ) => {
-    setValue(newValue);
+    setTab(newValue);
   };
 
   function loadSubmissions() {
@@ -60,7 +62,7 @@ export default function Home(): JSX.Element {
 
   return (
     <Grid container wrap="nowrap" style={{ height: '100%' }}>
-      <TabContext value={value.toString()}>
+      <TabContext value={tab.toString()}>
         <Grid item>
           <div
             style={{
@@ -74,7 +76,7 @@ export default function Home(): JSX.Element {
             <Tabs
               orientation="vertical"
               variant="standard"
-              value={value}
+              value={tab}
               onChange={handleChange}
               classes={{
                 indicator: classes.indicator,
@@ -140,7 +142,11 @@ export default function Home(): JSX.Element {
             value="0"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <SheetOverviewPage />
+            <SheetOverviewPage
+              setCorrections={setCorrections}
+              setSchemaSheet={setSchemaSheet}
+              setTab={setTab}
+            />
           </TabPanel>
           <TabPanel
             value="1"
@@ -152,13 +158,13 @@ export default function Home(): JSX.Element {
             value="2"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <SchemeGeneratorPage />
+            <SchemeGeneratorPage schemaSheet={schemaSheet} />
           </TabPanel>
           <TabPanel
             value="3"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <CorrectionViewPage submissions={submissions} />
+            <CorrectionViewPage submissions={corrections} />
           </TabPanel>
         </Grid>
       </TabContext>

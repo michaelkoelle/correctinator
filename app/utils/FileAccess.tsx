@@ -343,3 +343,22 @@ export function exportCorrections(submissions: any[], zipPath: string) {
 
   archive.finalize();
 }
+
+export function getSubmissionsOfSheet(sheet: any) {
+  const path = getSubmissionDir();
+  const subs: any[] = [];
+  const submissionDirectories: string[] = getAllSubmissionDirectories(path);
+  submissionDirectories.forEach((dir, i) => {
+    const temp = getSubmissionFromAppDataDir(dir);
+    temp.id = i;
+    subs.push(temp);
+  });
+  return subs.filter(
+    (s) =>
+      s.term === sheet.term &&
+      s.school === sheet.school &&
+      s.course === sheet.course &&
+      s.sheet.name === sheet.sheet.name &&
+      s.rated_by === sheet.rated_by
+  );
+}

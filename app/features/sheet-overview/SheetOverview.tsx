@@ -1,6 +1,7 @@
 import {
   Button,
   Card,
+  CardActionArea,
   CardActions,
   CardContent,
   CardHeader,
@@ -23,10 +24,13 @@ import {
   getAllSubmissionDirectories,
   getSubmissionDir,
   getSubmissionFromAppDataDir,
+  getSubmissionsOfSheet,
   getUniqueSheets,
 } from '../../utils/FileAccess';
+import SheetCard from './SheetCard';
 
 export default function SheetOverview(props: any) {
+  const { setCorrections, setSchemaSheet, setTab } = props;
   const [submissions, setSubmissions] = useState([]) as any;
   const [sheets, setSheets] = useState([]) as any;
 
@@ -67,36 +71,6 @@ export default function SheetOverview(props: any) {
     // console.log(submissions);
   }
 
-  function getStatusScheme(sheet, subs) {
-    const sheetSubs = subs.filter(
-      (s) =>
-        s.term === sheet.term &&
-        s.school === sheet.school &&
-        s.course === sheet.course &&
-        s.sheet.name === sheet.sheet.name &&
-        s.rated_by === sheet.rated_by
-    );
-
-    return `[${sheetSubs.filter((s) => s.tasks?.length > 0).length}/${
-      sheetSubs.length
-    }] Correction scheme assigned`;
-  }
-
-  function getStatusCorrection(sheet, subs) {
-    const sheetSubs = subs.filter(
-      (s) =>
-        s.term === sheet.term &&
-        s.school === sheet.school &&
-        s.course === sheet.course &&
-        s.sheet.name === sheet.sheet.name &&
-        s.rated_by === sheet.rated_by
-    );
-
-    return `[${sheetSubs.filter((s) => s.rating_done === true).length}/${
-      sheetSubs.length
-    }] Correction done`;
-  }
-
   useEffect(() => loadSubmissions(), []);
 
   return (
@@ -118,7 +92,7 @@ export default function SheetOverview(props: any) {
         <List>
           {sheets.map((sheet) => {
             return (
-              <ListItem
+              <SheetCard
                 key={
                   sheet.term +
                   sheet.school +
@@ -126,46 +100,12 @@ export default function SheetOverview(props: any) {
                   sheet.sheet.name +
                   sheet.rated_by
                 }
-              >
-                <Card>
-                  <CardHeader
-                    // eslint-disable-next-line prettier/prettier
-                    action={(
-                      <IconButton>
-                        <MoreVertIcon />
-                      </IconButton>
-                      // eslint-disable-next-line prettier/prettier
-                    )}
-                    // eslint-disable-next-line prettier/prettier
-                    subheader={(
-                      <>
-                        <div>{`${sheet.school} - ${sheet.course} ${sheet.term} - ${sheet.rated_by}`}</div>
-                      </>
-                      // eslint-disable-next-line prettier/prettier
-                    )}
-                    title={sheet.sheet.name}
-                  />
-                  <CardContent>
-                    <Typography
-                      variant="body2"
-                      color="textSecondary"
-                      component="p"
-                    >
-                      {getStatusScheme(sheet, submissions)}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="textSecondary"
-                      component="p"
-                    >
-                      {getStatusCorrection(sheet, submissions)}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button>Start correction</Button>
-                  </CardActions>
-                </Card>
-              </ListItem>
+                sheet={sheet}
+                submissions={getSubmissionsOfSheet(sheet)}
+                setCorrections={setCorrections}
+                setSchemaSheet={setSchemaSheet}
+                setTab={setTab}
+              />
             );
           })}
         </List>
