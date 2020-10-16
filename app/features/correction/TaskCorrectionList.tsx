@@ -41,7 +41,6 @@ export default function TaskCorrectionList(props: any) {
             key={t?.id}
             disableGutters={disableGutters}
             style={{
-              paddingRight: '10px',
               paddingBottom: a?.length === i + 1 ? 0 : undefined,
             }}
           >
