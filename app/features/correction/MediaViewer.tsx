@@ -19,13 +19,14 @@ import RotateRightIcon from '@material-ui/icons/RotateRight';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import ErrorIcon from '@material-ui/icons/Error';
-import BorderClearIcon from '@material-ui/icons/BorderClear';
+import CropFreeIcon from '@material-ui/icons/CropFree';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import React, { useState } from 'react';
 import { shell } from 'electron';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import mime from 'mime-types';
+import fs from 'fs';
 import PDFViewer from './PDFViewer';
 import clamp from '../../utils/MathUtil';
 import ImageViewer from './ImageViewer';
@@ -84,6 +85,9 @@ export default function MediaViewer(props: any) {
     setFileIndex(Math.abs((fileIndex + (files.length - 1)) % files.length));
   }
 
+  if (files.length === 0 || fs.existsSync(files[fileIndex])) {
+    return <div>File not found!</div>;
+  }
   const type = mime.lookup(files[fileIndex]);
   let viewer;
 
@@ -221,7 +225,7 @@ export default function MediaViewer(props: any) {
                   aria-label="add"
                   onClick={onResetScale}
                 >
-                  <BorderClearIcon />
+                  <CropFreeIcon />
                 </IconButton>
               </Tooltip>
             </Grid>
