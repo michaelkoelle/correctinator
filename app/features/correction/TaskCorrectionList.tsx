@@ -40,7 +40,10 @@ export default function TaskCorrectionList(props: any) {
           <ListItem
             key={t?.id}
             disableGutters={disableGutters}
-            style={{ paddingBottom: a?.length === i + 1 ? 0 : undefined }}
+            style={{
+              paddingRight: '10px',
+              paddingBottom: a?.length === i + 1 ? 0 : undefined,
+            }}
           >
             <TaskCorrection
               task={t}

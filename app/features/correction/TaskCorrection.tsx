@@ -55,7 +55,17 @@ export default function TaskCorrection(props: any) {
 
     return (
       <Box width="100%">
-        <Card style={{ padding: '15px' }}>
+        <Card
+          style={{
+            padding: '15px',
+            paddingRight: '0px',
+            margin: '0px',
+            marginRight: '-1px',
+            borderTopRightRadius: '0px',
+            borderBottomRightRadius: '0px',
+          }}
+          variant="outlined"
+        >
           <Grid
             container
             spacing={2}
@@ -111,7 +121,16 @@ export default function TaskCorrection(props: any) {
 
   return (
     <Box width="100%">
-      <Card style={{ padding: '15px' }}>
+      <Card
+        style={{
+          padding: '15px',
+          margin: '0px',
+          marginRight: '-1px',
+          borderTopRightRadius: '0px',
+          borderBottomRightRadius: '0px',
+        }}
+        variant="outlined"
+      >
         <Grid container spacing={2} alignItems="center" justify="space-between">
           <Grid item>
             <Typography>{task.name}</Typography>

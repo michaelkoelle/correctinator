@@ -7,10 +7,22 @@ import './SplitPane.css';
 
 export default function CorrectionViewPage(props: any) {
   const [index, setIndex] = useState(0);
-  const subs = [...props?.location?.state?.submissions];
+  let subs: any[] = [];
+  if (props?.location?.state?.submissions) {
+    subs = [...props?.location?.state?.submissions];
+  }
+
+  if (props?.submissions) {
+    subs = props.submissions;
+  }
+
   return (
     <SplitPane
-      style={{ padding: '5px', height: 'calc(100% - 40px)' }}
+      style={{
+        position: 'relative',
+        padding: '5px',
+        height: 'calc(100% - 40px)',
+      }}
       split="vertical"
       minSize={50}
       defaultSize="50%"
