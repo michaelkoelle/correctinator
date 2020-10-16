@@ -25,7 +25,7 @@ export default function CorrectionViewPage(props: any) {
       }}
       split="vertical"
       minSize={50}
-      defaultSize="50%"
+      defaultSize="45%"
       allowResize
     >
       <div style={{ height: '100%', margin: '0 10px 0 0' }}>
