@@ -35,8 +35,13 @@ export default function SheetCardList(props: any) {
     );
   }
   return (
-    <List>
-      <ListItem>
+    <List
+      style={{
+        flex: '1 1 0px',
+        overflow: 'auto',
+      }}
+    >
+      <ListItem style={{ width: 'fit-content', margin: '0 auto' }}>
         <Paper variant="outlined">
           <Box m={2}>
             <Typography>No submissions imported yet!</Typography>

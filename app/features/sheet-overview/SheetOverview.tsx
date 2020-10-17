@@ -1,10 +1,14 @@
 import { Box, Button, Grid, Typography } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import {
+  createSubmissionFileStruture,
+  getAllFilesInDirectory,
+  getAllRatingFiles,
   getAllSubmissionDirectories,
   getSubmissionDir,
   getSubmissionFromAppDataDir,
   getUniqueSheets,
+  openDirectory,
 } from '../../utils/FileAccess';
 import SheetCardList from './SheetCardList';
 
@@ -23,6 +27,18 @@ export default function SheetOverview(props: any) {
     });
     const tempSheets = getUniqueSheets(subs);
     setSheets(tempSheets);
+  }
+
+  async function onImportSubmissions() {
+    const path: string = await openDirectory();
+    const submissionDirectories: string[] = getAllSubmissionDirectories(path);
+    const subs: any[] = [];
+    submissionDirectories.forEach((dir, i) => {
+      const temp = createSubmissionFileStruture(dir);
+      temp.id = i;
+      subs.push(temp);
+    });
+    loadSubmissions();
   }
 
   function test() {
@@ -64,7 +80,7 @@ export default function SheetOverview(props: any) {
             <Typography variant="h1">Welcome!</Typography>
           </Grid>
           <Grid item xs={12}>
-            <Button color="primary" onClick={test}>
+            <Button color="primary" onClick={onImportSubmissions}>
               Import submissions
             </Button>
           </Grid>
