@@ -285,9 +285,11 @@ export function tasksToString(tasks: any[], depth = 0): string {
         depth + 1
       )}`;
     } else {
-      out += `${'\t'.repeat(depth)}${t.name}: ${t.value}/${t.max} ${
-        t.type
-      }\n${'\t'.repeat(depth + 1)}${wordWrap(t.comment, 60, depth + 1)}\n`;
+      out += `${'\t'.repeat(depth)}${t.name}: ${t.value}/${t.max} ${t.type}\n${
+        t.comment.trim().length > 0
+          ? `${'\t'.repeat(depth + 1) + wordWrap(t.comment, 60, depth + 1)}\n`
+          : ''
+      }`;
     }
   });
   return out;
