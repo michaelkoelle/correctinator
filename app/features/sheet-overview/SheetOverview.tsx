@@ -13,21 +13,7 @@ import {
 import SheetCardList from './SheetCardList';
 
 export default function SheetOverview(props: any) {
-  const { setCorrections, setSchemaSheet, setTab } = props;
-  const [sheets, setSheets] = useState([]) as any;
-
-  function loadSubmissions() {
-    const path = getSubmissionDir();
-    const subs: any[] = [];
-    const submissionDirectories: string[] = getAllSubmissionDirectories(path);
-    submissionDirectories.forEach((dir, i) => {
-      const temp = getSubmissionFromAppDataDir(dir);
-      temp.id = i;
-      subs.push(temp);
-    });
-    const tempSheets = getUniqueSheets(subs);
-    setSheets(tempSheets);
-  }
+  const { sheets, reload, setCorrections, setSchemaSheet, setTab } = props;
 
   async function onImportSubmissions() {
     const path: string = await openDirectory();
@@ -38,7 +24,7 @@ export default function SheetOverview(props: any) {
       temp.id = i;
       subs.push(temp);
     });
-    loadSubmissions();
+    reload();
   }
 
   function test() {
@@ -63,8 +49,6 @@ export default function SheetOverview(props: any) {
     */
     // console.log(submissions);
   }
-
-  useEffect(() => loadSubmissions(), []);
 
   return (
     <div

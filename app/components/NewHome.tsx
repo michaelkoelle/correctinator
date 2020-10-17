@@ -13,6 +13,7 @@ import {
   getAllSubmissionDirectories,
   getSubmissionDir,
   getSubmissionFromAppDataDir,
+  getUniqueSheets,
 } from '../utils/FileAccess';
 import styles from './Home.css';
 import Overview from '../features/overview/Overview';
@@ -32,6 +33,7 @@ export default function Home(): JSX.Element {
   const [tab, setTab] = React.useState(0);
   const [submissions, setSubmissions] = React.useState([]) as any;
   const [corrections, setCorrections] = React.useState([]) as any;
+  const [sheets, setSheets] = React.useState([]) as any;
   const [schemaSheet, setSchemaSheet] = React.useState({}) as any;
   const [selected, setSelected] = React.useState({}) as any;
   const classes = useStyle();
@@ -43,7 +45,7 @@ export default function Home(): JSX.Element {
     setTab(newValue);
   };
 
-  function loadSubmissions() {
+  function reload() {
     const path = getSubmissionDir();
     const subs: any[] = [];
     const submissionDirectories: string[] = getAllSubmissionDirectories(path);
@@ -54,11 +56,12 @@ export default function Home(): JSX.Element {
     });
     setSubmissions(subs);
     if (subs.length > 0) {
+      setSheets(getUniqueSheets(subs));
       setSelected(subs[0]);
     }
   }
 
-  useEffect(() => loadSubmissions(), []);
+  useEffect(() => reload(), []);
 
   return (
     <Grid container wrap="nowrap" style={{ height: '100%' }}>
@@ -143,6 +146,8 @@ export default function Home(): JSX.Element {
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
             <SheetOverviewPage
+              sheets={sheets}
+              reload={reload}
               setCorrections={setCorrections}
               setSchemaSheet={setSchemaSheet}
               setTab={setTab}
@@ -152,7 +157,7 @@ export default function Home(): JSX.Element {
             value="1"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <OverviewPage />
+            <OverviewPage submissions={submissions} />
           </TabPanel>
           <TabPanel
             value="2"

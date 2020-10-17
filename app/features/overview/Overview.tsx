@@ -13,6 +13,7 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import CancelIcon from '@material-ui/icons/Cancel';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import MUIDataTable from 'mui-datatables';
+import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import {
   openDirectory,
@@ -69,12 +70,11 @@ const columns = [
   { name: 'rated_at', label: 'Rated at' },
 ];
 
-export default function Overview() {
+export default function Overview(props: any) {
+  const { submissions } = props;
   const [open, setOpen] = React.useState(false);
   const [progress, setProgress] = React.useState(0) as any;
   const [summaryProgress, setSummaryProgress] = React.useState([]) as any;
-  const [submissions, setSubmissions] = React.useState([]) as any;
-  const [loading, setLoading] = React.useState(false) as any;
   const [selected, setSelected] = React.useState([]) as any;
 
   const getMuiTheme = () =>
@@ -88,29 +88,10 @@ export default function Overview() {
       },
     });
 
-  function timeout(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
   function onExportSubmissions() {
     if (selected.length > 0) {
       exportCorrections(selected, 'C:/Users/Michi/Desktop/test');
     }
-  }
-
-  function loadSubmissions() {
-    setLoading(true);
-    const path = getSubmissionDir();
-    const subs: any[] = [];
-    const submissionDirectories: string[] = getAllSubmissionDirectories(path);
-    submissionDirectories.forEach((dir, i) => {
-      const temp = getSubmissionFromAppDataDir(dir);
-      temp.id = i;
-      subs.push(temp);
-    });
-    setSubmissions(subs);
-    console.log(submissions);
-    setLoading(false);
   }
 
   function onSelectionChange(
@@ -126,8 +107,9 @@ export default function Overview() {
     setSelected(sel);
   }
 
-  function onGetUniqueSheets() {
-    console.log(getUniqueSheets(submissions));
+  /*
+  function timeout(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async function onOpen() {
@@ -179,7 +161,7 @@ export default function Overview() {
       temp.id = i;
       subs.push(temp);
     });
-    loadSubmissions();
+    // loadSubmissions();
     setSummaryProgress([
       {
         message: 'Searching for submissions...',
@@ -195,32 +177,29 @@ export default function Overview() {
     setProgress(100);
     setTimeout(() => setOpen(false), 1000);
   }
-
-  // Load all Submissions from app data
-  useEffect(() => loadSubmissions(), []);
-  console.log(selected.map((sub) => sub.id));
+*/
   return (
-    <div>
-      <Link to={routes.HOME}>
-        <ArrowBackIcon style={{ fill: 'black' }} />
-      </Link>
-      <Button variant="contained" color="primary" onClick={onOpen}>
-        Import submissions
-      </Button>
-      <Button variant="contained" color="secondary" onClick={loadSubmissions}>
-        Refresh submissions
-      </Button>
-      <Button variant="contained" color="secondary" onClick={onGetUniqueSheets}>
-        Get Unique sheets
-      </Button>
+    <div
+      style={{
+        height: 'calc(100% - 45px)', // 29px TitleBar + 16px Margin
+        display: 'flex',
+        flexDirection: 'column',
+        marginTop: '16px',
+      }}
+    >
+      <Typography variant="h3">Overview</Typography>
       <Button
         variant="contained"
         color="secondary"
+        style={{
+          width: 'fit-content',
+          marginTop: '16px',
+          marginBottom: '16px',
+        }}
         onClick={onExportSubmissions}
       >
         Export Submissions
       </Button>
-      <Typography variant="h3">Overview</Typography>
       <MuiThemeProvider theme={getMuiTheme()}>
         <MUIDataTable
           title="Submission Overview"
@@ -234,7 +213,6 @@ export default function Overview() {
             selectableRowsHideCheckboxes: true,
             selectableRowsOnClick: true,
             selectToolbarPlacement: 'none',
-            tableBodyHeight: '600px',
             onRowSelectionChange: onSelectionChange,
             setTableProps: () => {
               return {
