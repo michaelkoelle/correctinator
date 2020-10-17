@@ -15,6 +15,7 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import MUIDataTable from 'mui-datatables';
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import { remote } from 'electron';
 import {
   openDirectory,
   getAllFilesInDirectory,
@@ -90,7 +91,23 @@ export default function Overview(props: any) {
 
   function onExportSubmissions() {
     if (selected.length > 0) {
-      exportCorrections(selected, 'C:/Users/Michi/Desktop/test');
+      const path = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
+        defaultPath: getUniqueSheets(selected)
+          .map(
+            (s) =>
+              `${s.sheet.name.replace(' ', '-')}-${s.course.replace(
+                ' ',
+                '-'
+              )}-${s.term.replace(' ', '-')}`
+          )
+          .join('-'),
+        filters: [{ name: 'Zip', extensions: ['zip'] }],
+      });
+      if (path !== undefined && path.trim().length > 0) {
+        exportCorrections(selected, path);
+      }
+    } else {
+      // TODO: show error dialog
     }
   }
 
@@ -99,11 +116,9 @@ export default function Overview(props: any) {
     allRowsSelected: any[]
   ): void {
     const sel: any[] = [];
-    console.log(allRowsSelected);
     allRowsSelected.forEach((row) => {
       sel.push(submissions[row.dataIndex]);
     });
-    console.log(sel);
     setSelected(sel);
   }
 
@@ -195,8 +210,9 @@ export default function Overview(props: any) {
           marginBottom: '16px',
         }}
         onClick={onExportSubmissions}
+        disabled={selected.length <= 0}
       >
-        Export Submissions
+        Export selected submissions
       </Button>
       <MuiThemeProvider theme={getMuiTheme()}>
         <MUIDataTable
