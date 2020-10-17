@@ -126,12 +126,16 @@ export default function FramelessTitleBar() {
         currentWindow={currentWindow} // electron window instance
         // platform={process.platform} // win32, darwin, linux
         menu={templateDefault}
-        theme={
-          {
-            // any theme overrides specific
-            // to your application :)
-          }
-        }
+        theme={{
+          bar: {
+            palette: 'light',
+          },
+          menu: {
+            overlay: {
+              opacity: 0.0,
+            },
+          },
+        }}
         title="correctinator"
         onClose={() => currentWindow.close()}
         onMinimize={() => currentWindow.minimize()}

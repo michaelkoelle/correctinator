@@ -69,7 +69,7 @@ export default function Home(): JSX.Element {
               display: 'flex',
               flexDirection: 'column',
               height: 'calc(100% - 29px)',
-              boxShadow: '3px 0px 5px 0px rgba(0,0,0,0.2)',
+              boxShadow: '1px 2px 5px 0px rgba(0,0,0,0.2)',
               width: 'fit-content',
             }}
           >

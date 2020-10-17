@@ -52,7 +52,7 @@ export default function SheetCard(props: any) {
 
   return (
     <ListItem style={{ width: 'fit-content', margin: '0 auto' }}>
-      <Card>
+      <Card elevation={4}>
         <CardHeader
           // eslint-disable-next-line prettier/prettier
           action={(
