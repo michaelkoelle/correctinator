@@ -1,37 +1,15 @@
-import {
-  Button,
-  Card,
-  CardActionArea,
-  CardActions,
-  CardContent,
-  CardHeader,
-  Container,
-  Grid,
-  GridList,
-  GridListTile,
-  IconButton,
-  List,
-  ListItem,
-  Typography,
-} from '@material-ui/core';
+import { Box, Button, Grid, Typography } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import { normalize } from 'normalizr';
-import routes from '../../constants/routes.json';
 import {
   getAllSubmissionDirectories,
   getSubmissionDir,
   getSubmissionFromAppDataDir,
-  getSubmissionsOfSheet,
   getUniqueSheets,
 } from '../../utils/FileAccess';
-import SheetCard from './SheetCard';
+import SheetCardList from './SheetCardList';
 
 export default function SheetOverview(props: any) {
   const { setCorrections, setSchemaSheet, setTab } = props;
-  const [submissions, setSubmissions] = useState([]) as any;
   const [sheets, setSheets] = useState([]) as any;
 
   function loadSubmissions() {
@@ -45,7 +23,6 @@ export default function SheetOverview(props: any) {
     });
     const tempSheets = getUniqueSheets(subs);
     setSheets(tempSheets);
-    setSubmissions(subs);
   }
 
   function test() {
@@ -74,42 +51,33 @@ export default function SheetOverview(props: any) {
   useEffect(() => loadSubmissions(), []);
 
   return (
-    <Grid container justify="center" direction="column" alignItems="center">
-      <Grid container>
-        <Link to={routes.HOME}>
-          <ArrowBackIcon style={{ fill: 'black' }} />
-        </Link>
-      </Grid>
-      <Grid item xs={12}>
-        <Typography variant="h1">Welcome!</Typography>
-      </Grid>
-      <Grid item xs={12}>
-        <Button color="primary" onClick={test}>
-          Import submissions
-        </Button>
-      </Grid>
-      <Grid item>
-        <List>
-          {sheets.map((sheet) => {
-            return (
-              <SheetCard
-                key={
-                  sheet.term +
-                  sheet.school +
-                  sheet.course +
-                  sheet.sheet.name +
-                  sheet.rated_by
-                }
-                sheet={sheet}
-                submissions={getSubmissionsOfSheet(sheet)}
-                setCorrections={setCorrections}
-                setSchemaSheet={setSchemaSheet}
-                setTab={setTab}
-              />
-            );
-          })}
-        </List>
-      </Grid>
-    </Grid>
+    <div
+      style={{
+        height: 'calc(100% - 29px)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <Box>
+        <Grid container justify="center" direction="column" alignItems="center">
+          <Grid item xs={12}>
+            <Typography variant="h1">Welcome!</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Button color="primary" onClick={test}>
+              Import submissions
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+      <Box flex="1 1 0%" display="flex" flexDirection="column">
+        <SheetCardList
+          sheets={sheets}
+          setCorrections={setCorrections}
+          setSchemaSheet={setSchemaSheet}
+          setTab={setTab}
+        />
+      </Box>
+    </div>
   );
 }

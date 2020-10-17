@@ -1,47 +1,45 @@
 import {
   Button,
   Card,
-  CardActionArea,
   CardActions,
   CardContent,
   CardHeader,
-  Container,
-  Grid,
-  GridList,
-  GridListTile,
   IconButton,
   LinearProgress,
-  List,
   ListItem,
+  Menu,
+  MenuItem,
   Typography,
 } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import { normalize } from 'normalizr';
-import routes from '../../constants/routes.json';
-import {
-  getAllSubmissionDirectories,
-  getSubmissionDir,
-  getSubmissionFromAppDataDir,
-  getSubmissionsOfSheet,
-  getUniqueSheets,
-} from '../../utils/FileAccess';
 
 export default function SheetCard(props: any) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
   const { sheet, submissions, setCorrections, setSchemaSheet, setTab } = props;
 
   function onStartCorrection() {
     setCorrections(submissions);
     setTab(3);
-    // TODO: Switch to Corrections Tab
   }
 
   function onCreateSchema() {
     setSchemaSheet(sheet);
     setTab(2);
-    // TODO: Switch to Schema Generator Tab
+  }
+
+  function onOpenMenu(event) {
+    setAnchorEl(event.currentTarget);
+  }
+
+  function onCloseMenu() {
+    setAnchorEl(null);
+  }
+
+  function onDeleteSheet() {
+    onCloseMenu();
+    console.log('Delete!');
+    // TODO: deleting the task
   }
 
   function missingSchemas() {
@@ -53,14 +51,24 @@ export default function SheetCard(props: any) {
   }
 
   return (
-    <ListItem>
+    <ListItem style={{ width: 'fit-content', margin: '0 auto' }}>
       <Card>
         <CardHeader
           // eslint-disable-next-line prettier/prettier
           action={(
-            <IconButton>
-              <MoreVertIcon />
-            </IconButton>
+            <>
+              <IconButton onClick={onOpenMenu}>
+                <MoreVertIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl)}
+                onClose={onCloseMenu}
+              >
+                <MenuItem onClick={onDeleteSheet}>delete</MenuItem>
+              </Menu>
+            </>
             // eslint-disable-next-line prettier/prettier
                     )}
           // eslint-disable-next-line prettier/prettier
