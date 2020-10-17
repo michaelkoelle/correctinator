@@ -69,10 +69,10 @@ export default function SheetOverview(props: any) {
   return (
     <div
       style={{
-        height: 'calc(100% - 29px)',
+        height: 'calc(100% - 45px)', // 29px TitleBar + 16px Margin
         display: 'flex',
         flexDirection: 'column',
-        paddingTop: '16px',
+        marginTop: '16px',
       }}
     >
       <Box>
