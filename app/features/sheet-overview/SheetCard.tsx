@@ -66,7 +66,9 @@ export default function SheetCard(props: any) {
                 open={Boolean(anchorEl)}
                 onClose={onCloseMenu}
               >
-                <MenuItem onClick={onDeleteSheet}>delete</MenuItem>
+                <MenuItem onClick={onDeleteSheet} disabled>
+                  delete
+                </MenuItem>
               </Menu>
             </>
             // eslint-disable-next-line prettier/prettier
