@@ -241,11 +241,19 @@ export default function SchemeGenerator() {
           <Grid
             container
             direction="row"
-            justify="space-between"
+            justify="space-around"
             alignItems="center"
           >
             <Grid item style={{ marginLeft: '10px' }}>
-              <Typography variant="h3">scheme generator</Typography>
+              <Typography variant="h3">schema generator</Typography>
+            </Grid>
+            <Grid item style={{ marginLeft: '10px' }}>
+              <Typography variant="h6" display="inline">
+                {`total: ${sumParam(schema, 'value')}/${sumParam(
+                  schema,
+                  'max'
+                )} points`}
+              </Typography>
             </Grid>
             <Grid item style={{ marginRight: '10px' }}>
               <ButtonGroup
