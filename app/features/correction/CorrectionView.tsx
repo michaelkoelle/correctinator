@@ -1,35 +1,54 @@
 import {
-  Box,
   Button,
-  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
-  Paper,
   Typography,
 } from '@material-ui/core';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import { remote } from 'electron';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import routes from '../../constants/routes.json';
-import { saveSubmissions } from '../../utils/FileAccess';
+import {
+  exportCorrections,
+  getUniqueSheets,
+  saveSubmissions,
+  sumParam,
+} from '../../utils/FileAccess';
 import CorrectionOverview from './CorrectionOverview';
-import TaskCorrectionList from './TaskCorrectionList';
 import TaskView from './TaskView';
 
 export default function CorrectionView(props: any) {
-  const { submission = {}, submissions = [], index, setIndex } = props;
-  //  const [index, setIndex] = useState(0);
+  const { submissions = [], index, setIndex } = props;
   const [subs, setSubs] = useState(submissions);
+  const [open, setOpen] = React.useState(false);
 
-  function sumParam(tasks: any, param: string): any {
-    let sum = 0;
-    tasks?.forEach((t: any) => {
-      if (t.tasks.length > 0) {
-        sum += Number.parseFloat(sumParam(t.tasks, param));
-      } else {
-        sum += Number.parseFloat(t[param]);
+  function onExport() {
+    if (submissions.length > 0) {
+      const path = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
+        defaultPath: getUniqueSheets(submissions)
+          .map(
+            (s) =>
+              `${s.sheet.name.replace(' ', '-')}-${s.course.replace(
+                ' ',
+                '-'
+              )}-${s.term.replace(' ', '-')}`
+          )
+          .join('-'),
+        filters: [{ name: 'Zip', extensions: ['zip'] }],
+      });
+      if (path !== undefined && path.trim().length > 0) {
+        exportCorrections(submissions, path);
       }
-    });
-    return sum;
+    } else {
+      // TODO: show error dialog
+    }
+    setOpen(false);
+  }
+
+  function onCloseDialog() {
+    setOpen(false);
   }
 
   function setTasks(tasks: any) {
@@ -53,10 +72,12 @@ export default function CorrectionView(props: any) {
     // TODO: save and update submission
     if (index + 1 < subs.length) {
       setIndex(index + 1);
-    } else {
-      // TODO:
       // Check if really finished
+    } else if (
+      submissions.filter((s) => s.rating_done === false).length === 0
+    ) {
       // Prompt to export and create zip
+      setOpen(true);
     }
   }
 
@@ -71,10 +92,21 @@ export default function CorrectionView(props: any) {
   }
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        height: 'calc(100% - 16px)',
+        display: 'flex',
+        flexDirection: 'column',
+        marginTop: '16px',
+      }}
+    >
       <Grid container spacing={3} justify="space-evenly" alignItems="center">
         <Grid item xs={12}>
-          <Typography variant="h3">CorrectionView</Typography>
+          <Typography variant="h3">
+            {`Correction ${submissions?.length > 0 ? index + 1 : 0}/${
+              submissions?.length
+            }`}
+          </Typography>
         </Grid>
         <Grid item xs={12}>
           <CorrectionOverview submission={subs[index]} />
@@ -105,6 +137,23 @@ export default function CorrectionView(props: any) {
           </Button>
         </Grid>
       </Grid>
+      <Dialog open={open} onClose={onCloseDialog}>
+        <DialogTitle>Export Corrections?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Seems like you finished your correction :) Would you like to export
+            the corrections in the Uni2Work format?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onExport} color="primary">
+            Yes!!!
+          </Button>
+          <Button onClick={onCloseDialog} color="primary" autoFocus>
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
