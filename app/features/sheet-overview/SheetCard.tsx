@@ -95,11 +95,9 @@ export default function SheetCard(props: any) {
           </Typography>
         </CardContent>
         <CardActions>
-          <Button onClick={onCreateSchema} disabled={!missingSchemas()}>
-            Create schema
-          </Button>
+          <Button onClick={onCreateSchema}>Schema</Button>
           <Button onClick={onStartCorrection} disabled={missingSchemas()}>
-            Start correction
+            Correction
           </Button>
         </CardActions>
         <LinearProgress
