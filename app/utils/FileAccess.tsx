@@ -294,7 +294,7 @@ export function tasksToString(tasks: any[], depth = 0): string {
 }
 
 export function exportCorrections(submissions: any[], zipPath: string) {
-  const output = fs.createWriteStream(`${zipPath}.zip`);
+  const output = fs.createWriteStream(zipPath);
   const archive = archiver('zip', {
     zlib: { level: 9 }, // Sets the compression level.
   });
