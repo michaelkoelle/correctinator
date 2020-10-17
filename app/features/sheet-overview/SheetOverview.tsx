@@ -72,10 +72,17 @@ export default function SheetOverview(props: any) {
         height: 'calc(100% - 29px)',
         display: 'flex',
         flexDirection: 'column',
+        paddingTop: '16px',
       }}
     >
       <Box>
-        <Grid container justify="center" direction="column" alignItems="center">
+        <Grid
+          container
+          justify="center"
+          direction="column"
+          alignItems="center"
+          spacing={4}
+        >
           <Grid item xs={12}>
             <Typography variant="h1">Welcome!</Typography>
           </Grid>
@@ -86,7 +93,7 @@ export default function SheetOverview(props: any) {
           </Grid>
         </Grid>
       </Box>
-      <Box flex="1 1 0%" display="flex" flexDirection="column">
+      <Box flex="1 1 0%" display="flex" flexDirection="column" marginTop="8px">
         <SheetCardList
           sheets={sheets}
           setCorrections={setCorrections}
