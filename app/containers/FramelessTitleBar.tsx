@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-// import icon from 'path/to/icon.png';
 import { remote, shell } from 'electron';
-
 import TitleBar from 'frameless-titlebar';
 
 const currentWindow = remote.getCurrentWindow();
@@ -122,7 +120,7 @@ export default function FramelessTitleBar() {
   return (
     <div>
       <TitleBar
-        // iconSrc={icon} // app icon
+        iconSrc="../resources/icon.ico" // app icon
         currentWindow={currentWindow} // electron window instance
         // platform={process.platform} // win32, darwin, linux
         menu={templateDefault}
