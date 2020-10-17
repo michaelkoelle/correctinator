@@ -25,13 +25,12 @@ export default function Routes() {
     <App>
       <FramelessTitleBar />
       <Switch>
-        <Route path={routes.NEWHOME} component={NewHomePage} />
         <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
         <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
         <Route path={routes.OVERVIEW} component={OverviewPage} />
         <Route path={routes.SCHEMAGENERATOR} component={SchemeGeneratorPage} />
         <Route path={routes.COUNTER} component={CounterPage} />
-        <Route path={routes.HOME} component={HomePage} />
+        <Route path={routes.HOME} component={NewHomePage} />
       </Switch>
     </App>
   );

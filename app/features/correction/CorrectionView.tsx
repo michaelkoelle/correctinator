@@ -74,11 +74,6 @@ export default function CorrectionView(props: any) {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Grid container spacing={3} justify="space-evenly" alignItems="center">
         <Grid item xs={12}>
-          <Link to={routes.HOME}>
-            <ArrowBackIcon style={{ fill: 'black' }} />
-          </Link>
-        </Grid>
-        <Grid item xs={12}>
           <Typography variant="h3">CorrectionView</Typography>
         </Grid>
         <Grid item xs={12}>

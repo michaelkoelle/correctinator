@@ -182,8 +182,6 @@ export default function Overview(props: any) {
     <div
       style={{
         height: 'calc(100% - 45px)', // 29px TitleBar + 16px Margin
-        display: 'flex',
-        flexDirection: 'column',
         marginTop: '16px',
       }}
     >
@@ -213,6 +211,7 @@ export default function Overview(props: any) {
             selectableRowsHideCheckboxes: true,
             selectableRowsOnClick: true,
             selectToolbarPlacement: 'none',
+            tableBodyHeight: '600px',
             onRowSelectionChange: onSelectionChange,
             setTableProps: () => {
               return {

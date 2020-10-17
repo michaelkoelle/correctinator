@@ -228,14 +228,16 @@ export default function SchemeGenerator() {
   }
 
   return (
-    <>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        marginTop: '24px',
+        marginRight: '16px',
+      }}
+    >
       <Grid container justify="center" alignItems="center">
-        <Grid container spacing={2} style={{ maxWidth: '1200px' }}>
-          <Grid item xs={12}>
-            <Link to={routes.HOME}>
-              <ArrowBackIcon style={{ fill: 'black' }} />
-            </Link>
-          </Grid>
+        <Grid container spacing={2}>
           <Grid
             container
             direction="row"
@@ -289,7 +291,7 @@ export default function SchemeGenerator() {
             </Paper>
           </Grid>
           <Grid item xs={4}>
-            <Paper elevation={3} style={{ height: '600px', overflow: 'auto' }}>
+            <Paper elevation={3} style={{ flex: '600px', overflow: 'auto' }}>
               <AceEditor
                 mode="yaml"
                 theme="github"
@@ -332,6 +334,6 @@ export default function SchemeGenerator() {
             ))}
         </List>
       </Dialog>
-    </>
+    </div>
   );
 }
