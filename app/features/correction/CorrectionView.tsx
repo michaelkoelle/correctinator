@@ -25,6 +25,7 @@ export default function CorrectionView(props: any) {
   const [open, setOpen] = React.useState(false);
 
   function onExport() {
+    setOpen(false);
     if (submissions.length > 0) {
       const path = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
         defaultPath: getUniqueSheets(submissions)
@@ -44,7 +45,6 @@ export default function CorrectionView(props: any) {
     } else {
       // TODO: show error dialog
     }
-    setOpen(false);
   }
 
   function onCloseDialog() {
@@ -122,7 +122,7 @@ export default function CorrectionView(props: any) {
         style={{ padding: '10px' }}
       >
         <Grid item>
-          <Button color="secondary" onClick={onAddNote}>
+          <Button color="secondary" onClick={onAddNote} disabled>
             Add Note
           </Button>
         </Grid>
