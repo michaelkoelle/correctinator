@@ -1,4 +1,5 @@
-import { Box, Button, Grid, Typography } from '@material-ui/core';
+import { Box, Button, Grid, IconButton, Typography } from '@material-ui/core';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import React, { useEffect, useState } from 'react';
 import {
   createSubmissionFileStruture,
@@ -24,6 +25,10 @@ export default function SheetOverview(props: any) {
       temp.id = i;
       subs.push(temp);
     });
+    reload();
+  }
+
+  function onReload() {
     reload();
   }
 
@@ -70,10 +75,25 @@ export default function SheetOverview(props: any) {
           <Grid item xs={12}>
             <Typography variant="h1">Welcome!</Typography>
           </Grid>
-          <Grid item xs={12}>
-            <Button color="primary" onClick={onImportSubmissions}>
-              Import submissions
-            </Button>
+          <Grid
+            item
+            container
+            xs={12}
+            justify="center"
+            direction="row"
+            alignItems="center"
+            spacing={4}
+          >
+            <Grid item>
+              <Button color="primary" onClick={onImportSubmissions}>
+                Import submissions
+              </Button>
+            </Grid>
+            <Grid item>
+              <IconButton onClick={onReload} size="small">
+                <RefreshIcon />
+              </IconButton>
+            </Grid>
           </Grid>
         </Grid>
       </Box>
