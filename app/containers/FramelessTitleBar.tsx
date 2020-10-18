@@ -36,11 +36,7 @@ export default function FramelessTitleBar() {
       label: 'File',
       submenu: [
         {
-          label: 'Open',
-          accelerator: 'Ctrl+O',
-        },
-        {
-          label: 'Close',
+          label: 'Exit',
           accelerator: 'Ctrl+W',
           click: () => {
             currentWindow.close();
@@ -90,29 +86,19 @@ export default function FramelessTitleBar() {
       label: 'Help',
       submenu: [
         {
-          label: 'Learn More',
-          click() {
-            shell.openExternal('https://electronjs.org');
-          },
-        },
-        {
           label: 'Documentation',
           click() {
             shell.openExternal(
-              'https://github.com/electron/electron/tree/master/docs#readme'
+              'https://github.com/koellemichael/correctinator#readme'
             );
-          },
-        },
-        {
-          label: 'Community Discussions',
-          click() {
-            shell.openExternal('https://www.electronjs.org/community');
           },
         },
         {
           label: 'Search Issues',
           click() {
-            shell.openExternal('https://github.com/electron/electron/issues');
+            shell.openExternal(
+              'https://github.com/koellemichael/correctinator/issues'
+            );
           },
         },
       ],
