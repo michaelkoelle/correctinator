@@ -40,18 +40,23 @@ export default function CorrectionOverview(props: any) {
           </Typography>
         </Grid>
         <Grid item>
-          <Typography variant="h6" display="inline">
-            <Box display="inline" marginRight="10px">
-              {submission?.points}
-            </Box>
-            <Box display="inline" marginRight="10px">
+          <div style={{ display: 'inline-flex' }}>
+            <div style={{ width: '3em', textAlign: 'right' }}>
+              <Typography variant="h6">{submission?.points}</Typography>
+            </div>
+            <Typography
+              variant="h6"
+              style={{ marginLeft: '0.5em', marginRight: '0.5em' }}
+            >
               /
-            </Box>
-            <Box display="inline" marginRight="10px">
+            </Typography>
+            <Typography variant="h6">
               {submission?.sheet?.grading?.max}
-            </Box>
-            <Box display="inline">{submission?.sheet?.grading?.type}</Box>
-          </Typography>
+            </Typography>
+            <Typography variant="h6" style={{ marginLeft: '0.5em' }}>
+              {submission?.sheet?.grading?.type}
+            </Typography>
+          </div>
         </Grid>
         <Grid item>
           <IconButton onClick={handleClick} aria-label="show more" size="small">
@@ -69,38 +74,26 @@ export default function CorrectionOverview(props: any) {
               >
                 <Grid item>
                   <Typography variant="body1">
-                    <Box>{submission?.school}</Box>
-                    <Box display="inline" marginRight="10px">
-                      {submission?.course}
-                    </Box>
-                    <Box display="inline">{submission?.term}</Box>
+                    {`${submission?.school}`}
+                  </Typography>
+                  <Typography variant="body1">
+                    {`${submission?.course} ${submission?.term}`}
                   </Typography>
                 </Grid>
                 <Grid item>
                   <Typography variant="body1">
-                    <Box>{submission?.sheet?.name}</Box>
-                    <Box>
-                      <Box display="inline" marginRight="10px">
-                        Type:
-                      </Box>
-                      {submission?.sheet?.type}
-                    </Box>
+                    {`${submission?.sheet?.name}`}
+                  </Typography>
+                  <Typography variant="body1">
+                    {`Type: ${submission?.sheet?.type}`}
                   </Typography>
                 </Grid>
                 <Grid item>
                   <Typography variant="body1">
-                    <Box>
-                      <Box display="inline" marginRight="10px">
-                        Rated by:
-                      </Box>
-                      {submission?.rated_by}
-                    </Box>
-                    <Box>
-                      <Box display="inline" marginRight="10px">
-                        Rated at:
-                      </Box>
-                      {submission?.rated_at}
-                    </Box>
+                    {`Rated by: ${submission?.rated_by}`}
+                  </Typography>
+                  <Typography variant="body1">
+                    {`Rated at: ${submission?.rated_at}`}
                   </Typography>
                 </Grid>
               </Grid>
