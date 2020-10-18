@@ -103,6 +103,7 @@ export default function SheetOverview(props: any) {
           setSheetToCorrect={setSheetToCorrect}
           setSchemaSheet={setSchemaSheet}
           setTab={setTab}
+          reload={reload}
         />
       </Box>
     </div>

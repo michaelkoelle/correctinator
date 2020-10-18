@@ -367,3 +367,26 @@ export function getSubmissionsOfSheet(sheet: any) {
   });
   return subs.filter((s) => isSubmissionFromSheet(s, sheet));
 }
+
+function deleteFolderRecursive(path) {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach((file) => {
+      const curPath = Path.join(path, file);
+      if (fs.lstatSync(curPath).isDirectory()) {
+        deleteFolderRecursive(curPath);
+      } else {
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+}
+
+export function deleteSubmission(s: any) {
+  const subDir = getSubmissionDir();
+  deleteFolderRecursive(Path.join(subDir, s.submission));
+}
+
+export function deleteSheet(sheet: any) {
+  getSubmissionsOfSheet(sheet).forEach((s) => deleteSubmission(s));
+}

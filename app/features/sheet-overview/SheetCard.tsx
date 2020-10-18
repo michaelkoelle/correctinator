@@ -4,6 +4,11 @@ import {
   CardActions,
   CardContent,
   CardHeader,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   LinearProgress,
   ListItem,
@@ -14,16 +19,23 @@ import {
 import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { remote } from 'electron';
-import { exportCorrections, getUniqueSheets } from '../../utils/FileAccess';
+import {
+  deleteSheet,
+  exportCorrections,
+  getUniqueSheets,
+} from '../../utils/FileAccess';
+import { resolveLoader } from '../../../configs/webpack.config.eslint';
 
 export default function SheetCard(props: any) {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
   const {
     sheet,
     submissions,
     setSheetToCorrect,
     setSchemaSheet,
     setTab,
+    reload,
   } = props;
 
   function onStartCorrection() {
@@ -62,10 +74,19 @@ export default function SheetCard(props: any) {
     }
   }
 
-  function onDeleteSheet() {
+  function onCloseConfirmDialog() {
+    setOpenConfirmDialog(false);
+  }
+
+  function onOpenConfirmDialog() {
     onCloseMenu();
-    console.log('Delete!');
-    // TODO: deleting the task
+    setOpenConfirmDialog(true);
+  }
+
+  function onDeleteSheet() {
+    onCloseConfirmDialog();
+    deleteSheet(sheet);
+    reload();
   }
 
   function missingSchemas() {
@@ -93,9 +114,7 @@ export default function SheetCard(props: any) {
                 onClose={onCloseMenu}
               >
                 <MenuItem onClick={onExport}>Export corrections</MenuItem>
-                <MenuItem onClick={onDeleteSheet} disabled>
-                  Delete sheet
-                </MenuItem>
+                <MenuItem onClick={onOpenConfirmDialog}>Delete sheet</MenuItem>
               </Menu>
             </>
             // eslint-disable-next-line prettier/prettier
@@ -136,6 +155,22 @@ export default function SheetCard(props: any) {
           }
         />
       </Card>
+      <Dialog open={openConfirmDialog} onClose={onCloseConfirmDialog}>
+        <DialogTitle>Are you sure?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {`Are you sure you want to delete the sheet "${sheet.sheet.name}"?`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onDeleteSheet} color="primary" autoFocus>
+            Yes
+          </Button>
+          <Button onClick={onCloseConfirmDialog} color="primary">
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
     </ListItem>
   );
 }
