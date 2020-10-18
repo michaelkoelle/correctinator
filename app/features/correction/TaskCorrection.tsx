@@ -15,22 +15,11 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import styles from './TaskCorrection.css';
 import TaskCorrectionList from './TaskCorrectionList';
+import { sumParam } from '../../utils/FileAccess';
 
 export default function TaskCorrection(props: any) {
   const { setTaskParent, task, setTask, setTasks } = props;
   const [expanded, setExpanded] = React.useState(true);
-
-  function sumParam(tasks: any, param: string): any {
-    let sum = 0;
-    tasks?.forEach((t: any) => {
-      if (t.tasks.length > 0) {
-        sum += Number.parseFloat(sumParam(t.tasks, param));
-      } else {
-        sum += Number.parseFloat(t[param]);
-      }
-    });
-    return sum;
-  }
 
   const handleClick = () => {
     setExpanded(!expanded);
