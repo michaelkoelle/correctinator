@@ -13,13 +13,21 @@ import {
 } from '@material-ui/core';
 import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import { remote } from 'electron';
+import { exportCorrections, getUniqueSheets } from '../../utils/FileAccess';
 
 export default function SheetCard(props: any) {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const { sheet, submissions, setCorrections, setSchemaSheet, setTab } = props;
+  const {
+    sheet,
+    submissions,
+    setSheetToCorrect,
+    setSchemaSheet,
+    setTab,
+  } = props;
 
   function onStartCorrection() {
-    setCorrections(submissions);
+    setSheetToCorrect(sheet);
     setTab(3);
   }
 
@@ -34,6 +42,24 @@ export default function SheetCard(props: any) {
 
   function onCloseMenu() {
     setAnchorEl(null);
+  }
+
+  function onExport() {
+    setAnchorEl(null);
+    if (submissions.length > 0) {
+      const path = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
+        defaultPath: `${sheet.sheet.name.replace(
+          ' ',
+          '-'
+        )}-${sheet.course.replace(' ', '-')}-${sheet.term.replace(' ', '-')}`,
+        filters: [{ name: 'Zip', extensions: ['zip'] }],
+      });
+      if (path !== undefined && path.trim().length > 0) {
+        exportCorrections(submissions, path);
+      }
+    } else {
+      // TODO: show error dialog
+    }
   }
 
   function onDeleteSheet() {
@@ -66,8 +92,9 @@ export default function SheetCard(props: any) {
                 open={Boolean(anchorEl)}
                 onClose={onCloseMenu}
               >
+                <MenuItem onClick={onExport}>Export corrections</MenuItem>
                 <MenuItem onClick={onDeleteSheet} disabled>
-                  delete
+                  Delete sheet
                 </MenuItem>
               </Menu>
             </>

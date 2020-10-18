@@ -7,17 +7,13 @@ import WidgetsIcon from '@material-ui/icons/Widgets';
 import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
 import { TabPanel, TabContext } from '@material-ui/lab';
-import { Link } from 'react-router-dom';
-import routes from '../constants/routes.json';
 import {
   getAllSubmissionDirectories,
   getSubmissionDir,
   getSubmissionFromAppDataDir,
   getUniqueSheets,
+  isSubmissionFromSheet,
 } from '../utils/FileAccess';
-import styles from './Home.css';
-import Overview from '../features/overview/Overview';
-import SheetOverview from '../features/sheet-overview/SheetOverview';
 import SheetOverviewPage from '../containers/SheetOverviewPage';
 import OverviewPage from '../containers/OverviewPage';
 import SchemeGeneratorPage from '../containers/SchemeGeneratorPage';
@@ -32,7 +28,7 @@ const useStyle = makeStyles({
 export default function Home(): JSX.Element {
   const [tab, setTab] = React.useState(0);
   const [submissions, setSubmissions] = React.useState([]) as any;
-  const [corrections, setCorrections] = React.useState([]) as any;
+  const [sheetToCorrect, setSheetToCorrect] = React.useState({}) as any;
   const [sheets, setSheets] = React.useState([]) as any;
   const [schemaSheet, setSchemaSheet] = React.useState({}) as any;
   const [selected, setSelected] = React.useState({}) as any;
@@ -148,7 +144,7 @@ export default function Home(): JSX.Element {
             <SheetOverviewPage
               sheets={sheets}
               reload={reload}
-              setCorrections={setCorrections}
+              setSheetToCorrect={setSheetToCorrect}
               setSchemaSheet={setSchemaSheet}
               setTab={setTab}
             />
@@ -163,13 +159,23 @@ export default function Home(): JSX.Element {
             value="2"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <SchemeGeneratorPage schemaSheet={schemaSheet} />
+            <SchemeGeneratorPage
+              sheets={sheets}
+              reload={reload}
+              schemaSheet={schemaSheet}
+              submissions={submissions}
+              setSubmissions={setSubmissions}
+            />
           </TabPanel>
           <TabPanel
             value="3"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <CorrectionViewPage submissions={corrections} />
+            <CorrectionViewPage
+              submissions={submissions.filter((s: any) =>
+                isSubmissionFromSheet(s, sheetToCorrect)
+              )}
+            />
           </TabPanel>
         </Grid>
       </TabContext>

@@ -4,7 +4,7 @@ import { getSubmissionsOfSheet } from '../../utils/FileAccess';
 import SheetCard from './SheetCard';
 
 export default function SheetCardList(props: any) {
-  const { sheets, setCorrections, setSchemaSheet, setTab } = props;
+  const { sheets, setSheetToCorrect, setSchemaSheet, setTab } = props;
   if (sheets?.length > 0) {
     return (
       <List
@@ -25,7 +25,7 @@ export default function SheetCardList(props: any) {
               }
               sheet={sheet}
               submissions={getSubmissionsOfSheet(sheet)}
-              setCorrections={setCorrections}
+              setSheetToCorrect={setSheetToCorrect}
               setSchemaSheet={setSchemaSheet}
               setTab={setTab}
             />

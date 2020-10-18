@@ -1,55 +1,50 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import AceEditor from 'react-ace';
 import YAML from 'yaml';
 import {
-  Box,
   Button,
   ButtonGroup,
-  Container,
-  createStyles,
   Dialog,
   DialogTitle,
   Grid,
-  IconButton,
   List,
   ListItem,
   ListItemText,
-  makeStyles,
   Paper,
-  Snackbar,
-  Theme,
   Typography,
 } from '@material-ui/core';
-import CloseIcon from '@material-ui/icons/Close';
-import { red } from 'chalk';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-import routes from '../../constants/routes.json';
 
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import TaskSchemeList from './TaskSchemeList';
-import HorizontalLinearStepper from './HorizontalStepper';
 import styles from './SchemeGenerator.css';
 import {
-  getAllSubmissionDirectories,
-  getSubmissionDir,
-  getSubmissionFromAppDataDir,
-  getUniqueSheets,
+  isSubmissionFromSheet,
   saveSubmissions,
+  sumParam,
 } from '../../utils/FileAccess';
 
-export default function SchemeGenerator() {
+export default function SchemeGenerator(props: any) {
+  const { sheets, submissions, reload } = props;
   const [schema, setSchema] = useState([]) as any;
   const [taskCounter, setTaskCounter] = useState(0) as any;
   const [selected, setSelected] = useState({}) as any;
-  const [open, setOpen] = useState(false) as any;
+  const [, setOpen] = useState(false) as any;
   const [openDialog, setOpenDialog] = useState(false) as any;
-  const [message, setMessage] = useState('Test Message') as any;
-  const [sheets, setSheets] = useState([]) as any;
-  const [submissions, setSubmissions] = useState([]) as any;
+  const [, setMessage] = useState('Test Message') as any;
+
+  const defaultTask = {
+    id: taskCounter,
+    name: `Task ${taskCounter + 1}`,
+    max: '0',
+    value: '0',
+    type: 'points',
+    step: '0.5',
+    comment: '',
+    tasks: [],
+  };
 
   function addTask(task: any, parent: any) {
     const duplicates = parent?.filter((t: any) => t.name === task.name);
@@ -68,34 +63,9 @@ export default function SchemeGenerator() {
     setSchema(tasks);
   }
 
-  function sumParam(tasks: any, param: string): any {
-    let sum = 0;
-    tasks?.forEach((t: any) => {
-      if (t.tasks.length > 0) {
-        sum += Number.parseFloat(sumParam(t.tasks, param));
-      } else {
-        console.log();
-        sum += Number.parseFloat(t[param]);
-      }
-    });
-    return sum;
-  }
-
   function onAddTask() {
     try {
-      addTask(
-        {
-          id: taskCounter,
-          name: `Aufgabe ${taskCounter + 1}`,
-          max: '5',
-          value: '3',
-          type: 'points',
-          step: '0.5',
-          comment: '',
-          tasks: [],
-        },
-        null
-      );
+      addTask(defaultTask, null);
       setTaskCounter(taskCounter + 1);
       console.log('Added task');
     } catch (error) {
@@ -158,16 +128,7 @@ export default function SchemeGenerator() {
       type: selected.type,
       tasks: selected.tasks,
     };
-    tempTask.tasks?.push({
-      id: taskCounter,
-      name: `Aufgabe ${taskCounter + 1}`,
-      max: '5',
-      value: '3',
-      type: 'points',
-      step: '0.5',
-      comment: '',
-      tasks: [],
-    });
+    tempTask.tasks?.push(defaultTask);
     setTaskCounter(taskCounter + 1);
     const temp = [...schema];
     updateTask(temp, tempTask);
@@ -184,28 +145,14 @@ export default function SchemeGenerator() {
     }
   }
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
 
   function onAssignToSheet() {
-    const submissionsTemp: any[] = [];
-    const dirs = getAllSubmissionDirectories(getSubmissionDir());
-    dirs.forEach((dir) => {
-      const sub: any = getSubmissionFromAppDataDir(dir);
-      submissionsTemp.push(sub);
-    });
-
-    setSubmissions(submissionsTemp);
-    const uniqueSheets = getUniqueSheets(submissionsTemp);
-    const uniqueSheetsForScheme = uniqueSheets.filter(
+    const uniqueSheetsForScheme = sheets.filter(
       (s) => s.sheet.grading.max === sumParam(schema, 'max')
     );
-    setSheets(uniqueSheets);
 
     if (uniqueSheetsForScheme.length === 0) {
       alert('No sheets availiable with the same max value');
@@ -216,15 +163,19 @@ export default function SchemeGenerator() {
 
   function handleListItemClick(sheet) {
     setOpenDialog(false);
-    console.log(sheet);
     const temp: any[] = [];
     submissions.forEach((sub) => {
-      const subT = { ...sub };
-      subT.tasks = schema;
-      temp.push(subT);
+      if (isSubmissionFromSheet(sub, sheet)) {
+        const subT = { ...sub };
+        subT.tasks = schema;
+        subT.points = sumParam(schema, 'value');
+        temp.push(subT);
+      } else {
+        temp.push(sub);
+      }
     });
     saveSubmissions(temp);
-    setSubmissions(temp);
+    reload();
   }
 
   return (

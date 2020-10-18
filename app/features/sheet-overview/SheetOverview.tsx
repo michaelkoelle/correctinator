@@ -13,7 +13,7 @@ import {
 import SheetCardList from './SheetCardList';
 
 export default function SheetOverview(props: any) {
-  const { sheets, reload, setCorrections, setSchemaSheet, setTab } = props;
+  const { sheets, reload, setSchemaSheet, setSheetToCorrect, setTab } = props;
 
   async function onImportSubmissions() {
     const path: string = await openDirectory();
@@ -80,7 +80,7 @@ export default function SheetOverview(props: any) {
       <Box flex="1 1 0%" display="flex" flexDirection="column" marginTop="8px">
         <SheetCardList
           sheets={sheets}
-          setCorrections={setCorrections}
+          setSheetToCorrect={setSheetToCorrect}
           setSchemaSheet={setSchemaSheet}
           setTab={setTab}
         />
