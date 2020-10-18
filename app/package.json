@@ -1,11 +1,12 @@
 {
   "name": "correctinator",
   "productName": "correctinator",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Ein Korrekturprogramm mit Media Viewer für Uni2Work Bewertungsdateien.",
   "main": "./main.prod.js",
   "author": {
-    "name": "Michael Kölle"
+    "name": "Michael Kölle",
+    "email": "koelle.michael@gmail.com"
   },
   "scripts": {
     "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",

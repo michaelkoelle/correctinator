@@ -1,7 +1,7 @@
 {
   "name": "correctinator",
   "productName": "correctinator",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Ein Korrekturprogramm mit Media Viewer für Uni2Work Bewertungsdateien.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
@@ -109,7 +109,8 @@
     "url": "git+https://github.com/koellemichael/correctinator.git"
   },
   "author": {
-    "name": "Michael Kölle"
+    "name": "Michael Kölle",
+    "email": "koelle.michael@gmail.com"
   },
   "license": "MIT",
   "bugs": {
