@@ -54,6 +54,9 @@ export default function Home(): JSX.Element {
     if (subs.length > 0) {
       setSheets(getUniqueSheets(subs));
       setSelected(subs[0]);
+    } else {
+      setSheets([]);
+      setSelected({});
     }
   }
 
