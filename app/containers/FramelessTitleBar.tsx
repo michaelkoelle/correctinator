@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { remote, shell } from 'electron';
 import TitleBar from 'frameless-titlebar';
 
+const { version } = require('../package.json');
+
 const currentWindow = remote.getCurrentWindow();
 
 export default function FramelessTitleBar() {
@@ -134,7 +136,7 @@ export default function FramelessTitleBar() {
             },
           },
         }}
-        title="correctinator"
+        title={`correctinator v${version}`}
         onClose={() => currentWindow.close()}
         onMinimize={() => currentWindow.minimize()}
         onMaximize={handleMaximize}
