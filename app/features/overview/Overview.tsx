@@ -197,7 +197,7 @@ export default function Overview(props: any) {
               width: 'fit-content',
               marginTop: '16px',
               marginBottom: '16px',
-              marginRight: '32px',
+              marginRight: '16px',
             }}
             onClick={onExportSubmissions}
             disabled={selected.length <= 0}
@@ -213,7 +213,7 @@ export default function Overview(props: any) {
           height: '0px',
           overflow: 'auto',
           padding: '2px',
-          marginRight: '32px',
+          marginRight: '16px',
           marginBottom: '16px',
         }}
       >
