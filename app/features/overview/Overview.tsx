@@ -1,33 +1,19 @@
 /* eslint-disable react/display-name */
 import {
   Button,
-  Container,
   Dialog,
   DialogTitle,
+  Grid,
   LinearProgress,
   Typography,
 } from '@material-ui/core';
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import React from 'react';
 import CancelIcon from '@material-ui/icons/Cancel';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import MUIDataTable from 'mui-datatables';
-import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { remote } from 'electron';
-import {
-  openDirectory,
-  getAllFilesInDirectory,
-  getAllRatingFiles,
-  getAllSubmissionDirectories,
-  createSubmissionFileStruture,
-  getSubmissionDir,
-  getSubmissionFromAppDataDir,
-  getUniqueSheets,
-  exportCorrections,
-} from '../../utils/FileAccess';
-import routes from '../../constants/routes.json';
+import { getUniqueSheets, exportCorrections } from '../../utils/FileAccess';
 import LoadingItemList from '../../components/LoadingItemList';
 
 const columns = [
@@ -73,9 +59,9 @@ const columns = [
 
 export default function Overview(props: any) {
   const { submissions } = props;
-  const [open, setOpen] = React.useState(false);
-  const [progress, setProgress] = React.useState(0) as any;
-  const [summaryProgress, setSummaryProgress] = React.useState([]) as any;
+  const [open] = React.useState(false);
+  const [progress] = React.useState(0) as any;
+  const [summaryProgress] = React.useState([]) as any;
   const [selected, setSelected] = React.useState([]) as any;
 
   const getMuiTheme = () =>
@@ -111,10 +97,7 @@ export default function Overview(props: any) {
     }
   }
 
-  function onSelectionChange(
-    currentRowsSelected: any[],
-    allRowsSelected: any[]
-  ): void {
+  function onSelectionChange(allRowsSelected: any[]): void {
     const sel: any[] = [];
     allRowsSelected.forEach((row) => {
       sel.push(submissions[row.dataIndex]);
@@ -194,55 +177,77 @@ export default function Overview(props: any) {
   }
 */
   return (
-    <div
+    <Grid
+      container
+      direction="column"
+      wrap="nowrap"
       style={{
-        height: 'calc(100% - 45px)', // 29px TitleBar + 16px Margin
-        marginTop: '16px',
+        height: 'calc(100% - 29px)',
       }}
     >
-      <Typography variant="h3">Overview</Typography>
-      <Button
-        variant="contained"
-        color="secondary"
+      <Grid container justify="space-between" alignItems="center">
+        <Grid item>
+          <Typography variant="h3">Overview</Typography>
+        </Grid>
+        <Grid item>
+          <Button
+            variant="contained"
+            color="secondary"
+            style={{
+              width: 'fit-content',
+              marginTop: '16px',
+              marginBottom: '16px',
+              marginRight: '32px',
+            }}
+            onClick={onExportSubmissions}
+            disabled={selected.length <= 0}
+          >
+            Export selected submissions
+          </Button>
+        </Grid>
+      </Grid>
+      <Grid
+        item
         style={{
-          width: 'fit-content',
-          marginTop: '16px',
+          flex: '1 1 0%',
+          height: '0px',
+          overflow: 'auto',
+          padding: '2px',
+          marginRight: '32px',
           marginBottom: '16px',
         }}
-        onClick={onExportSubmissions}
-        disabled={selected.length <= 0}
       >
-        Export selected submissions
-      </Button>
-      <MuiThemeProvider theme={getMuiTheme()}>
-        <MUIDataTable
-          title="Submission Overview"
-          data={submissions}
-          columns={columns}
-          options={{
-            enableNestedDataAccess: '.',
-            print: false,
-            pagination: false,
-            selectableRows: 'muliple',
-            selectableRowsHideCheckboxes: true,
-            selectableRowsOnClick: true,
-            selectToolbarPlacement: 'none',
-            tableBodyHeight: '600px',
-            onRowSelectionChange: onSelectionChange,
-            setTableProps: () => {
-              return {
-                padding: 'none',
-                size: 'small',
-              };
-            },
-          }}
-        />
-      </MuiThemeProvider>
-      <Dialog open={open}>
-        <DialogTitle>Submission import</DialogTitle>
-        <LoadingItemList progress={summaryProgress} />
-        <LinearProgress variant="determinate" value={progress} />
-      </Dialog>
-    </div>
+        <MuiThemeProvider theme={getMuiTheme()}>
+          <MUIDataTable
+            title="Submission Overview"
+            data={submissions}
+            columns={columns}
+            options={{
+              enableNestedDataAccess: '.',
+              print: false,
+              pagination: false,
+              selectableRows: 'muliple',
+              selectableRowsHideCheckboxes: true,
+              selectableRowsOnClick: true,
+              selectToolbarPlacement: 'none',
+              responsive: 'simple',
+              onRowSelectionChange: onSelectionChange,
+              setTableProps: () => {
+                return {
+                  padding: 'none',
+                  size: 'small',
+                };
+              },
+            }}
+          />
+        </MuiThemeProvider>
+
+        <Dialog open={open}>
+          <DialogTitle>Submission import</DialogTitle>
+          <LoadingItemList progress={summaryProgress} />
+          <LinearProgress variant="determinate" value={progress} />
+        </Dialog>
+      </Grid>
+    </Grid>
   );
 }
