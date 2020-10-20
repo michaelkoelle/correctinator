@@ -113,7 +113,11 @@ export default function CorrectionView(props: any) {
         </Grid>
         <Grid item xs={12} />
       </Grid>
-      <TaskView tasks={subs[index]?.tasks} setTasks={setTasks} />
+      <TaskView
+        submissions={subs}
+        tasks={subs[index]?.tasks}
+        setTasks={setTasks}
+      />
       <Grid
         container
         spacing={3}

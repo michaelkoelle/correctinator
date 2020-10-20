@@ -13,21 +13,41 @@ import {
 import React from 'react';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import { Autocomplete } from '@material-ui/lab';
 import styles from './TaskCorrection.css';
 import TaskCorrectionList from './TaskCorrectionList';
 import { sumParam } from '../../utils/FileAccess';
 
 export default function TaskCorrection(props: any) {
-  const { setTaskParent, task, setTask, setTasks } = props;
+  const { setTaskParent, task, submissions, setTask, setTasks } = props;
   const [expanded, setExpanded] = React.useState(true);
+
+  function getCommentsForTask(tsk, subs, comments: string[] = []) {
+    subs.forEach((t) => {
+      if (t?.id === tsk?.id && t?.comment?.trim().length > 0) {
+        comments.push(t.comment);
+      } else if (t?.tasks?.length > 0) {
+        getCommentsForTask(tsk, t?.tasks, comments);
+      }
+    });
+
+    return comments;
+  }
 
   const handleClick = () => {
     setExpanded(!expanded);
   };
 
+  function onChangeComment(event, value, reason) {
+    const temp = { ...task };
+    temp.comment = value;
+    setTask([temp]);
+  }
+
   function handleChange(e: any) {
     const temp = { ...task };
     const { name, value } = e.target;
+    console.log(e.target);
     temp[name] = value;
 
     // Make sure that value <= max
@@ -157,16 +177,27 @@ export default function TaskCorrection(props: any) {
             </Grid>
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              id="comment"
-              label="Comment"
-              multiline
-              name="comment"
+            <Autocomplete
+              id="combo-box-demo"
+              options={[...new Set(getCommentsForTask(task, submissions))]}
+              freeSolo
               value={task.comment}
-              onChange={handleChange}
-              variant="outlined"
-              size="small"
-              fullWidth
+              onChange={onChangeComment}
+              renderInput={(params) => (
+                <TextField
+                  // eslint-disable-next-line react/jsx-props-no-spreading
+                  {...params}
+                  id="comment"
+                  label="Comment"
+                  multiline
+                  name="comment"
+                  // value={task.comment}
+                  onChange={handleChange}
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                />
+              )}
             />
           </Grid>
         </Grid>

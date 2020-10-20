@@ -9,6 +9,7 @@ export default function TaskCorrectionList(props: any) {
     setTaskParent = undefined,
     setTasks,
     disableGutters = false,
+    submissions,
   } = props;
 
   function updateTask(tasksArray: any, tasksToUpdate: any[]) {
@@ -46,6 +47,7 @@ export default function TaskCorrectionList(props: any) {
           >
             <TaskCorrection
               task={t}
+              submissions={submissions}
               setTask={setTask}
               setTaskParent={setTaskParent}
               setTasks={setTasks}
