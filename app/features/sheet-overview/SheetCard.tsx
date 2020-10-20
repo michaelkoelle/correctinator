@@ -9,11 +9,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Grid,
   IconButton,
   LinearProgress,
   ListItem,
   Menu,
   MenuItem,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
 import React from 'react';
@@ -25,6 +27,7 @@ import {
   getUniqueSheets,
 } from '../../utils/FileAccess';
 import { resolveLoader } from '../../../configs/webpack.config.eslint';
+import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 
 export default function SheetCard(props: any) {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -129,16 +132,77 @@ export default function SheetCard(props: any) {
           title={sheet.sheet.name}
         />
         <CardContent>
-          <Typography variant="body2" color="textSecondary" component="p">
-            {`[${submissions.filter((s) => s.tasks?.length > 0).length}/${
-              submissions.length
-            }] Correction scheme assigned`}
-          </Typography>
-          <Typography variant="body2" color="textSecondary" component="p">
-            {`[${submissions.filter((s) => s.rating_done === true).length}/${
-              submissions.length
-            }] Correction done`}
-          </Typography>
+          <Grid
+            container
+            direction="column"
+            justify="center"
+            alignItems="flex-start"
+            spacing={2}
+          >
+            <Grid
+              item
+              container
+              direction="row"
+              justify="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <Grid item>
+                <Tooltip
+                  title={`${
+                    submissions.filter((s) => s.tasks?.length > 0).length
+                  } / ${submissions.length}`}
+                >
+                  <div>
+                    <CircularProgressWithLabel
+                      value={
+                        (submissions.filter((s) => s.tasks?.length > 0).length /
+                          submissions.length) *
+                        100
+                      }
+                    />
+                  </div>
+                </Tooltip>
+              </Grid>
+              <Grid item>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  Correction scheme assigned
+                </Typography>
+              </Grid>
+            </Grid>
+            <Grid
+              item
+              container
+              direction="row"
+              justify="flex-start"
+              alignItems="center"
+              spacing={2}
+            >
+              <Grid item>
+                <Tooltip
+                  title={`${
+                    submissions.filter((s) => s.rating_done === true).length
+                  } / ${submissions.length}`}
+                >
+                  <div>
+                    <CircularProgressWithLabel
+                      value={
+                        (submissions.filter((s) => s.rating_done === true)
+                          .length /
+                          submissions.length) *
+                        100
+                      }
+                    />
+                  </div>
+                </Tooltip>
+              </Grid>
+              <Grid item>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  Corrections done
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
         </CardContent>
         <CardActions>
           <Button onClick={onCreateSchema}>Schema</Button>
