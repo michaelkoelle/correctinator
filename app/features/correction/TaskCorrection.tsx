@@ -23,14 +23,13 @@ export default function TaskCorrection(props: any) {
   const [expanded, setExpanded] = React.useState(true);
 
   function getCommentsForTask(tsk, subs, comments: string[] = []) {
-    subs.forEach((t) => {
+    subs?.forEach((t) => {
       if (t?.id === tsk?.id && t?.comment?.trim().length > 0) {
         comments.push(t.comment);
       } else if (t?.tasks?.length > 0) {
         getCommentsForTask(tsk, t?.tasks, comments);
       }
     });
-
     return comments;
   }
 
@@ -47,7 +46,6 @@ export default function TaskCorrection(props: any) {
   function handleChange(e: any) {
     const temp = { ...task };
     const { name, value } = e.target;
-    console.log(e.target);
     temp[name] = value;
 
     // Make sure that value <= max
@@ -117,6 +115,7 @@ export default function TaskCorrection(props: any) {
           </Grid>
           <Collapse in={expanded} timeout="auto" unmountOnExit>
             <TaskCorrectionList
+              submissions={submissions}
               setTaskParent={setTask}
               tasks={task?.tasks}
               setTasks={setTasks}
