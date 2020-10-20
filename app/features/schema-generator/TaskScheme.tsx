@@ -15,6 +15,7 @@ import {
   OutlinedInput,
 } from '@material-ui/core';
 import styles from './TaskScheme.css';
+import { sumParam } from '../../utils/FileAccess';
 
 export default function TaskScheme(props: any) {
   const { task, setTask, selected, setSelected, depth } = props;
@@ -41,19 +42,6 @@ export default function TaskScheme(props: any) {
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
-
-  function sumParam(tasks: any, param: string): any {
-    let sum = 0;
-    tasks?.forEach((t: any) => {
-      if (t.tasks.length > 0) {
-        sum += Number.parseFloat(sumParam(t.tasks, param));
-      } else {
-        console.log();
-        sum += Number.parseFloat(t[param]);
-      }
-    });
-    return sum;
-  }
 
   const marginLeft = `${depth * INDENT_SIZE}pt`;
 
