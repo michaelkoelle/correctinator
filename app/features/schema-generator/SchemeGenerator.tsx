@@ -238,7 +238,7 @@ export default function SchemeGenerator(props: any) {
       >
         <Grid item xs={8} style={{ flex: '1 1 0%', marginRight: '16px' }}>
           <Paper
-            elevation={2}
+            elevation={3}
             style={{
               flex: '1 1 0%',
               height: '0px',
@@ -257,7 +257,7 @@ export default function SchemeGenerator(props: any) {
         </Grid>
         <Grid item xs={4} style={{ flex: '1 1 0%', marginRight: '16px' }}>
           <Paper
-            elevation={2}
+            elevation={3}
             style={{
               flex: '1 1 0%',
               height: '0px',
