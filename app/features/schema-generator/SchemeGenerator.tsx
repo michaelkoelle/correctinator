@@ -19,7 +19,6 @@ import {
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import TaskSchemeList from './TaskSchemeList';
-import styles from './SchemeGenerator.css';
 import {
   isSubmissionFromSheet,
   saveSubmissions,
@@ -179,92 +178,107 @@ export default function SchemeGenerator(props: any) {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        marginTop: '24px',
-        marginRight: '16px',
-      }}
+    <Grid
+      container
+      direction="column"
+      wrap="nowrap"
+      spacing={4}
+      style={{ height: 'calc(100% - 45px)', marginTop: '16px' }}
     >
-      <Grid container justify="center" alignItems="center">
-        <Grid container spacing={2}>
-          <Grid
-            container
-            direction="row"
-            justify="space-around"
-            alignItems="center"
-          >
-            <Grid item style={{ marginLeft: '10px' }}>
-              <Typography variant="h3">schema generator</Typography>
-            </Grid>
-            <Grid item style={{ marginLeft: '10px' }}>
-              <Typography variant="h6" display="inline">
-                {`total: ${sumParam(schema, 'value')}/${sumParam(
-                  schema,
-                  'max'
-                )} points`}
-              </Typography>
-            </Grid>
-            <Grid item style={{ marginRight: '10px' }}>
-              <ButtonGroup
-                size="small"
-                aria-label="small outlined button group"
-              >
-                <Button type="button" onClick={onAddTask}>
-                  Add Task
-                </Button>
-                <Button
-                  type="button"
-                  onClick={onAddSubTask}
-                  disabled={
-                    Object.keys(selected).length === 0 &&
-                    selected.constructor === Object
-                  }
-                >
-                  Add subtask
-                </Button>
-                <Button type="button" onClick={onDeleteSelected}>
-                  Delete selected task
-                </Button>
-                <Button type="button" onClick={clearAllTasks}>
-                  Clear Tasks
-                </Button>
-                <Button type="button" onClick={onAssignToSheet}>
-                  Assign scheme to sheet
-                </Button>
-              </ButtonGroup>
-            </Grid>
-          </Grid>
-          <Grid item xs={8}>
-            <Paper
-              elevation={3}
-              style={{ height: '570px', overflow: 'auto', padding: '15px' }}
+      <Grid
+        container
+        direction="row"
+        justify="center"
+        alignItems="center"
+        spacing={2}
+      >
+        <Grid item style={{ marginLeft: '10px' }}>
+          <Typography variant="h3">schema generator</Typography>
+        </Grid>
+        <Grid item style={{ marginLeft: '10px' }}>
+          <Typography variant="h6" display="inline">
+            {`total: ${sumParam(schema, 'value')}/${sumParam(
+              schema,
+              'max'
+            )} points`}
+          </Typography>
+        </Grid>
+        <Grid item style={{ marginRight: '10px' }}>
+          <ButtonGroup size="small" aria-label="small outlined button group">
+            <Button type="button" onClick={onAddTask}>
+              Add Task
+            </Button>
+            <Button
+              type="button"
+              onClick={onAddSubTask}
+              disabled={
+                Object.keys(selected).length === 0 &&
+                selected.constructor === Object
+              }
             >
-              <TaskSchemeList
-                tasks={schema}
-                setTasks={setTasks}
-                selectedTask={selected}
-                setSelected={setSelected}
-              />
-            </Paper>
-          </Grid>
-          <Grid item xs={4}>
-            <Paper elevation={3} style={{ flex: '600px', overflow: 'auto' }}>
-              <AceEditor
-                mode="yaml"
-                theme="github"
-                width="100%"
-                style={{ minHeight: '600px' }}
-                maxLines={Infinity}
-                className={styles.editor}
-                value={YAML.stringify(schema)}
-                onChange={onChange}
-                name="editor"
-                editorProps={{ $blockScrolling: true }}
-              />
-            </Paper>
-          </Grid>
+              Add subtask
+            </Button>
+            <Button type="button" onClick={onDeleteSelected}>
+              Delete selected task
+            </Button>
+            <Button type="button" onClick={clearAllTasks}>
+              Clear Tasks
+            </Button>
+            <Button type="button" onClick={onAssignToSheet}>
+              Assign scheme to sheet
+            </Button>
+          </ButtonGroup>
+        </Grid>
+      </Grid>
+      <Grid
+        item
+        container
+        wrap="nowrap"
+        style={{ flex: '1 1 0%', height: '0px' }}
+      >
+        <Grid item xs={8} style={{ flex: '1 1 0%', marginRight: '16px' }}>
+          <Paper
+            elevation={2}
+            style={{
+              flex: '1 1 0%',
+              height: '0px',
+              minHeight: 'calc(100% - 32px)',
+              overflow: 'auto',
+              padding: '16px',
+            }}
+          >
+            <TaskSchemeList
+              tasks={schema}
+              setTasks={setTasks}
+              selectedTask={selected}
+              setSelected={setSelected}
+            />
+          </Paper>
+        </Grid>
+        <Grid item xs={4} style={{ flex: '1 1 0%', marginRight: '16px' }}>
+          <Paper
+            elevation={2}
+            style={{
+              flex: '1 1 0%',
+              height: '0px',
+              minHeight: 'calc(100%)',
+              overflow: 'auto',
+            }}
+          >
+            <AceEditor
+              mode="yaml"
+              theme="github"
+              width="100%"
+              height="100%"
+              maxLines={Infinity}
+              value={YAML.stringify(schema)}
+              onChange={onChange}
+              name="editor"
+              editorProps={{ $blockScrolling: true }}
+              style={{ flex: '1 1 0%', minHeight: '100%' }}
+              showPrintMargin={false}
+            />
+          </Paper>
         </Grid>
       </Grid>
       <Dialog
@@ -293,6 +307,6 @@ export default function SchemeGenerator(props: any) {
             ))}
         </List>
       </Dialog>
-    </div>
+    </Grid>
   );
 }
