@@ -11,6 +11,7 @@ import {
 } from '@material-ui/core';
 import { remote } from 'electron';
 import React, { useState } from 'react';
+import Status from '../../model/Status';
 import {
   exportCorrections,
   getUniqueSheets,
@@ -74,10 +75,12 @@ export default function CorrectionView(props: any) {
   function onCorrectionDone() {
     // Rating done
     const temps = [...corrections];
-    temps[index].rating_done = true;
+    if (temps[index].status !== Status.Marked) {
+      temps[index].rating_done = true;
+      temps[index].status = Status.Done;
+    }
     setCorrections(temps);
     saveSubmissions(temps);
-    // TODO: save and update submission
     if (index + 1 < corrections.length) {
       setIndex(index + 1);
       // Check if really finished
@@ -86,6 +89,10 @@ export default function CorrectionView(props: any) {
     ) {
       // Prompt to export and create zip
       setOpen(true);
+    } else if (
+      corrections.filter((s) => s.status === Status.Marked).length > 0
+    ) {
+      // TODO: go back to marked
     }
   }
 
@@ -117,7 +124,10 @@ export default function CorrectionView(props: any) {
           </Typography>
         </Grid>
         <Grid item xs={12}>
-          <CorrectionOverview submission={corrections[index]} />
+          <CorrectionOverview
+            correction={corrections[index]}
+            setCorrection={setCorrection}
+          />
         </Grid>
         <Grid item xs={12} />
       </Grid>

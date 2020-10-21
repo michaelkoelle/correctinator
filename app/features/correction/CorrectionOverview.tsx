@@ -6,43 +6,64 @@ import {
   Grid,
   IconButton,
   Paper,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import CancelIcon from '@material-ui/icons/Cancel';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import BookmarkIcon from '@material-ui/icons/Bookmark';
+import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import React from 'react';
+import StatusIcon from '../../components/StatusIcon';
+import Status from '../../model/Status';
 
 export default function CorrectionOverview(props: any) {
   const [expanded, setExpanded] = React.useState(false);
-  const { submission } = props;
+  const { correction, setCorrection } = props;
 
   const handleClick = () => {
     setExpanded(!expanded);
   };
 
+  function onToggleMarked() {
+    const temp = { ...correction };
+    switch (temp.status) {
+      case Status.Todo:
+        temp.status = Status.Marked;
+        temp.rating_done = false;
+        break;
+      case Status.Marked:
+        temp.status = Status.Todo;
+        temp.rating_done = false;
+        break;
+      case Status.Done:
+        temp.status = Status.Marked;
+        temp.rating_done = false;
+        break;
+      default:
+    }
+    setCorrection(temp);
+  }
+
   return (
     <Paper>
       <Grid container spacing={3} justify="space-evenly" alignItems="center">
         <Grid item>
-          {submission?.rating_done ? (
-            <CheckCircleIcon color="primary" />
-          ) : (
-            <CancelIcon color="secondary" />
-          )}
+          <StatusIcon status={correction?.status} />
         </Grid>
         <Grid item>
           <Typography variant="h6" display="inline">
             <Box fontWeight="bold" display="inline" marginRight="10px">
-              Submission ID:
+              ID:
             </Box>
-            <Box display="inline">{submission?.submission}</Box>
+            <Box display="inline">{correction?.submission}</Box>
           </Typography>
         </Grid>
         <Grid item>
           <div style={{ display: 'inline-flex' }}>
             <div style={{ width: '3em', textAlign: 'right' }}>
-              <Typography variant="h6">{submission?.points}</Typography>
+              <Typography variant="h6">{correction?.points}</Typography>
             </div>
             <Typography
               variant="h6"
@@ -51,12 +72,23 @@ export default function CorrectionOverview(props: any) {
               /
             </Typography>
             <Typography variant="h6">
-              {submission?.sheet?.grading?.max}
+              {correction?.sheet?.grading?.max}
             </Typography>
             <Typography variant="h6" style={{ marginLeft: '0.5em' }}>
-              {submission?.sheet?.grading?.type}
+              {correction?.sheet?.grading?.type}
             </Typography>
           </div>
+        </Grid>
+        <Grid item>
+          <Tooltip title="Mark for later">
+            <IconButton onClick={onToggleMarked}>
+              {correction.status === Status.Marked ? (
+                <BookmarkIcon />
+              ) : (
+                <BookmarkBorderIcon />
+              )}
+            </IconButton>
+          </Tooltip>
         </Grid>
         <Grid item>
           <IconButton onClick={handleClick} aria-label="show more" size="small">
@@ -74,26 +106,26 @@ export default function CorrectionOverview(props: any) {
               >
                 <Grid item>
                   <Typography variant="body1">
-                    {`${submission?.school}`}
+                    {`${correction?.school}`}
                   </Typography>
                   <Typography variant="body1">
-                    {`${submission?.course} ${submission?.term}`}
-                  </Typography>
-                </Grid>
-                <Grid item>
-                  <Typography variant="body1">
-                    {`${submission?.sheet?.name}`}
-                  </Typography>
-                  <Typography variant="body1">
-                    {`Type: ${submission?.sheet?.type}`}
+                    {`${correction?.course} ${correction?.term}`}
                   </Typography>
                 </Grid>
                 <Grid item>
                   <Typography variant="body1">
-                    {`Rated by: ${submission?.rated_by}`}
+                    {`${correction?.sheet?.name}`}
                   </Typography>
                   <Typography variant="body1">
-                    {`Rated at: ${submission?.rated_at}`}
+                    {`Type: ${correction?.sheet?.type}`}
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <Typography variant="body1">
+                    {`Rated by: ${correction?.rated_by}`}
+                  </Typography>
+                  <Typography variant="body1">
+                    {`Rated at: ${correction?.rated_at}`}
                   </Typography>
                 </Grid>
               </Grid>

@@ -4,6 +4,7 @@ import fs from 'fs';
 import * as Path from 'path';
 import deepEqual from 'deep-equal';
 import archiver from 'archiver';
+import Status from '../model/Status';
 
 export function createDirectory(dir: string) {
   if (fs.existsSync(dir)) {
@@ -177,6 +178,11 @@ export function getSubmissionFromAppDataDir(dir: string) {
   const files: string[] = getAllFilesInDirectory(filesDir);
   ratingFileJson.files = files;
   ratingFileJson.path = ratingFilePath;
+  if (ratingFileJson.status === undefined) {
+    ratingFileJson.status = ratingFileJson.rating_done
+      ? Status.Done
+      : Status.Todo;
+  }
 
   return ratingFileJson;
 }

@@ -8,25 +8,20 @@ import {
   Typography,
 } from '@material-ui/core';
 import React from 'react';
-import CancelIcon from '@material-ui/icons/Cancel';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import MUIDataTable from 'mui-datatables';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { remote } from 'electron';
 import { getUniqueSheets, exportCorrections } from '../../utils/FileAccess';
 import LoadingItemList from '../../components/LoadingItemList';
+import Status from '../../model/Status';
+import StatusIcon from '../../components/StatusIcon';
 
 const columns = [
   {
-    name: 'rating_done',
+    name: 'status',
     label: 'Status',
     options: {
-      customBodyRender: (value: any) =>
-        value ? (
-          <CheckCircleIcon color="primary" />
-        ) : (
-          <CancelIcon color="secondary" />
-        ),
+      customBodyRender: (value: Status) => <StatusIcon status={value} />,
     },
   },
   {
