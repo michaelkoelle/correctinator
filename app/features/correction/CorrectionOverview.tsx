@@ -57,11 +57,11 @@ export default function CorrectionOverview(props: any) {
 
   return (
     <Paper>
-      <Grid container spacing={3} justify="space-evenly" alignItems="center">
-        <Grid item>
+      <Grid container spacing={2} justify="space-evenly" alignItems="center">
+        <Grid item style={{ padding: '4px' }}>
           <StatusIcon status={correction?.status} />
         </Grid>
-        <Grid item>
+        <Grid item style={{ padding: '4px' }}>
           <Typography variant="h6" display="inline">
             <Box fontWeight="bold" display="inline" marginRight="10px">
               ID:
@@ -69,7 +69,7 @@ export default function CorrectionOverview(props: any) {
             <Box display="inline">{correction?.submission}</Box>
           </Typography>
         </Grid>
-        <Grid item>
+        <Grid item style={{ padding: '4px' }}>
           <div style={{ display: 'inline-flex' }}>
             <div style={{ width: '3em', textAlign: 'right' }}>
               <Typography variant="h6">{correction?.points}</Typography>
@@ -88,7 +88,7 @@ export default function CorrectionOverview(props: any) {
             </Typography>
           </div>
         </Grid>
-        <Grid item>
+        <Grid item style={{ padding: '4px' }}>
           <Tooltip title="Mark for later">
             <IconButton onClick={onToggleMarked}>
               {correction?.status === Status.Marked ? (
@@ -99,14 +99,14 @@ export default function CorrectionOverview(props: any) {
             </IconButton>
           </Tooltip>
         </Grid>
-        <Grid item>
+        <Grid item style={{ padding: '4px' }}>
           <IconButton onClick={handleClick} aria-label="show more" size="small">
             {expanded ? <ExpandLess /> : <ExpandMore />}
           </IconButton>
         </Grid>
         <Collapse in={expanded} timeout="auto" unmountOnExit>
           <Box padding="20px" paddingLeft="30px" paddingRight="30px">
-            <Grid item xs={12}>
+            <Grid item xs={12} style={{ padding: '4px' }}>
               <Grid
                 container
                 spacing={5}
