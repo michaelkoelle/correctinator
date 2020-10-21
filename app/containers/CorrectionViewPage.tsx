@@ -7,14 +7,7 @@ import './SplitPane.css';
 
 export default function CorrectionViewPage(props: any) {
   const [index, setIndex] = useState(0);
-  let subs: any[] = [];
-  if (props?.location?.state?.submissions) {
-    subs = [...props?.location?.state?.submissions];
-  }
-
-  if (props?.submissions) {
-    subs = props.submissions;
-  }
+  const { corrections, setCorrections } = props;
 
   return (
     <SplitPane
@@ -29,10 +22,15 @@ export default function CorrectionViewPage(props: any) {
       allowResize
     >
       <div style={{ height: '100%', margin: '0 10px 0 0' }}>
-        <CorrectionView submissions={subs} index={index} setIndex={setIndex} />
+        <CorrectionView
+          corrections={corrections}
+          index={index}
+          setIndex={setIndex}
+          setCorrections={setCorrections}
+        />
       </div>
       <div style={{ height: '100%', margin: '0 5px 0 0' }}>
-        <MediaViewer files={subs[index]?.files} />
+        <MediaViewer files={corrections[index]?.files} />
       </div>
     </SplitPane>
   );
