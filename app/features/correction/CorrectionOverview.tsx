@@ -33,14 +33,17 @@ export default function CorrectionOverview(props: any) {
       case Status.Todo:
         temp.status = Status.Marked;
         temp.rating_done = false;
+        setExpanded(true);
         break;
       case Status.Marked:
         temp.status = Status.Todo;
         temp.rating_done = false;
+        setExpanded(false);
         break;
       case Status.Done:
         temp.status = Status.Marked;
         temp.rating_done = false;
+        setExpanded(true);
         break;
       default:
     }
