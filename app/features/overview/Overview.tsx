@@ -49,7 +49,7 @@ const columns = [
   { name: 'school', label: 'School' },
   { name: 'course', label: 'Course' },
   { name: 'rated_by', label: 'Rated by' },
-  { name: 'rated_at', label: 'Rated at' },
+  { name: 'note', label: 'Note' },
 ];
 
 export default function Overview(props: any) {

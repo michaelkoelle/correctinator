@@ -6,6 +6,7 @@ import {
   Grid,
   IconButton,
   Paper,
+  TextField,
   Tooltip,
   Typography,
 } from '@material-ui/core';
@@ -46,6 +47,14 @@ export default function CorrectionOverview(props: any) {
     setCorrection(temp);
   }
 
+  function onChangeNote(event) {
+    const temp = { ...correction };
+    temp.note = event.target.value;
+    setCorrection(temp);
+  }
+
+  const noteValue = correction?.note === undefined ? '' : correction?.note;
+
   return (
     <Paper>
       <Grid container spacing={3} justify="space-evenly" alignItems="center">
@@ -82,7 +91,7 @@ export default function CorrectionOverview(props: any) {
         <Grid item>
           <Tooltip title="Mark for later">
             <IconButton onClick={onToggleMarked}>
-              {correction.status === Status.Marked ? (
+              {correction?.status === Status.Marked ? (
                 <BookmarkIcon />
               ) : (
                 <BookmarkBorderIcon />
@@ -96,7 +105,7 @@ export default function CorrectionOverview(props: any) {
           </IconButton>
         </Grid>
         <Collapse in={expanded} timeout="auto" unmountOnExit>
-          <Box padding="20px">
+          <Box padding="20px" paddingLeft="30px" paddingRight="30px">
             <Grid item xs={12}>
               <Grid
                 container
@@ -104,6 +113,20 @@ export default function CorrectionOverview(props: any) {
                 justify="space-evenly"
                 alignItems="center"
               >
+                <Grid item xs={12}>
+                  <TextField
+                    id="note"
+                    label="Note"
+                    multiline
+                    name="note"
+                    value={noteValue}
+                    onChange={onChangeNote}
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    disabled={correction === undefined}
+                  />
+                </Grid>
                 <Grid item>
                   <Typography variant="body1">
                     {`${correction?.school}`}

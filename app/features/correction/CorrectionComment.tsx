@@ -11,9 +11,6 @@ export default function CorrectionComment(props: any) {
     setCorrection(temp);
   }
 
-  console.log(correction);
-  console.log(correction?.comment);
-
   const commentValue =
     correction?.comment === undefined ? '' : correction?.comment;
 
