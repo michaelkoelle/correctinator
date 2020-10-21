@@ -97,7 +97,7 @@ export default function Overview(props: any) {
     }
   }
 
-  function onSelectionChange(allRowsSelected: any[]): void {
+  function onSelectionChange(_selected: any, allRowsSelected: any[]): void {
     const sel: any[] = [];
     allRowsSelected.forEach((row) => {
       sel.push(submissions[row.dataIndex]);
