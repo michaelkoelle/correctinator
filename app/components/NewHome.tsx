@@ -41,6 +41,14 @@ export default function Home(): JSX.Element {
     setTab(newValue);
   };
 
+  function setCorrections(corrections: any[]) {
+    const temp = [...submissions];
+    corrections.forEach((c) => {
+      temp[c.id] = c;
+    });
+    setSubmissions(temp);
+  }
+
   function reload() {
     const path = getSubmissionDir();
     const subs: any[] = [];
@@ -175,9 +183,10 @@ export default function Home(): JSX.Element {
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
             <CorrectionViewPage
-              submissions={submissions.filter((s: any) =>
+              corrections={submissions.filter((s: any) =>
                 isSubmissionFromSheet(s, sheetToCorrect)
               )}
+              setCorrections={setCorrections}
             />
           </TabPanel>
         </Grid>
