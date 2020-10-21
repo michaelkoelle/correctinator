@@ -177,6 +177,7 @@ export function getSubmissionFromAppDataDir(dir: string) {
   const files: string[] = getAllFilesInDirectory(filesDir);
   ratingFileJson.files = files;
   ratingFileJson.path = ratingFilePath;
+
   return ratingFileJson;
 }
 
@@ -275,7 +276,7 @@ export function sumParam(tasks: any, param: string): any {
 
 export function tasksToString(tasks: any[], depth = 0): string {
   let out = '';
-  tasks.forEach((t) => {
+  tasks?.forEach((t) => {
     if (t.tasks.length > 0) {
       out += `${'\t'.repeat(depth)}${t.name}: ${sumParam(
         t.tasks,
@@ -286,12 +287,21 @@ export function tasksToString(tasks: any[], depth = 0): string {
       )}`;
     } else {
       out += `${'\t'.repeat(depth)}${t.name}: ${t.value}/${t.max} ${t.type}\n${
-        t.comment.trim().length > 0
-          ? `${'\t'.repeat(depth + 1) + wordWrap(t.comment, 60, depth + 1)}\n`
+        t?.comment?.trim().length > 0
+          ? `${'\t'.repeat(depth + 1) + wordWrap(t?.comment, 60, depth + 1)}\n`
           : ''
       }`;
     }
   });
+  return out;
+}
+
+export function correctionToString(correction: any): string {
+  let out = '';
+  out += tasksToString(correction.tasks);
+  if (correction?.comment?.trim().length > 0) {
+    out += `\n${wordWrap(correction?.comment, 60, 0)}\n`;
+  }
   return out;
 }
 
@@ -331,7 +341,7 @@ export function exportCorrections(submissions: any[], zipPath: string) {
   submissions.forEach((sub) => {
     const { files, path, tasks, id, ...rest } = sub;
     const doc = new YAML.Document(rest);
-    const ratingFile = `${doc.toString()}...\n${tasksToString(tasks)}`;
+    const ratingFile = `${doc.toString()}...\n${correctionToString(sub)}`;
     archive.append(ratingFile, {
       name: `/${sub.submission}/bewertung_${sub.submission}.txt`,
     });
