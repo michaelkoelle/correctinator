@@ -68,10 +68,6 @@ export default function CorrectionView(props: any) {
     saveSubmissions(temps);
   }
 
-  function onAddNote() {
-    // TODO
-  }
-
   function onCorrectionDone() {
     // Rating done
     const temps = [...corrections];
@@ -156,11 +152,6 @@ export default function CorrectionView(props: any) {
         alignItems="center"
         style={{ padding: '10px' }}
       >
-        <Grid item>
-          <Button color="secondary" onClick={onAddNote} disabled>
-            Add Note
-          </Button>
-        </Grid>
         <Grid item>
           <Button color="primary" onClick={onPrevious}>
             Previous
