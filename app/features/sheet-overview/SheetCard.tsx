@@ -28,10 +28,12 @@ import {
 } from '../../utils/FileAccess';
 import { resolveLoader } from '../../../configs/webpack.config.eslint';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
+import ExportDialog from '../../components/ExportDialog';
 
 export default function SheetCard(props: any) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
+  const [openExportDialog, setOpenExportDialog] = React.useState(false);
   const {
     sheet,
     submissions,
@@ -61,24 +63,15 @@ export default function SheetCard(props: any) {
 
   function onExport() {
     setAnchorEl(null);
-    if (submissions.length > 0) {
-      const path = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
-        defaultPath: `${sheet.sheet.name.replace(
-          ' ',
-          '-'
-        )}-${sheet.course.replace(' ', '-')}-${sheet.term.replace(' ', '-')}`,
-        filters: [{ name: 'Zip', extensions: ['zip'] }],
-      });
-      if (path !== undefined && path.trim().length > 0) {
-        exportCorrections(submissions, path);
-      }
-    } else {
-      // TODO: show error dialog
-    }
+    setOpenExportDialog(true);
   }
 
   function onCloseConfirmDialog() {
     setOpenConfirmDialog(false);
+  }
+
+  function onCloseExportDialog() {
+    setOpenExportDialog(false);
   }
 
   function onOpenConfirmDialog() {
@@ -235,6 +228,11 @@ export default function SheetCard(props: any) {
           </Button>
         </DialogActions>
       </Dialog>
+      <ExportDialog
+        correctionsToExport={submissions}
+        open={openExportDialog}
+        handleClose={onCloseExportDialog}
+      />
     </ListItem>
   );
 }

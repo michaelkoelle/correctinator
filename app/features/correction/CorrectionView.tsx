@@ -11,6 +11,7 @@ import {
 } from '@material-ui/core';
 import { remote } from 'electron';
 import React, { useState } from 'react';
+import ExportDialog from '../../components/ExportDialog';
 import Status from '../../model/Status';
 import {
   exportCorrections,
@@ -25,32 +26,19 @@ import TaskView from './TaskView';
 export default function CorrectionView(props: any) {
   const { corrections = [], setCorrections, index, setIndex } = props;
   const [open, setOpen] = React.useState(false);
+  const [openExportDialog, setOpenExportDialog] = React.useState(false);
 
   function onExport() {
     setOpen(false);
-    if (corrections.length > 0) {
-      const path = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
-        defaultPath: getUniqueSheets(corrections)
-          .map(
-            (s) =>
-              `${s.sheet.name.replace(' ', '-')}-${s.course.replace(
-                ' ',
-                '-'
-              )}-${s.term.replace(' ', '-')}`
-          )
-          .join('-'),
-        filters: [{ name: 'Zip', extensions: ['zip'] }],
-      });
-      if (path !== undefined && path.trim().length > 0) {
-        exportCorrections(corrections, path);
-      }
-    } else {
-      // TODO: show error dialog
-    }
+    setOpenExportDialog(true);
   }
 
   function onCloseDialog() {
     setOpen(false);
+  }
+
+  function onCloseExportDialog() {
+    setOpenExportDialog(false);
   }
 
   function setCorrection(correction) {
@@ -180,6 +168,11 @@ export default function CorrectionView(props: any) {
           </Button>
         </DialogActions>
       </Dialog>
+      <ExportDialog
+        open={openExportDialog}
+        handleClose={onCloseExportDialog}
+        correctionsToExport={corrections}
+      />
     </div>
   );
 }

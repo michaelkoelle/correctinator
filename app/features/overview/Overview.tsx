@@ -15,6 +15,7 @@ import { getUniqueSheets, exportCorrections } from '../../utils/FileAccess';
 import LoadingItemList from '../../components/LoadingItemList';
 import Status from '../../model/Status';
 import StatusIcon from '../../components/StatusIcon';
+import ExportDialog from '../../components/ExportDialog';
 
 const columns = [
   {
@@ -54,7 +55,8 @@ const columns = [
 
 export default function Overview(props: any) {
   const { submissions } = props;
-  const [open] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
+  const [exportDialog, setExportDialog] = React.useState(false);
   const [progress] = React.useState(0) as any;
   const [summaryProgress] = React.useState([]) as any;
   const [selected, setSelected] = React.useState([]) as any;
@@ -71,25 +73,7 @@ export default function Overview(props: any) {
     });
 
   function onExportSubmissions() {
-    if (selected.length > 0) {
-      const path = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
-        defaultPath: getUniqueSheets(selected)
-          .map(
-            (s) =>
-              `${s.sheet.name.replace(' ', '-')}-${s.course.replace(
-                ' ',
-                '-'
-              )}-${s.term.replace(' ', '-')}`
-          )
-          .join('-'),
-        filters: [{ name: 'Zip', extensions: ['zip'] }],
-      });
-      if (path !== undefined && path.trim().length > 0) {
-        exportCorrections(selected, path);
-      }
-    } else {
-      // TODO: show error dialog
-    }
+    setExportDialog(true);
   }
 
   function onSelectionChange(_selected: any, allRowsSelected: any[]): void {
@@ -98,6 +82,10 @@ export default function Overview(props: any) {
       sel.push(submissions[row.dataIndex]);
     });
     setSelected(sel);
+  }
+
+  function onCloseExportDialog() {
+    setExportDialog(false);
   }
 
   /*
@@ -236,7 +224,11 @@ export default function Overview(props: any) {
             }}
           />
         </MuiThemeProvider>
-
+        <ExportDialog
+          open={exportDialog}
+          handleClose={onCloseExportDialog}
+          correctionsToExport={selected}
+        />
         <Dialog open={open}>
           <DialogTitle>Submission import</DialogTitle>
           <LoadingItemList progress={summaryProgress} />

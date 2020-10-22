@@ -199,7 +199,7 @@ export function saveSubmissions(submissions: any[]) {
 }
 
 export function getUniqueSheets(submissions: any[]) {
-  const info = submissions.map((sub) => {
+  const info = submissions?.map((sub) => {
     const s: any = {
       term: sub.term,
       school: sub.school,
@@ -211,16 +211,16 @@ export function getUniqueSheets(submissions: any[]) {
   });
 
   const uniqueSheets: any[] = [];
-  info.forEach((sub) => {
+  info?.forEach((sub) => {
     let isEq = false;
-    uniqueSheets.forEach((uniq) => {
+    uniqueSheets?.forEach((uniq) => {
       if (deepEqual(sub, uniq)) {
         isEq = true;
       }
     });
 
     if (!isEq) {
-      uniqueSheets.push(sub);
+      uniqueSheets?.push(sub);
     }
   });
 
@@ -302,16 +302,56 @@ export function tasksToString(tasks: any[], depth = 0): string {
   return out;
 }
 
-export function correctionToString(correction: any): string {
+export function getConditionalComment(percent: number, commentValues: any[]) {
+  const suitableComments: any[] = [];
+
+  commentValues.forEach((commentValue: any) => {
+    if (percent * 100 >= commentValue?.value) {
+      suitableComments.push(commentValue);
+    }
+  });
+
+  let max = { text: '', value: 0 };
+
+  suitableComments.forEach((c) => {
+    if (max.value <= c.value) {
+      max = c;
+    }
+  });
+
+  if (max?.text?.trim().length > 0) {
+    return `\n${max.text}\n`;
+  }
+  return '';
+}
+
+export function correctionToString(
+  correction: any,
+  condComments: any[] = []
+): string {
   let out = '';
+
   out += tasksToString(correction.tasks);
+
   if (correction?.comment?.trim().length > 0) {
     out += `\n${wordWrap(correction?.comment, 60, 0)}\n`;
   }
+
+  if (condComments !== undefined && condComments?.length > 0) {
+    out += getConditionalComment(
+      correction.points / correction.sheet.grading.max,
+      condComments
+    );
+  }
+
   return out;
 }
 
-export function exportCorrections(submissions: any[], zipPath: string) {
+export function exportCorrections(
+  submissions: any[],
+  zipPath: string,
+  condComments: any[] = []
+) {
   const output = fs.createWriteStream(zipPath);
   const archive = archiver('zip', {
     zlib: { level: 9 }, // Sets the compression level.
@@ -347,7 +387,10 @@ export function exportCorrections(submissions: any[], zipPath: string) {
   submissions.forEach((sub) => {
     const { files, path, tasks, id, ...rest } = sub;
     const doc = new YAML.Document(rest);
-    const ratingFile = `${doc.toString()}...\n${correctionToString(sub)}`;
+    const ratingFile = `${doc.toString()}...\n${correctionToString(
+      sub,
+      condComments
+    )}`;
     archive.append(ratingFile, {
       name: `/${sub.submission}/bewertung_${sub.submission}.txt`,
     });
