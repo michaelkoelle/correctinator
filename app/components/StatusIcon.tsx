@@ -8,7 +8,7 @@ import Status from '../model/Status';
 
 export default function StatusIcon(props: { status: Status }): JSX.Element {
   const { status } = props;
-  console.log(status);
+
   switch (status) {
     case Status.Done:
       return (
