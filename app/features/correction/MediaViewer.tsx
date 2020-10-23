@@ -2,6 +2,7 @@
 /* eslint-disable import/no-cycle */
 import {
   Backdrop,
+  Box,
   Button,
   Container,
   Fab,
@@ -86,7 +87,24 @@ export default function MediaViewer(props: any) {
   }
 
   if (files.length === 0 || !fs.existsSync(files[fileIndex])) {
-    return <div>File not found!</div>;
+    return (
+      <Box height="100%">
+        <Grid
+          container
+          direction="column"
+          justify="center"
+          alignItems="center"
+          style={{ height: '100%' }}
+        >
+          <Grid item>
+            <ErrorIcon />
+          </Grid>
+          <Grid item>
+            <Typography>File not found!</Typography>
+          </Grid>
+        </Grid>
+      </Box>
+    );
   }
   const type = mime.lookup(files[fileIndex]);
   let viewer;
