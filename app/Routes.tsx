@@ -1,6 +1,10 @@
 /* eslint react/jsx-props-no-spreading: off */
-import React from 'react';
+import React, { useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { remote } from 'electron';
 import routes from './constants/routes.json';
 import App from './containers/App';
 import HomePage from './containers/HomePage';
@@ -21,17 +25,48 @@ const CounterPage = (props: Record<string, any>) => (
 );
 
 export default function Routes() {
+  const [shouldUseDarkColors, setShouldUseDarkColors] = useState(
+    remote.nativeTheme.shouldUseDarkColors
+  );
+
+  remote.nativeTheme.on('updated', () =>
+    setShouldUseDarkColors(remote.nativeTheme.shouldUseDarkColors)
+  );
+
+  const theme = React.useMemo(
+    () =>
+      createMuiTheme({
+        palette: {
+          type: shouldUseDarkColors ? 'dark' : 'light',
+        },
+        overrides: {
+          MuiTableCell: {
+            root: {
+              userSelect: 'none',
+            },
+          },
+        },
+      }),
+    [shouldUseDarkColors]
+  );
+
   return (
-    <App>
-      <FramelessTitleBar />
-      <Switch>
-        <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
-        <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
-        <Route path={routes.OVERVIEW} component={OverviewPage} />
-        <Route path={routes.SCHEMAGENERATOR} component={SchemeGeneratorPage} />
-        <Route path={routes.COUNTER} component={CounterPage} />
-        <Route path={routes.HOME} component={NewHomePage} />
-      </Switch>
-    </App>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <App>
+        <FramelessTitleBar theme={theme} />
+        <Switch>
+          <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
+          <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
+          <Route path={routes.OVERVIEW} component={OverviewPage} />
+          <Route
+            path={routes.SCHEMAGENERATOR}
+            component={SchemeGeneratorPage}
+          />
+          <Route path={routes.COUNTER} component={CounterPage} />
+          <Route path={routes.HOME} component={NewHomePage} />
+        </Switch>
+      </App>
+    </ThemeProvider>
   );
 }

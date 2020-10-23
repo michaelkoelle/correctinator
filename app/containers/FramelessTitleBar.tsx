@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { remote, shell } from 'electron';
+import { MenuItem, remote, shell } from 'electron';
 import TitleBar from 'frameless-titlebar';
 
 const { version } = require('../package.json');
 
 const currentWindow = remote.getCurrentWindow();
 
-export default function FramelessTitleBar() {
+export default function FramelessTitleBar(props: any) {
   // manage window state, default to currentWindow maximized state
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
+  const { theme } = props;
+
   // add window listeners for currentWindow
   useEffect(() => {
     const onMaximized = () => setMaximized(true);
@@ -31,7 +33,7 @@ export default function FramelessTitleBar() {
     }
   };
 
-  const templateDefault = [
+  const templateDefault: any[] = [
     {
       label: 'File',
       submenu: [
@@ -71,6 +73,18 @@ export default function FramelessTitleBar() {
                   currentWindow.webContents.toggleDevTools();
                 },
               },
+              {
+                label: 'Dark Mode',
+                accelerator: 'F12',
+                type: 'checkbox',
+                checked: remote?.nativeTheme?.shouldUseDarkColors,
+                click: () => {
+                  remote.nativeTheme.themeSource = remote.nativeTheme
+                    .shouldUseDarkColors
+                    ? 'light'
+                    : 'dark';
+                },
+              },
             ]
           : [
               {
@@ -80,11 +94,33 @@ export default function FramelessTitleBar() {
                   currentWindow.setFullScreen(!currentWindow.isFullScreen());
                 },
               },
+              {
+                label: 'Dark Mode',
+                accelerator: 'F12',
+                type: 'checkbox',
+                checked: remote?.nativeTheme?.shouldUseDarkColors,
+                click: () => {
+                  remote.nativeTheme.themeSource = remote.nativeTheme
+                    .shouldUseDarkColors
+                    ? 'light'
+                    : 'dark';
+                },
+              },
             ],
     },
     {
       label: 'Help',
       submenu: [
+        {
+          label: 'Check for updates',
+          async click() {
+            console.log(
+              await remote
+                .require('electron-updater')
+                .autoUpdater.checkForUpdates()
+            );
+          },
+        },
         {
           label: 'Documentation',
           click() {
@@ -114,9 +150,13 @@ export default function FramelessTitleBar() {
         menu={templateDefault}
         theme={{
           bar: {
-            palette: 'light',
+            color: theme.palette.text.primary,
+            background: theme.palette.background.default,
+            borderBottom: 'none',
           },
+          ...theme,
           menu: {
+            palette: remote.nativeTheme.shouldUseDarkColors ? 'dark' : 'light',
             overlay: {
               opacity: 0.0,
             },

@@ -18,6 +18,7 @@ import {
 
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
+import { remote } from 'electron';
 import TaskSchemeList from './TaskSchemeList';
 import {
   isSubmissionFromSheet,
@@ -242,7 +243,7 @@ export default function SchemeGenerator(props: any) {
             style={{
               flex: '1 1 0%',
               height: '0px',
-              minHeight: 'calc(100% - 32px)',
+              minHeight: 'calc(100%)',
               overflow: 'auto',
               padding: '16px',
             }}
@@ -267,7 +268,9 @@ export default function SchemeGenerator(props: any) {
           >
             <AceEditor
               mode="yaml"
-              theme="github"
+              theme={
+                remote.nativeTheme.shouldUseDarkColors ? 'twilight' : 'textmate'
+              }
               width="100%"
               height="100%"
               maxLines={Infinity}

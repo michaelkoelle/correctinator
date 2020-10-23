@@ -9,7 +9,12 @@ import {
 } from '@material-ui/core';
 import React from 'react';
 import MUIDataTable from 'mui-datatables';
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import {
+  StylesProvider,
+  createMuiTheme,
+  MuiThemeProvider,
+} from '@material-ui/core/styles';
+
 import { remote } from 'electron';
 import { getUniqueSheets, exportCorrections } from '../../utils/FileAccess';
 import LoadingItemList from '../../components/LoadingItemList';
@@ -60,17 +65,6 @@ export default function Overview(props: any) {
   const [progress] = React.useState(0) as any;
   const [summaryProgress] = React.useState([]) as any;
   const [selected, setSelected] = React.useState([]) as any;
-
-  const getMuiTheme = () =>
-    createMuiTheme({
-      overrides: {
-        MuiTableCell: {
-          root: {
-            userSelect: 'none',
-          },
-        },
-      },
-    });
 
   function onExportSubmissions() {
     setExportDialog(true);
@@ -200,30 +194,29 @@ export default function Overview(props: any) {
           marginBottom: '16px',
         }}
       >
-        <MuiThemeProvider theme={getMuiTheme()}>
-          <MUIDataTable
-            title="Submission Overview"
-            data={submissions}
-            columns={columns}
-            options={{
-              enableNestedDataAccess: '.',
-              print: false,
-              pagination: false,
-              selectableRows: 'muliple',
-              selectableRowsHideCheckboxes: true,
-              selectableRowsOnClick: true,
-              selectToolbarPlacement: 'none',
-              responsive: 'simple',
-              onRowSelectionChange: onSelectionChange,
-              setTableProps: () => {
-                return {
-                  padding: 'none',
-                  size: 'small',
-                };
-              },
-            }}
-          />
-        </MuiThemeProvider>
+        <MUIDataTable
+          title="Submission Overview"
+          data={submissions}
+          columns={columns}
+          style={{ userSelect: 'none' }}
+          options={{
+            enableNestedDataAccess: '.',
+            print: false,
+            pagination: false,
+            selectableRows: 'muliple',
+            selectableRowsHideCheckboxes: true,
+            selectableRowsOnClick: true,
+            selectToolbarPlacement: 'none',
+            responsive: 'simple',
+            onRowSelectionChange: onSelectionChange,
+            setTableProps: () => {
+              return {
+                padding: 'none',
+                size: 'small',
+              };
+            },
+          }}
+        />
         <ExportDialog
           open={exportDialog}
           handleClose={onCloseExportDialog}
