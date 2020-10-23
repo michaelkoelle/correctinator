@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MenuItem, remote, shell } from 'electron';
 import TitleBar from 'frameless-titlebar';
+import ReleaseNotes from '../components/ReleaseNotes';
 
 const { version } = require('../package.json');
 
@@ -9,7 +10,16 @@ const currentWindow = remote.getCurrentWindow();
 export default function FramelessTitleBar(props: any) {
   // manage window state, default to currentWindow maximized state
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
+  const [versionInfo, setVersionInfo] = useState({
+    releaseNotes: '',
+    releaseName: '',
+  });
+  const [open, setOpen] = useState(false);
   const { theme } = props;
+
+  function onCloseReleaseNotes() {
+    setOpen(false);
+  }
 
   // add window listeners for currentWindow
   useEffect(() => {
@@ -122,6 +132,17 @@ export default function FramelessTitleBar(props: any) {
           },
         },
         {
+          label: 'View Release Notes',
+          async click() {
+            const info = await remote
+              .require('electron-updater')
+              .autoUpdater.checkForUpdates();
+            console.log(info.versionInfo);
+            setVersionInfo(info.versionInfo);
+            setOpen(true);
+          },
+        },
+        {
           label: 'Documentation',
           click() {
             shell.openExternal(
@@ -177,6 +198,12 @@ export default function FramelessTitleBar(props: any) {
       >
         {/* custom titlebar items */}
       </TitleBar>
+      <ReleaseNotes
+        open={open}
+        title={versionInfo?.releaseName}
+        releaseNotes={versionInfo?.releaseNotes}
+        handleClose={onCloseReleaseNotes}
+      />
     </div>
   );
 }
