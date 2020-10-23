@@ -11,15 +11,54 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 
 export default class AppUpdater {
-  constructor() {
+  constructor(mainWindow) {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
+
+    /*
+    autoUpdater.on('error', (error: { stack: any } | null) => {
+      dialog.showErrorBox(
+        'Error: ',
+        error == null ? 'unknown' : (error.stack || error).toString()
+      );
+    });
+
+    autoUpdater.on('update-available', async () => {
+      const { response } = await dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Found Updates',
+        message: 'Found updates, do you want update now?',
+        buttons: ['Yes', 'No'],
+      });
+
+      if (response === 0) {
+        autoUpdater.downloadUpdate();
+      }
+    });
+
+    autoUpdater.on('update-not-available', () => {
+      dialog.showMessageBox({
+        title: 'No Updates',
+        message: 'Current version is up-to-date.',
+      });
+    });
+
+    autoUpdater.on('update-downloaded', async () => {
+      const { response } = await dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Install Updates',
+        message: 'Update downloaded, application will be quit for update...',
+      });
+      setImmediate(() => autoUpdater.quitAndInstall());
+    });
+  */
+
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
@@ -112,7 +151,7 @@ const createWindow = async () => {
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
-  new AppUpdater();
+  new AppUpdater(mainWindow);
 };
 
 /**
