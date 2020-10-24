@@ -1,4 +1,12 @@
-import { Tabs, Tab, makeStyles, IconButton, Grid } from '@material-ui/core';
+import {
+  Tabs,
+  Tab,
+  makeStyles,
+  IconButton,
+  Grid,
+  Paper,
+  Box,
+} from '@material-ui/core';
 import React, { useEffect } from 'react';
 import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -74,14 +82,17 @@ export default function Home(): JSX.Element {
     <Grid container wrap="nowrap" style={{ height: '100%' }}>
       <TabContext value={tab.toString()}>
         <Grid item>
-          <div
+          <Paper
             style={{
               display: 'flex',
               flexDirection: 'column',
               height: 'calc(100% - 29px)',
               boxShadow: '1px 2px 5px 0px rgba(0,0,0,0.2)',
               width: 'fit-content',
+              position: 'relative',
+              zIndex: 9998,
             }}
+            square
           >
             <Tabs
               orientation="vertical"
@@ -139,7 +150,7 @@ export default function Home(): JSX.Element {
             >
               <SettingsIcon />
             </IconButton>
-          </div>
+          </Paper>
         </Grid>
         <Grid
           item
@@ -187,6 +198,8 @@ export default function Home(): JSX.Element {
                 isSubmissionFromSheet(s, sheetToCorrect)
               )}
               setCorrections={setCorrections}
+              sheets={sheets}
+              setSheetToCorrect={setSheetToCorrect}
             />
           </TabPanel>
         </Grid>

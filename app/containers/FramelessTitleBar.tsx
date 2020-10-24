@@ -134,12 +134,11 @@ export default function FramelessTitleBar(props: any) {
         {
           label: 'View Release Notes',
           async click() {
+            setOpen(true);
             const info = await remote
               .require('electron-updater')
               .autoUpdater.checkForUpdates();
-            console.log(info.versionInfo);
             setVersionInfo(info.versionInfo);
-            setOpen(true);
           },
         },
         {
@@ -163,7 +162,22 @@ export default function FramelessTitleBar(props: any) {
   ];
 
   return (
-    <div>
+    <div
+      style={{
+        position: 'relative',
+        zIndex: 9999,
+      }}
+    >
+      <div
+        style={{
+          position: 'fixed',
+          left: '60px',
+          width: 'calc(100% - 40px)',
+          height: '28px',
+          boxShadow: '2px 0px 5px 0px rgba(0,0,0,0.2)',
+          zIndex: -9999,
+        }}
+      />
       <TitleBar
         iconSrc="../resources/icon.ico" // app icon
         currentWindow={currentWindow} // electron window instance
@@ -172,7 +186,7 @@ export default function FramelessTitleBar(props: any) {
         theme={{
           bar: {
             color: theme.palette.text.primary,
-            background: theme.palette.background.default,
+            background: theme.palette.background.paper,
             borderBottom: 'none',
           },
           ...theme,
