@@ -19,7 +19,7 @@ import TaskCorrectionList from './TaskCorrectionList';
 import { sumParam } from '../../utils/FileAccess';
 
 export default function TaskCorrection(props: any) {
-  const { setTaskParent, task, submissions, setTask, setTasks } = props;
+  const { correction, task, corrections, setTask, setTasks } = props;
   const [expanded, setExpanded] = React.useState(true);
 
   function getCommentsForTask(tsk, subs, comments: string[] = []) {
@@ -99,7 +99,7 @@ export default function TaskCorrection(props: any) {
                   <Typography>{sumMax}</Typography>
                 </Grid>
                 <Grid item>
-                  <Typography>{task.type}</Typography>
+                  <Typography>{correction.sheet.grading.type}</Typography>
                 </Grid>
                 <Grid item>
                   <IconButton
@@ -115,7 +115,8 @@ export default function TaskCorrection(props: any) {
           </Grid>
           <Collapse in={expanded} timeout="auto" unmountOnExit>
             <TaskCorrectionList
-              submissions={submissions}
+              correction={correction}
+              submissions={corrections}
               setTaskParent={setTask}
               tasks={task?.tasks}
               setTasks={setTasks}
@@ -171,14 +172,14 @@ export default function TaskCorrection(props: any) {
                 <Typography>{task.max}</Typography>
               </Grid>
               <Grid item>
-                <Typography>{task.type}</Typography>
+                <Typography>{correction.sheet.grading.type}</Typography>
               </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>
             <Autocomplete
               id="combo-box-demo"
-              options={[...new Set(getCommentsForTask(task, submissions))]}
+              options={[...new Set(getCommentsForTask(task, corrections))]}
               freeSolo
               value={task.comment}
               onChange={onChangeComment}

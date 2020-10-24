@@ -200,6 +200,7 @@ export default function Home(): JSX.Element {
               )}
               setCorrections={setCorrections}
               sheets={sheets}
+              sheetToCorrect={sheetToCorrect}
               setSheetToCorrect={setSheetToCorrect}
             />
           </TabPanel>

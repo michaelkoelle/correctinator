@@ -271,7 +271,7 @@ function wordWrap(long_string, max_char, depth) {
 export function sumParam(tasks: any, param: string): any {
   let sum = 0;
   tasks?.forEach((t: any) => {
-    if (t.tasks.length > 0) {
+    if (t?.tasks?.length > 0) {
       sum += Number.parseFloat(sumParam(t.tasks, param));
     } else {
       sum += Number.parseFloat(t[param]);
@@ -403,6 +403,18 @@ export function exportCorrections(
   });
 
   archive.finalize();
+}
+
+export function hasTasksWithZeroMax(tasks: any[]): boolean {
+  let zeroMax = false;
+  tasks?.forEach((t) => {
+    if (t?.tasks?.length > 0) {
+      zeroMax = hasTasksWithZeroMax(t.tasks) ? true : zeroMax;
+    } else if (t.max <= 0) {
+      zeroMax = true;
+    }
+  });
+  return zeroMax;
 }
 
 export function isSubmissionFromSheet(s, sheet) {

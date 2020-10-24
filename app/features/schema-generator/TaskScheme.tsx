@@ -15,10 +15,10 @@ import {
   OutlinedInput,
 } from '@material-ui/core';
 import styles from './TaskScheme.css';
-import { sumParam } from '../../utils/FileAccess';
+import { hasTasksWithZeroMax, sumParam } from '../../utils/FileAccess';
 
 export default function TaskScheme(props: any) {
-  const { task, setTask, selected, setSelected, depth } = props;
+  const { task, setTask, selected, setSelected, depth, type } = props;
   const [expanded, setExpanded] = React.useState(false);
   const INDENT_SIZE = 25;
 
@@ -45,7 +45,7 @@ export default function TaskScheme(props: any) {
 
   const marginLeft = `${depth * INDENT_SIZE}pt`;
 
-  if (task.tasks.length > 0) {
+  if (task?.tasks?.length > 0) {
     const sumMax = sumParam(task.tasks, 'max');
     const sumValue = sumParam(task.tasks, 'value');
 
@@ -75,13 +75,14 @@ export default function TaskScheme(props: any) {
           label="Inital"
           id="value"
           name="value"
-          style={{ width: `${task.type.length * 0.6 + 5}em` }}
+          style={{ width: `${type.length * 0.6 + 6}em` }}
           type="number"
           value={sumValue}
           className={styles.fields}
           InputProps={{
+            readOnly: true,
             endAdornment: (
-              <InputAdornment position="end">{task.type}</InputAdornment>
+              <InputAdornment position="end">{type}</InputAdornment>
             ),
           }}
           inputProps={{
@@ -92,26 +93,26 @@ export default function TaskScheme(props: any) {
           onChange={handleChange}
           size="small"
           variant="outlined"
-          disabled
         />
         <TextField
           label="Max"
           id="max"
           name="max"
-          style={{ width: `${task.type.length * 0.6 + 5}em` }}
+          style={{ width: `${type.length * 0.6 + 6}em` }}
           type="number"
           className={styles.fields}
           value={sumMax}
           InputProps={{
+            readOnly: true,
             endAdornment: (
-              <InputAdornment position="end">{task.type}</InputAdornment>
+              <InputAdornment position="end">{type}</InputAdornment>
             ),
           }}
           inputProps={{ min: 0, step: task.step }}
           onChange={handleChange}
           size="small"
           variant="outlined"
-          disabled
+          error={hasTasksWithZeroMax([task])}
         />
       </Card>
     );
@@ -143,14 +144,12 @@ export default function TaskScheme(props: any) {
         label="Inital"
         id="value"
         name="value"
-        style={{ width: `${task.type.length * 0.6 + 5}em` }}
+        style={{ width: `${type.length * 0.6 + 6}em` }}
         type="number"
         value={task.value}
         className={styles.fields}
         InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">{task.type}</InputAdornment>
-          ),
+          endAdornment: <InputAdornment position="end">{type}</InputAdornment>,
         }}
         inputProps={{ min: 0, max: task.max, step: task.step }}
         onChange={handleChange}
@@ -161,19 +160,18 @@ export default function TaskScheme(props: any) {
         label="Max"
         id="max"
         name="max"
-        style={{ width: `${task.type.length * 0.6 + 5}em` }}
+        style={{ width: `${type.length * 0.6 + 6}em` }}
         type="number"
         value={task.max}
         className={styles.fields}
         InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">{task.type}</InputAdornment>
-          ),
+          endAdornment: <InputAdornment position="end">{type}</InputAdornment>,
         }}
         inputProps={{ min: 0, step: task.step }}
         onChange={handleChange}
         size="small"
         variant="outlined"
+        error={task.max <= 0}
       />
       <IconButton
         onClick={handleExpandClick}
@@ -205,10 +203,12 @@ export default function TaskScheme(props: any) {
           name="type"
           className={styles.fields}
           // style={{ width: '5em' }}
-          value={task.type}
-          onChange={handleChange}
+          value={type}
           variant="outlined"
           size="small"
+          InputProps={{
+            readOnly: true,
+          }}
         />
         <TextField
           id="comment"

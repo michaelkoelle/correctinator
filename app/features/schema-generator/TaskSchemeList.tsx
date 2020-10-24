@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import TaskScheme from './TaskScheme';
 
 export default function TaskSchemeList(props: any) {
-  const { tasks, setTasks, selectedTask, setSelected } = props;
+  const { tasks, setTasks, selectedTask, setSelected, type } = props;
 
   const tasksToRender: any[] = [];
 
@@ -33,6 +33,7 @@ export default function TaskSchemeList(props: any) {
           selected={selectedTask.id === task.id}
           setSelected={setSelected}
           depth={depth}
+          type={type}
         />
       );
       generateTemplates(task.tasks, depth + 1);

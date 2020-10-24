@@ -1,26 +1,39 @@
+/* eslint-disable react/jsx-no-duplicate-props */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
 import AceEditor from 'react-ace';
 import YAML from 'yaml';
+import AssignmentIcon from '@material-ui/icons/Assignment';
 import {
   Button,
   ButtonGroup,
   Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
   DialogTitle,
+  FormControl,
   Grid,
+  IconButton,
+  InputLabel,
   List,
   ListItem,
   ListItemText,
+  MenuItem,
   Paper,
+  Select,
+  TextField,
   Typography,
 } from '@material-ui/core';
 
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
-import { remote } from 'electron';
+import { clipboard, remote } from 'electron';
 import TaskSchemeList from './TaskSchemeList';
 import {
+  getSubmissionsOfSheet,
+  hasTasksWithZeroMax,
   isSubmissionFromSheet,
   saveSubmissions,
   sumParam,
@@ -34,17 +47,57 @@ export default function SchemeGenerator(props: any) {
   const [, setOpen] = useState(false) as any;
   const [openDialog, setOpenDialog] = useState(false) as any;
   const [, setMessage] = useState('Test Message') as any;
+  const [selectedSheet, setSelectedSheet] = useState('custom') as any;
+  const [type, setType] = useState('points') as any;
+  const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
+  const [schemaString, setSchemaString] = useState('');
 
   const defaultTask = {
     id: taskCounter,
     name: `Task ${taskCounter + 1}`,
     max: '0',
     value: '0',
-    type: 'points',
     step: '0.5',
     comment: '',
     tasks: [],
   };
+
+  function onSelectSheet(event) {
+    setSelectedSheet(event.target.value);
+  }
+
+  function onTypeChange(event) {
+    setType(event.target.value);
+  }
+
+  function onOverwriteSchema() {
+    setOpenConfirmDialog(true);
+  }
+
+  function onCloseConfirmDialog() {
+    setOpenConfirmDialog(false);
+  }
+
+  function onAssignSchema() {
+    setOpenConfirmDialog(false);
+    const temp: any[] = [];
+    submissions.forEach((sub) => {
+      if (isSubmissionFromSheet(sub, selectedSheet)) {
+        const subT = { ...sub };
+        subT.tasks = schema;
+        subT.points = sumParam(schema, 'value');
+        temp.push(subT);
+      } else {
+        temp.push(sub);
+      }
+    });
+    saveSubmissions(temp);
+    reload();
+  }
+
+  function onCopyToClipboard() {
+    clipboard.writeText(YAML.stringify(schema));
+  }
 
   function addTask(task: any, parent: any) {
     const duplicates = parent?.filter((t: any) => t.name === task.name);
@@ -54,13 +107,16 @@ export default function SchemeGenerator(props: any) {
     if (parent) {
       parent.tasks.push(task);
       setSchema(schema);
+      setSchemaString(YAML.stringify(schema));
     } else {
       setSchema((old: any) => [...old, task]);
+      setSchemaString(YAML.stringify([...schema, task]));
     }
   }
 
   function setTasks(tasks: any) {
     setSchema(tasks);
+    setSchemaString(YAML.stringify(tasks));
   }
 
   function onAddTask() {
@@ -75,6 +131,8 @@ export default function SchemeGenerator(props: any) {
 
   function clearAllTasks() {
     setSchema([]);
+    setSchemaString('');
+    setSelected({});
     console.log('All tasks cleared!');
   }
 
@@ -103,7 +161,6 @@ export default function SchemeGenerator(props: any) {
             ...parent,
             max: '0',
             value: '0',
-            type: 'points',
             step: '0.5',
             comment: '',
           });
@@ -119,6 +176,8 @@ export default function SchemeGenerator(props: any) {
     const temp = [...schema];
     deleteTask(temp, selected, null, temp);
     setSchema(temp);
+    setSchemaString(YAML.stringify(temp));
+    setSelected({});
   }
 
   function onAddSubTask() {
@@ -133,16 +192,20 @@ export default function SchemeGenerator(props: any) {
     const temp = [...schema];
     updateTask(temp, tempTask);
     setSchema(temp);
+    setSchemaString(YAML.stringify(temp));
   }
 
   function onChange(newValue: any) {
-    console.log('change', newValue);
-    try {
-      const tasks = YAML.parse(newValue);
-      setSchema(tasks);
-    } catch (error) {
-      console.log('YAML Parse Error');
+    if (newValue !== null) {
+      try {
+        const tasks = YAML.parse(newValue);
+        setSchema(tasks);
+      } catch (error) {
+        console.log('YAML Parse Error');
+        setSchema([]);
+      }
     }
+    setSchemaString(newValue);
   }
 
   const handleCloseDialog = () => {
@@ -193,19 +256,11 @@ export default function SchemeGenerator(props: any) {
         alignItems="center"
         spacing={2}
       >
-        <Grid item style={{ marginLeft: '10px' }}>
+        <Grid item style={{ margin: '0px 16px' }}>
           <Typography variant="h3">schema generator</Typography>
         </Grid>
-        <Grid item style={{ marginLeft: '10px' }}>
-          <Typography variant="h6" display="inline">
-            {`total: ${sumParam(schema, 'value')}/${sumParam(
-              schema,
-              'max'
-            )} points`}
-          </Typography>
-        </Grid>
-        <Grid item style={{ marginRight: '10px' }}>
-          <ButtonGroup size="small" aria-label="small outlined button group">
+        <Grid item style={{ margin: '0px 16px' }}>
+          <ButtonGroup size="small">
             <Button type="button" onClick={onAddTask}>
               Add Task
             </Button>
@@ -219,7 +274,14 @@ export default function SchemeGenerator(props: any) {
             >
               Add subtask
             </Button>
-            <Button type="button" onClick={onDeleteSelected}>
+            <Button
+              type="button"
+              onClick={onDeleteSelected}
+              disabled={
+                Object.keys(selected).length === 0 &&
+                selected.constructor === Object
+              }
+            >
               Delete selected task
             </Button>
             <Button type="button" onClick={clearAllTasks}>
@@ -237,24 +299,238 @@ export default function SchemeGenerator(props: any) {
         wrap="nowrap"
         style={{ flex: '1 1 0%', height: '0px' }}
       >
-        <Grid item xs={8} style={{ flex: '1 1 0%', marginRight: '16px' }}>
-          <Paper
-            elevation={3}
+        <Grid
+          item
+          container
+          direction="column"
+          xs={8}
+          style={{
+            flex: '1 1 0%',
+            marginRight: '16px',
+          }}
+        >
+          <Grid
+            item
             style={{
-              flex: '1 1 0%',
-              height: '0px',
-              minHeight: 'calc(100%)',
-              overflow: 'auto',
-              padding: '16px',
+              marginBottom: '8px',
             }}
           >
-            <TaskSchemeList
-              tasks={schema}
-              setTasks={setTasks}
-              selectedTask={selected}
-              setSelected={setSelected}
-            />
-          </Paper>
+            <Paper
+              elevation={3}
+              style={{
+                padding: '16px',
+              }}
+            >
+              <Grid
+                container
+                direction="column"
+                justify="center"
+                alignItems="center"
+                spacing={2}
+              >
+                <Grid
+                  item
+                  container
+                  justify="space-between"
+                  // wrap="nowrap"
+                  alignItems="center"
+                  spacing={2}
+                >
+                  <Grid item>
+                    <FormControl size="small" variant="outlined">
+                      <InputLabel id="sheet-select-label">
+                        Schema for
+                      </InputLabel>
+                      <Select
+                        labelId="sheet-select-label"
+                        label="Schema for"
+                        value={selectedSheet}
+                        onChange={onSelectSheet}
+                      >
+                        <MenuItem value="custom">Custom shema</MenuItem>
+                        {sheets.map((s) => (
+                          <MenuItem
+                            key={
+                              s.sheet.name +
+                              s.school +
+                              s.course +
+                              s.term +
+                              s.rated_by
+                            }
+                            value={s}
+                          >
+                            {s.sheet.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      variant="outlined"
+                      type="number"
+                      label="Value"
+                      size="small"
+                      style={{ width: '6em' }}
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                      inputProps={{
+                        min: 0,
+                        step: 0.5,
+                      }}
+                      value={sumParam(schema, 'value')}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      variant="outlined"
+                      type="number"
+                      label="Max"
+                      size="small"
+                      style={{ width: '6em' }}
+                      InputProps={{
+                        readOnly: true,
+                      }}
+                      inputProps={{
+                        min: 0,
+                        step: 0.5,
+                      }}
+                      value={
+                        selectedSheet?.sheet?.grading?.max ||
+                        sumParam(schema, 'max')
+                      }
+                      error={
+                        (typeof selectedSheet !== 'string' &&
+                          (sumParam(schema, 'max') !==
+                            selectedSheet?.sheet?.grading?.max ||
+                            hasTasksWithZeroMax(schema) ||
+                            sumParam(schema, 'max') <= 0)) ||
+                        (typeof selectedSheet === 'string' &&
+                          (hasTasksWithZeroMax(schema) ||
+                            sumParam(schema, 'max') <= 0))
+                      }
+                    />
+                  </Grid>
+                  <Grid item>
+                    <TextField
+                      variant="outlined"
+                      label="Type"
+                      size="small"
+                      value={selectedSheet?.sheet?.grading?.type || type}
+                      onChange={onTypeChange}
+                      InputProps={{
+                        readOnly: typeof selectedSheet !== 'string',
+                      }}
+                      style={{ width: '110px' }}
+                    />
+                  </Grid>
+                  {typeof selectedSheet !== 'string' && (
+                    <Grid item>
+                      <Button
+                        onClick={
+                          getSubmissionsOfSheet(selectedSheet).filter(
+                            (s) => s?.tasks?.length > 0
+                          ).length > 0
+                            ? onOverwriteSchema
+                            : onAssignSchema
+                        }
+                        disabled={
+                          sumParam(schema, 'max') !==
+                            selectedSheet?.sheet?.grading?.max ||
+                          hasTasksWithZeroMax(schema) ||
+                          sumParam(schema, 'max') <= 0
+                        }
+                      >
+                        {getSubmissionsOfSheet(selectedSheet).filter(
+                          (s) => s?.tasks?.length > 0
+                        ).length > 0
+                          ? 'Overwrite'
+                          : 'Assign'}
+                      </Button>
+                    </Grid>
+                  )}
+                  <Grid item>
+                    <IconButton
+                      onClick={onCopyToClipboard}
+                      disabled={
+                        hasTasksWithZeroMax(schema) ||
+                        sumParam(schema, 'max') <= 0
+                      }
+                      size="small"
+                    >
+                      <AssignmentIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+
+                {typeof selectedSheet !== 'string' &&
+                  selectedSheet?.sheet?.grading?.max -
+                    sumParam(schema, 'max') !==
+                    0 && (
+                    <Grid
+                      item
+                      container
+                      xs={12}
+                      justify="center"
+                      alignItems="center"
+                    >
+                      <Grid item>
+                        <Typography color="error">
+                          {`${Math.abs(
+                            selectedSheet?.sheet?.grading?.max -
+                              sumParam(schema, 'max')
+                          )} ${selectedSheet?.sheet?.grading?.type || type} ${
+                            selectedSheet?.sheet?.grading?.max -
+                              sumParam(schema, 'max') <
+                            0
+                              ? 'too much'
+                              : 'remaining'
+                          }`}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  )}
+                {hasTasksWithZeroMax(schema) && (
+                  <Grid
+                    item
+                    container
+                    xs={12}
+                    justify="center"
+                    alignItems="center"
+                  >
+                    <Grid item>
+                      <Typography color="error">
+                        {`Some of the tasks have zero max ${
+                          selectedSheet?.sheet?.grading?.type || type
+                        }`}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                )}
+              </Grid>
+            </Paper>
+          </Grid>
+          <Grid item style={{ flex: '1 1 0%' }}>
+            <Paper
+              elevation={3}
+              style={{
+                flex: '1 1 0%',
+                height: '0px',
+                minHeight: 'calc(100%)',
+                overflow: 'auto',
+                padding: '16px',
+              }}
+            >
+              <TaskSchemeList
+                tasks={schema}
+                setTasks={setTasks}
+                selectedTask={selected}
+                setSelected={setSelected}
+                type={selectedSheet?.sheet?.grading?.type || type}
+              />
+            </Paper>
+          </Grid>
         </Grid>
         <Grid item xs={4} style={{ flex: '1 1 0%', marginRight: '16px' }}>
           <Paper
@@ -274,7 +550,7 @@ export default function SchemeGenerator(props: any) {
               width="100%"
               height="100%"
               maxLines={Infinity}
-              value={YAML.stringify(schema)}
+              value={schemaString}
               onChange={onChange}
               name="editor"
               editorProps={{ $blockScrolling: true }}
@@ -309,6 +585,23 @@ export default function SchemeGenerator(props: any) {
               </ListItem>
             ))}
         </List>
+      </Dialog>
+      <Dialog open={openConfirmDialog} onClose={onCloseConfirmDialog}>
+        <DialogTitle>Are you sure?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {`Are you sure you want to assign this schema to the sheet "${selectedSheet?.sheet?.name}"?
+            All progress will be lost!`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onAssignSchema} color="primary" autoFocus>
+            Yes
+          </Button>
+          <Button onClick={onCloseConfirmDialog} color="primary">
+            No
+          </Button>
+        </DialogActions>
       </Dialog>
     </Grid>
   );

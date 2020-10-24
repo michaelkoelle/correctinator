@@ -24,7 +24,7 @@ import CorrectionOverview from './CorrectionOverview';
 import TaskView from './TaskView';
 
 export default function CorrectionView(props: any) {
-  const { corrections = [], setCorrections, index, setIndex } = props;
+  const { corrections = [], setCorrections, index, setIndex, sheet } = props;
   const [open, setOpen] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
 
@@ -116,7 +116,8 @@ export default function CorrectionView(props: any) {
         <Grid item xs={12} />
       </Grid>
       <TaskView
-        submissions={corrections}
+        corrections={corrections}
+        correction={corrections[index]}
         tasks={corrections[index]?.tasks}
         setTasks={setTasks}
       />
