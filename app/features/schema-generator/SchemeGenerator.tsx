@@ -40,7 +40,7 @@ import {
 } from '../../utils/FileAccess';
 
 export default function SchemeGenerator(props: any) {
-  const { sheets, submissions, reload } = props;
+  const { sheets, submissions, reload, setTab, setSheetToCorrect } = props;
   const [schema, setSchema] = useState([]) as any;
   const [taskCounter, setTaskCounter] = useState(0) as any;
   const [selected, setSelected] = useState({}) as any;
@@ -51,6 +51,10 @@ export default function SchemeGenerator(props: any) {
   const [type, setType] = useState('points') as any;
   const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
   const [schemaString, setSchemaString] = useState('');
+  const [
+    openStartCorrectionDialog,
+    setOpenStartCorrectionDialog,
+  ] = React.useState(false);
 
   const defaultTask = {
     id: taskCounter,
@@ -78,6 +82,17 @@ export default function SchemeGenerator(props: any) {
     setOpenConfirmDialog(false);
   }
 
+  function onCloseStartCorrectionDialog() {
+    setOpenStartCorrectionDialog(false);
+  }
+
+  function onStartCorrection() {
+    if (selectedSheet !== '' && selectedSheet !== undefined) {
+      setSheetToCorrect(selectedSheet);
+      setTab(3);
+    }
+  }
+
   function onAssignSchema() {
     setOpenConfirmDialog(false);
     const temp: any[] = [];
@@ -93,6 +108,7 @@ export default function SchemeGenerator(props: any) {
     });
     saveSubmissions(temp);
     reload();
+    setOpenStartCorrectionDialog(true);
   }
 
   function onCopyToClipboard() {
@@ -599,6 +615,25 @@ export default function SchemeGenerator(props: any) {
             Yes
           </Button>
           <Button onClick={onCloseConfirmDialog} color="primary">
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={openStartCorrectionDialog}
+        onClose={onCloseStartCorrectionDialog}
+      >
+        <DialogTitle>Start correcting?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {`Are you want to start correcting the sheet "${selectedSheet?.sheet?.name}" now?`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onStartCorrection} color="primary" autoFocus>
+            Yes
+          </Button>
+          <Button onClick={onCloseStartCorrectionDialog} color="primary">
             No
           </Button>
         </DialogActions>

@@ -188,6 +188,8 @@ export default function Home(): JSX.Element {
               schemaSheet={schemaSheet}
               submissions={submissions}
               setSubmissions={setSubmissions}
+              setTab={setTab}
+              setSheetToCorrect={setSheetToCorrect}
             />
           </TabPanel>
           <TabPanel
