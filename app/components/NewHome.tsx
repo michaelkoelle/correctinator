@@ -97,6 +97,7 @@ export default function Home(): JSX.Element {
             <Tabs
               orientation="vertical"
               variant="standard"
+              indicatorColor="primary"
               value={tab}
               onChange={handleChange}
               classes={{
