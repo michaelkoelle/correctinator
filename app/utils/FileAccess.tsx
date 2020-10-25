@@ -189,7 +189,9 @@ export function getSubmissionFromAppDataDir(dir: string) {
 
 export function saveSubmission(submission) {
   const config = YAML.stringify(submission);
-  fs.writeFileSync(submission.path, `${config}...\n`);
+  if (submission.path) {
+    fs.writeFileSync(submission.path, `${config}...\n`);
+  }
 }
 
 export function saveSubmissions(submissions: any[]) {
