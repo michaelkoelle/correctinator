@@ -40,14 +40,23 @@ import {
 } from '../../utils/FileAccess';
 
 export default function SchemeGenerator(props: any) {
-  const { sheets, submissions, reload, setTab, setSheetToCorrect } = props;
+  const {
+    sheets,
+    submissions,
+    reload,
+    setTab,
+    setSheetToCorrect,
+    schemaSheet,
+  } = props;
   const [schema, setSchema] = useState([]) as any;
   const [taskCounter, setTaskCounter] = useState(0) as any;
   const [selected, setSelected] = useState({}) as any;
   const [, setOpen] = useState(false) as any;
   const [openDialog, setOpenDialog] = useState(false) as any;
   const [, setMessage] = useState('Test Message') as any;
-  const [selectedSheet, setSelectedSheet] = useState('custom') as any;
+  const [selectedSheet, setSelectedSheet] = useState(
+    schemaSheet || 'custom'
+  ) as any;
   const [type, setType] = useState('points') as any;
   const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
   const [schemaString, setSchemaString] = useState('');
