@@ -55,7 +55,7 @@ export default function SchemeGenerator(props: any) {
   const [openDialog, setOpenDialog] = useState(false) as any;
   const [, setMessage] = useState('Test Message') as any;
   const [selectedSheet, setSelectedSheet] = useState(
-    schemaSheet || 'custom'
+    'custom' || schemaSheet
   ) as any;
   const [type, setType] = useState('points') as any;
   const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
