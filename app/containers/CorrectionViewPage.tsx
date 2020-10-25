@@ -7,7 +7,7 @@ import {
   ListItem,
   ListItemText,
 } from '@material-ui/core';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SplitPane from 'react-split-pane';
 import CorrectionView from '../features/correction/CorrectionView';
 import MediaViewer from '../features/correction/MediaViewer';

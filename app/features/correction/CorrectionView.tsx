@@ -10,8 +10,10 @@ import {
   Typography,
 } from '@material-ui/core';
 import { remote } from 'electron';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ExportDialog from '../../components/ExportDialog';
+import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
+import TimeRemaining from '../../components/TimeRemaining';
 import Status from '../../model/Status';
 import {
   exportCorrections,
@@ -27,6 +29,7 @@ export default function CorrectionView(props: any) {
   const { corrections = [], setCorrections, index, setIndex, sheet } = props;
   const [open, setOpen] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
+  const [timeStart, setTimeStart] = useState<Date>(new Date());
 
   function onExport() {
     setOpen(false);
@@ -41,12 +44,43 @@ export default function CorrectionView(props: any) {
     setOpenExportDialog(false);
   }
 
-  function setCorrection(correction) {
+  function setCorrection(correction, i = index) {
     const temps = [...corrections];
-    temps[index] = correction;
+    temps[i] = correction;
     setCorrections(temps);
     saveSubmissions(temps);
   }
+
+  function saveTimeElapsed(start) {
+    const timeEnd = new Date();
+    if (start) {
+      console.log(`saveStartTime: ${start}`);
+      console.log(`saveEndTime: ${timeEnd}`);
+      const diff = timeEnd.getTime() - start?.getTime();
+      console.log(diff);
+      let temp = { ...corrections[index] };
+      if (temp) {
+        if (temp.timeElapsed) {
+          temp.timeElapsed += diff;
+        } else {
+          temp = {
+            ...temp,
+            timeElapsed: diff,
+          };
+        }
+        setCorrection(temp, index);
+      }
+    }
+  }
+
+  useEffect(() => {
+    const now = new Date();
+    console.log(`set new date: ${now}`);
+    setTimeStart(now);
+    return () => {
+      saveTimeElapsed(now);
+    };
+  }, [index]);
 
   function setTasks(tasks: any) {
     const temps = [...corrections];
@@ -84,9 +118,6 @@ export default function CorrectionView(props: any) {
     // TODO: save and update submission
     if (index > 0) {
       setIndex(index - 1);
-    } else {
-      // TODO:
-      // Reached the first one
     }
   }
 
@@ -106,6 +137,15 @@ export default function CorrectionView(props: any) {
               corrections?.length
             }`}
           </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <TimeElapsedDisplay
+            start={timeStart}
+            elapsed={corrections[index]?.timeElapsed}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TimeRemaining corrections={corrections} />
         </Grid>
         <Grid item xs={12}>
           <CorrectionOverview
