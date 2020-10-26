@@ -38,7 +38,7 @@ export default function Home(): JSX.Element {
   const [submissions, setSubmissions] = React.useState([]) as any;
   const [sheetToCorrect, setSheetToCorrect] = React.useState({}) as any;
   const [sheets, setSheets] = React.useState([]) as any;
-  const [schemaSheet, setSchemaSheet] = React.useState({}) as any;
+  const [schemaSheet, setSchemaSheet] = React.useState(undefined) as any;
   const classes = useStyle();
 
   const handleChange = (
