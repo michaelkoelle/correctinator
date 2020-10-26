@@ -6,27 +6,20 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
-  Paper,
   Typography,
 } from '@material-ui/core';
-import { remote } from 'electron';
 import React, { useEffect, useState } from 'react';
 import ExportDialog from '../../components/ExportDialog';
 import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import TimeRemaining from '../../components/TimeRemaining';
 import Status from '../../model/Status';
-import {
-  exportCorrections,
-  getUniqueSheets,
-  saveSubmissions,
-  sumParam,
-} from '../../utils/FileAccess';
+import { saveSubmissions, sumParam } from '../../utils/FileAccess';
 import CorrectionComment from './CorrectionComment';
 import CorrectionOverview from './CorrectionOverview';
 import TaskView from './TaskView';
 
 export default function CorrectionView(props: any) {
-  const { corrections = [], setCorrections, index, setIndex, sheet } = props;
+  const { corrections = [], setCorrections, index, setIndex } = props;
   const [open, setOpen] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
   const [timeStart, setTimeStart] = useState<Date>(new Date());
@@ -44,20 +37,17 @@ export default function CorrectionView(props: any) {
     setOpenExportDialog(false);
   }
 
-  function setCorrection(correction, i = index) {
+  function setCorrection(correction) {
     const temps = [...corrections];
-    temps[i] = correction;
+    temps[index] = correction;
     setCorrections(temps);
     saveSubmissions(temps);
   }
 
-  function saveTimeElapsed(start) {
+  function saveTimeElapsed() {
     const timeEnd = new Date();
-    if (start) {
-      console.log(`saveStartTime: ${start}`);
-      console.log(`saveEndTime: ${timeEnd}`);
-      const diff = timeEnd.getTime() - start?.getTime();
-      console.log(diff);
+    if (timeStart) {
+      const diff = timeEnd.getTime() - timeStart?.getTime();
       let temp = { ...corrections[index] };
       if (temp) {
         if (temp.timeElapsed) {
@@ -68,19 +58,17 @@ export default function CorrectionView(props: any) {
             timeElapsed: diff,
           };
         }
-        setCorrection(temp, index);
+        setCorrection(temp);
       }
     }
   }
 
   useEffect(() => {
-    const now = new Date();
-    console.log(`set new date: ${now}`);
-    setTimeStart(now);
+    setTimeStart(new Date());
     return () => {
-      saveTimeElapsed(now);
+      saveTimeElapsed();
     };
-  }, [index]);
+  }, []);
 
   function setTasks(tasks: any) {
     const temps = [...corrections];
@@ -100,7 +88,9 @@ export default function CorrectionView(props: any) {
     setCorrections(temps);
     saveSubmissions(temps);
     if (index + 1 < corrections.length) {
+      saveTimeElapsed();
       setIndex(index + 1);
+      setTimeStart(new Date());
       // Check if really finished
     } else if (
       corrections.filter((s) => s.rating_done === false).length === 0
@@ -117,7 +107,9 @@ export default function CorrectionView(props: any) {
   function onPrevious() {
     // TODO: save and update submission
     if (index > 0) {
+      saveTimeElapsed();
       setIndex(index - 1);
+      setTimeStart(new Date());
     }
   }
 
