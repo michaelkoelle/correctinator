@@ -73,8 +73,6 @@ export default function SchemeGenerator(props: any) {
     false
   );
 
-  console.log(schemaSheet);
-
   const defaultTask = {
     id: taskCounter,
     name: `Task ${taskCounter + 1}`,
@@ -95,7 +93,6 @@ export default function SchemeGenerator(props: any) {
 
   function onSelectSheet(event) {
     setSelectValue(event.target.value);
-    console.log(getSheetFromValue(event.target.value));
     setSelectedSheet(getSheetFromValue(event.target.value));
   }
 
