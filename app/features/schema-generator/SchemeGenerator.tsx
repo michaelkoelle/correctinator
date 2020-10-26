@@ -493,16 +493,18 @@ export default function SchemeGenerator(props: any) {
                   )}
                   <Grid item>
                     <Tooltip title="Copy to clipboard">
-                      <IconButton
-                        onClick={onCopyToClipboard}
-                        disabled={
-                          hasTasksWithZeroMax(schema) ||
-                          sumParam(schema, 'max') <= 0
-                        }
-                        size="small"
-                      >
-                        <AssignmentIcon />
-                      </IconButton>
+                      <span>
+                        <IconButton
+                          onClick={onCopyToClipboard}
+                          disabled={
+                            hasTasksWithZeroMax(schema) ||
+                            sumParam(schema, 'max') <= 0
+                          }
+                          size="small"
+                        >
+                          <AssignmentIcon />
+                        </IconButton>
+                      </span>
                     </Tooltip>
                   </Grid>
                 </Grid>
@@ -517,6 +519,11 @@ export default function SchemeGenerator(props: any) {
                       xs={12}
                       justify="center"
                       alignItems="center"
+                      style={{
+                        paddingBottom: hasTasksWithZeroMax(schema)
+                          ? '0px'
+                          : '8px',
+                      }}
                     >
                       <Grid item>
                         <Typography color="error">
@@ -541,6 +548,15 @@ export default function SchemeGenerator(props: any) {
                     xs={12}
                     justify="center"
                     alignItems="center"
+                    style={{
+                      paddingTop:
+                        selectedSheet &&
+                        selectedSheet?.sheet?.grading?.max -
+                          sumParam(schema, 'max') !==
+                          0
+                          ? '0px'
+                          : '8px',
+                    }}
                   >
                     <Grid item>
                       <Typography color="error">
