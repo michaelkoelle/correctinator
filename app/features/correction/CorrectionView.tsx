@@ -8,6 +8,7 @@ import {
   DialogTitle,
   Grid,
   Paper,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
@@ -108,10 +109,35 @@ export default function CorrectionView(props: any) {
   }
 
   function onPrevious() {
-    // TODO: save and update submission
+    const temps = [...corrections];
+    if (temps[index].status !== Status.Marked) {
+      temps[index].rating_done = true;
+      temps[index].status = Status.Done;
+    }
+    setCorrections(temps);
+    saveSubmissions(temps);
+
     if (index > 0) {
       saveTimeElapsed();
       setIndex(index - 1);
+      setTimeStart(new Date());
+    }
+  }
+
+  function onNextOpen() {
+    // Rating done
+    const temps = [...corrections];
+    if (temps[index].status !== Status.Marked) {
+      temps[index].rating_done = true;
+      temps[index].status = Status.Done;
+    }
+    setCorrections(temps);
+    saveSubmissions(temps);
+    const nextOpen = corrections?.find((c) => !c?.rating_done);
+    if (nextOpen !== undefined) {
+      const i = corrections?.indexOf(nextOpen);
+      saveTimeElapsed();
+      setIndex(i);
       setTimeStart(new Date());
     }
   }
@@ -216,14 +242,33 @@ export default function CorrectionView(props: any) {
         style={{ padding: '10px' }}
       >
         <Grid item>
-          <Button color="primary" onClick={onPrevious}>
-            Previous
-          </Button>
+          <Tooltip title="Mark as done, save and go to the previous correction">
+            <Button color="primary" onClick={onPrevious} disabled={index === 0}>
+              {'< Previous'}
+            </Button>
+          </Tooltip>
         </Grid>
         <Grid item>
-          <Button color="primary" onClick={onCorrectionDone}>
-            Mark as done and save
-          </Button>
+          <Tooltip title="Mark as done, save and go to the next open correction">
+            <Button
+              color="primary"
+              onClick={onNextOpen}
+              disabled={corrections.find((c) => !c.rating_done) === undefined}
+            >
+              {'Next >>'}
+            </Button>
+          </Tooltip>
+        </Grid>
+        <Grid item>
+          <Tooltip title="Mark as done, save and go to the next correction">
+            <Button
+              color="primary"
+              onClick={onCorrectionDone}
+              // disabled={index === corrections.length - 1}
+            >
+              {'Next >'}
+            </Button>
+          </Tooltip>
         </Grid>
       </Grid>
       <Dialog open={open} onClose={onCloseDialog}>
