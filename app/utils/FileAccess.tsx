@@ -463,3 +463,8 @@ export function deleteSubmission(s: any) {
 export function deleteSheet(sheet: any) {
   getSubmissionsOfSheet(sheet).forEach((s) => deleteSubmission(s));
 }
+
+export function existsInAppDir(path: string): boolean {
+  const appPath = Path.join(getSubmissionDir(), Path.parse(path).base);
+  return fs.existsSync(appPath);
+}

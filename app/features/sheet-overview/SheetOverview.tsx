@@ -16,6 +16,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import React, { useEffect, useState } from 'react';
 import {
   createSubmissionFileStruture,
+  existsInAppDir,
   getAllFilesInDirectory,
   getAllRatingFiles,
   getAllSubmissionDirectories,
@@ -48,10 +49,9 @@ export default function SheetOverview(props: any) {
     const path: string = await openDirectory();
     setLoading(true);
     const submissionDirectories: string[] = getAllSubmissionDirectories(path);
-    const noConflict = submissionDirectories.filter((d) => !fs.existsSync(d));
+    const noConflict = submissionDirectories.filter((d) => !existsInAppDir(d));
+    const conflict = submissionDirectories.filter((d) => existsInAppDir(d));
     createFileStructures(noConflict);
-
-    const conflict = submissionDirectories.filter((d) => fs.existsSync(d));
     setLoading(false);
     if (conflict.length > 0) {
       setConflicts(conflict);
@@ -158,7 +158,12 @@ export default function SheetOverview(props: any) {
           >
             Yes
           </Button>
-          <Button onClick={() => setOpenOverwriteDialog(false)} color="primary">
+          <Button
+            onClick={() => {
+              setOpenOverwriteDialog(false);
+            }}
+            color="primary"
+          >
             No
           </Button>
         </DialogActions>

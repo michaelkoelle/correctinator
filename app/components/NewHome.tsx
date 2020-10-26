@@ -39,7 +39,6 @@ export default function Home(): JSX.Element {
   const [sheetToCorrect, setSheetToCorrect] = React.useState({}) as any;
   const [sheets, setSheets] = React.useState([]) as any;
   const [schemaSheet, setSchemaSheet] = React.useState({}) as any;
-  const [selected, setSelected] = React.useState({}) as any;
   const classes = useStyle();
 
   const handleChange = (
@@ -69,10 +68,8 @@ export default function Home(): JSX.Element {
     setSubmissions(subs);
     if (subs.length > 0) {
       setSheets(getUniqueSheets(subs));
-      setSelected(subs[0]);
     } else {
       setSheets([]);
-      setSelected({});
     }
   }
 
