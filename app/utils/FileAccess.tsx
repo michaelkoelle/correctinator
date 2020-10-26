@@ -420,13 +420,16 @@ export function hasTasksWithZeroMax(tasks: any[]): boolean {
 }
 
 export function isSubmissionFromSheet(s, sheet) {
-  return (
-    s.term === sheet.term &&
-    s.school === sheet.school &&
-    s.course === sheet.course &&
-    s.sheet.name === sheet.sheet.name &&
-    s.rated_by === sheet.rated_by
-  );
+  if (sheet) {
+    return (
+      s.term === sheet.term &&
+      s.school === sheet.school &&
+      s.course === sheet.course &&
+      s.sheet.name === sheet.sheet.name &&
+      s.rated_by === sheet.rated_by
+    );
+  }
+  return false;
 }
 
 export function getSubmissionsOfSheet(sheet: any) {

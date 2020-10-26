@@ -24,6 +24,7 @@ import {
   Paper,
   Select,
   TextField,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
 
@@ -38,6 +39,13 @@ import {
   saveSubmissions,
   sumParam,
 } from '../../utils/FileAccess';
+
+function sheetToString(s) {
+  if (s) {
+    return s.sheet.name + s.school + s.course + s.term + s.rated_by;
+  }
+  return undefined;
+}
 
 export default function SchemeGenerator(props: any) {
   const {
@@ -54,16 +62,18 @@ export default function SchemeGenerator(props: any) {
   const [, setOpen] = useState(false) as any;
   const [openDialog, setOpenDialog] = useState(false) as any;
   const [, setMessage] = useState('Test Message') as any;
-  const [selectedSheet, setSelectedSheet] = useState(
-    'custom' || schemaSheet
-  ) as any;
+  const [selectedSheet, setSelectedSheet] = useState(schemaSheet);
+  const [selectValue, setSelectValue] = useState<string>(
+    sheetToString(schemaSheet) || 'custom'
+  );
   const [type, setType] = useState('points') as any;
-  const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [schemaString, setSchemaString] = useState('');
-  const [
-    openStartCorrectionDialog,
-    setOpenStartCorrectionDialog,
-  ] = React.useState(false);
+  const [openStartCorrectionDialog, setOpenStartCorrectionDialog] = useState(
+    false
+  );
+
+  console.log(schemaSheet);
 
   const defaultTask = {
     id: taskCounter,
@@ -75,8 +85,18 @@ export default function SchemeGenerator(props: any) {
     tasks: [],
   };
 
+  function getSheetFromValue(value) {
+    const res = sheets?.filter((s) => value === sheetToString(s));
+    if (res && res.length === 1) {
+      return res[0];
+    }
+    return undefined;
+  }
+
   function onSelectSheet(event) {
-    setSelectedSheet(event.target.value);
+    setSelectValue(event.target.value);
+    console.log(getSheetFromValue(event.target.value));
+    setSelectedSheet(getSheetFromValue(event.target.value));
   }
 
   function onTypeChange(event) {
@@ -369,24 +389,20 @@ export default function SchemeGenerator(props: any) {
                       <Select
                         labelId="sheet-select-label"
                         label="Schema for"
-                        value={selectedSheet}
+                        value={selectValue}
                         onChange={onSelectSheet}
                       >
                         <MenuItem value="custom">Custom shema</MenuItem>
-                        {sheets.map((s) => (
-                          <MenuItem
-                            key={
-                              s.sheet.name +
-                              s.school +
-                              s.course +
-                              s.term +
-                              s.rated_by
-                            }
-                            value={s}
-                          >
-                            {s.sheet.name}
-                          </MenuItem>
-                        ))}
+                        {sheets.map((s) => {
+                          return (
+                            <MenuItem
+                              key={sheetToString(s)}
+                              value={sheetToString(s)}
+                            >
+                              {s.sheet.name}
+                            </MenuItem>
+                          );
+                        })}
                       </Select>
                     </FormControl>
                   </Grid>
@@ -426,12 +442,12 @@ export default function SchemeGenerator(props: any) {
                         sumParam(schema, 'max')
                       }
                       error={
-                        (typeof selectedSheet !== 'string' &&
+                        (selectedSheet &&
                           (sumParam(schema, 'max') !==
                             selectedSheet?.sheet?.grading?.max ||
                             hasTasksWithZeroMax(schema) ||
                             sumParam(schema, 'max') <= 0)) ||
-                        (typeof selectedSheet === 'string' &&
+                        (!selectedSheet &&
                           (hasTasksWithZeroMax(schema) ||
                             sumParam(schema, 'max') <= 0))
                       }
@@ -445,12 +461,12 @@ export default function SchemeGenerator(props: any) {
                       value={selectedSheet?.sheet?.grading?.type || type}
                       onChange={onTypeChange}
                       InputProps={{
-                        readOnly: typeof selectedSheet !== 'string',
+                        readOnly: selectedSheet === undefined,
                       }}
                       style={{ width: '110px' }}
                     />
                   </Grid>
-                  {typeof selectedSheet !== 'string' && (
+                  {selectedSheet && (
                     <Grid item>
                       <Button
                         onClick={
@@ -476,20 +492,22 @@ export default function SchemeGenerator(props: any) {
                     </Grid>
                   )}
                   <Grid item>
-                    <IconButton
-                      onClick={onCopyToClipboard}
-                      disabled={
-                        hasTasksWithZeroMax(schema) ||
-                        sumParam(schema, 'max') <= 0
-                      }
-                      size="small"
-                    >
-                      <AssignmentIcon />
-                    </IconButton>
+                    <Tooltip title="Copy to clipboard">
+                      <IconButton
+                        onClick={onCopyToClipboard}
+                        disabled={
+                          hasTasksWithZeroMax(schema) ||
+                          sumParam(schema, 'max') <= 0
+                        }
+                        size="small"
+                      >
+                        <AssignmentIcon />
+                      </IconButton>
+                    </Tooltip>
                   </Grid>
                 </Grid>
 
-                {typeof selectedSheet !== 'string' &&
+                {selectedSheet &&
                   selectedSheet?.sheet?.grading?.max -
                     sumParam(schema, 'max') !==
                     0 && (
