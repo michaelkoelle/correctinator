@@ -55,6 +55,7 @@ export default function SchemeGenerator(props: any) {
     setTab,
     setSheetToCorrect,
     schemaSheet,
+    setSchemaSheet,
   } = props;
   const [schema, setSchema] = useState([]) as any;
   const [taskCounter, setTaskCounter] = useState(0) as any;
@@ -62,7 +63,6 @@ export default function SchemeGenerator(props: any) {
   const [, setOpen] = useState(false) as any;
   const [openDialog, setOpenDialog] = useState(false) as any;
   const [, setMessage] = useState('Test Message') as any;
-  const [selectedSheet, setSelectedSheet] = useState(schemaSheet);
   const [selectValue, setSelectValue] = useState<string>(
     sheetToString(schemaSheet) || 'custom'
   );
@@ -93,7 +93,7 @@ export default function SchemeGenerator(props: any) {
 
   function onSelectSheet(event) {
     setSelectValue(event.target.value);
-    setSelectedSheet(getSheetFromValue(event.target.value));
+    setSchemaSheet(getSheetFromValue(event.target.value));
   }
 
   function onTypeChange(event) {
@@ -113,8 +113,8 @@ export default function SchemeGenerator(props: any) {
   }
 
   function onStartCorrection() {
-    if (selectedSheet !== '' && selectedSheet !== undefined) {
-      setSheetToCorrect(selectedSheet);
+    if (schemaSheet !== '' && schemaSheet !== undefined) {
+      setSheetToCorrect(schemaSheet);
       setTab(3);
     }
   }
@@ -123,7 +123,7 @@ export default function SchemeGenerator(props: any) {
     setOpenConfirmDialog(false);
     const temp: any[] = [];
     submissions.forEach((sub) => {
-      if (isSubmissionFromSheet(sub, selectedSheet)) {
+      if (isSubmissionFromSheet(sub, schemaSheet)) {
         const subT = { ...sub };
         subT.tasks = schema;
         subT.points = sumParam(schema, 'value');
@@ -435,16 +435,16 @@ export default function SchemeGenerator(props: any) {
                         step: 0.5,
                       }}
                       value={
-                        selectedSheet?.sheet?.grading?.max ||
+                        schemaSheet?.sheet?.grading?.max ||
                         sumParam(schema, 'max')
                       }
                       error={
-                        (selectedSheet &&
+                        (schemaSheet &&
                           (sumParam(schema, 'max') !==
-                            selectedSheet?.sheet?.grading?.max ||
+                            schemaSheet?.sheet?.grading?.max ||
                             hasTasksWithZeroMax(schema) ||
                             sumParam(schema, 'max') <= 0)) ||
-                        (!selectedSheet &&
+                        (!schemaSheet &&
                           (hasTasksWithZeroMax(schema) ||
                             sumParam(schema, 'max') <= 0))
                       }
@@ -455,19 +455,19 @@ export default function SchemeGenerator(props: any) {
                       variant="outlined"
                       label="Type"
                       size="small"
-                      value={selectedSheet?.sheet?.grading?.type || type}
+                      value={schemaSheet?.sheet?.grading?.type || type}
                       onChange={onTypeChange}
                       InputProps={{
-                        readOnly: selectedSheet === undefined,
+                        readOnly: schemaSheet === undefined,
                       }}
                       style={{ width: '110px' }}
                     />
                   </Grid>
-                  {selectedSheet && (
+                  {schemaSheet && (
                     <Grid item>
                       <Button
                         onClick={
-                          getSubmissionsOfSheet(selectedSheet).filter(
+                          getSubmissionsOfSheet(schemaSheet).filter(
                             (s) => s?.tasks?.length > 0
                           ).length > 0
                             ? onOverwriteSchema
@@ -475,12 +475,12 @@ export default function SchemeGenerator(props: any) {
                         }
                         disabled={
                           sumParam(schema, 'max') !==
-                            selectedSheet?.sheet?.grading?.max ||
+                            schemaSheet?.sheet?.grading?.max ||
                           hasTasksWithZeroMax(schema) ||
                           sumParam(schema, 'max') <= 0
                         }
                       >
-                        {getSubmissionsOfSheet(selectedSheet).filter(
+                        {getSubmissionsOfSheet(schemaSheet).filter(
                           (s) => s?.tasks?.length > 0
                         ).length > 0
                           ? 'Overwrite'
@@ -506,9 +506,8 @@ export default function SchemeGenerator(props: any) {
                   </Grid>
                 </Grid>
 
-                {selectedSheet &&
-                  selectedSheet?.sheet?.grading?.max -
-                    sumParam(schema, 'max') !==
+                {schemaSheet &&
+                  schemaSheet?.sheet?.grading?.max - sumParam(schema, 'max') !==
                     0 && (
                     <Grid
                       item
@@ -525,10 +524,10 @@ export default function SchemeGenerator(props: any) {
                       <Grid item>
                         <Typography color="error">
                           {`${Math.abs(
-                            selectedSheet?.sheet?.grading?.max -
+                            schemaSheet?.sheet?.grading?.max -
                               sumParam(schema, 'max')
-                          )} ${selectedSheet?.sheet?.grading?.type || type} ${
-                            selectedSheet?.sheet?.grading?.max -
+                          )} ${schemaSheet?.sheet?.grading?.type || type} ${
+                            schemaSheet?.sheet?.grading?.max -
                               sumParam(schema, 'max') <
                             0
                               ? 'too much'
@@ -547,8 +546,8 @@ export default function SchemeGenerator(props: any) {
                     alignItems="center"
                     style={{
                       paddingTop:
-                        selectedSheet &&
-                        selectedSheet?.sheet?.grading?.max -
+                        schemaSheet &&
+                        schemaSheet?.sheet?.grading?.max -
                           sumParam(schema, 'max') !==
                           0
                           ? '0px'
@@ -558,7 +557,7 @@ export default function SchemeGenerator(props: any) {
                     <Grid item>
                       <Typography color="error">
                         {`Some of the tasks have zero max ${
-                          selectedSheet?.sheet?.grading?.type || type
+                          schemaSheet?.sheet?.grading?.type || type
                         }`}
                       </Typography>
                     </Grid>
@@ -583,7 +582,7 @@ export default function SchemeGenerator(props: any) {
                 setTasks={setTasks}
                 selectedTask={selected}
                 setSelected={setSelected}
-                type={selectedSheet?.sheet?.grading?.type || type}
+                type={schemaSheet?.sheet?.grading?.type || type}
               />
             </Paper>
           </Grid>
@@ -646,7 +645,7 @@ export default function SchemeGenerator(props: any) {
         <DialogTitle>Are you sure?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to assign this schema to the sheet "${selectedSheet?.sheet?.name}"?
+            {`Are you sure you want to assign this schema to the sheet "${schemaSheet?.sheet?.name}"?
             All progress will be lost!`}
           </DialogContentText>
         </DialogContent>
@@ -666,7 +665,7 @@ export default function SchemeGenerator(props: any) {
         <DialogTitle>Start correcting?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you want to start correcting the sheet "${selectedSheet?.sheet?.name}" now?`}
+            {`Are you want to start correcting the sheet "${schemaSheet?.sheet?.name}" now?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>

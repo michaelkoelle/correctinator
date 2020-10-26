@@ -183,6 +183,7 @@ export default function Home(): JSX.Element {
               sheets={sheets}
               reload={reload}
               schemaSheet={schemaSheet}
+              setSchemaSheet={setSchemaSheet}
               submissions={submissions}
               setSubmissions={setSubmissions}
               setTab={setTab}
