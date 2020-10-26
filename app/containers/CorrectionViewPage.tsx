@@ -1,6 +1,8 @@
 import {
   Button,
   Dialog,
+  DialogContent,
+  DialogContentText,
   DialogTitle,
   Grid,
   List,
@@ -62,30 +64,49 @@ export default function CorrectionViewPage(props: any) {
           <MediaViewer files={corrections[index]?.files} />
         </div>
       </SplitPane>
-      <Dialog onClose={handleCloseDialog} open={openDialog}>
-        <DialogTitle>Choose sheet to correct</DialogTitle>
-        <List>
-          {sheets
-            .filter((s) => !missingSchemas(s))
-            .map((sheet) => (
-              <ListItem
-                button
-                onClick={() => {
-                  setSheetToCorrect(sheet);
-                  setOpenDialog(false);
-                }}
-                key={
-                  sheet.term + sheet.school + sheet.course + sheet.sheet.name
-                }
-              >
-                <ListItemText
-                  primary={sheet.sheet.name}
-                  secondary={`${sheet.course} - ${sheet.term} - ${sheet.rated_by}`}
-                />
-              </ListItem>
-            ))}
-        </List>
-      </Dialog>
+      {sheets.filter((s) => !missingSchemas(s)).length > 0 ? (
+        <Dialog onClose={handleCloseDialog} open={openDialog}>
+          <DialogTitle>Choose sheet to correct</DialogTitle>
+          <List>
+            {sheets
+              .filter((s) => !missingSchemas(s))
+              .map((sheet) => (
+                <ListItem
+                  button
+                  onClick={() => {
+                    setSheetToCorrect(sheet);
+                    setOpenDialog(false);
+                  }}
+                  key={
+                    sheet.term + sheet.school + sheet.course + sheet.sheet.name
+                  }
+                >
+                  <ListItemText
+                    primary={sheet.sheet.name}
+                    secondary={`${sheet.course} - ${sheet.term} - ${sheet.rated_by}`}
+                  />
+                </ListItem>
+              ))}
+          </List>
+        </Dialog>
+      ) : (
+        <Dialog onClose={handleCloseDialog} open={openDialog}>
+          <DialogContent>
+            <DialogContentText style={{ textAlign: 'center' }}>
+              No sheets to correct
+            </DialogContentText>
+            {sheets.length > 0 ? (
+              <DialogContentText style={{ textAlign: 'center' }}>
+                Have you forgot to assign a correction schema?
+              </DialogContentText>
+            ) : (
+              <DialogContentText style={{ textAlign: 'center' }}>
+                You need to import some submissions first
+              </DialogContentText>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
