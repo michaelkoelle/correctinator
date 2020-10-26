@@ -299,7 +299,7 @@ export default function SchemeGenerator(props: any) {
         spacing={2}
       >
         <Grid item style={{ margin: '0px 16px' }}>
-          <Typography variant="h3">schema generator</Typography>
+          <Typography variant="h3">Schema Generator</Typography>
         </Grid>
         <Grid item style={{ margin: '0px 16px' }}>
           <ButtonGroup size="small">
