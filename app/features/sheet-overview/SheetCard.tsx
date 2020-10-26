@@ -85,6 +85,21 @@ export default function SheetCard(props: any) {
     reload();
   }
 
+  function msToTime(s) {
+    function pad(n, z = 2) {
+      return `00${n}`.slice(-z);
+    }
+    let t = s;
+    const ms = t % 1000;
+    t = (t - ms) / 1000;
+    const secs = t % 60;
+    t = (t - secs) / 60;
+    const mins = t % 60;
+    const hrs = (t - mins) / 60;
+
+    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+  }
+
   function missingSchemas() {
     return (
       submissions.filter(
@@ -126,74 +141,104 @@ export default function SheetCard(props: any) {
         />
         <CardContent>
           <Grid
+            item
             container
-            direction="column"
-            justify="center"
-            alignItems="flex-start"
+            direction="row"
+            justify="space-between"
+            alignItems="center"
             spacing={2}
           >
             <Grid
               item
               container
-              direction="row"
-              justify="flex-start"
+              direction="column"
+              justify="center"
               alignItems="center"
               spacing={2}
+              style={{ width: 'fit-content' }}
             >
-              <Grid item>
-                <Tooltip
-                  title={`${
-                    submissions.filter((s) => s.tasks?.length > 0).length
-                  } / ${submissions.length}`}
-                >
-                  <div>
-                    <CircularProgressWithLabel
-                      value={
-                        (submissions.filter((s) => s.tasks?.length > 0).length /
-                          submissions.length) *
-                        100
-                      }
-                    />
-                  </div>
-                </Tooltip>
+              <Grid
+                item
+                container
+                direction="row"
+                justify="flex-start"
+                alignItems="center"
+                spacing={2}
+              >
+                <Grid item>
+                  <Tooltip
+                    title={`${
+                      submissions.filter((s) => s.tasks?.length > 0).length
+                    } / ${submissions.length}`}
+                  >
+                    <div>
+                      <CircularProgressWithLabel
+                        value={
+                          (submissions.filter((s) => s.tasks?.length > 0)
+                            .length /
+                            submissions.length) *
+                          100
+                        }
+                      />
+                    </div>
+                  </Tooltip>
+                </Grid>
+                <Grid item>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    component="p"
+                  >
+                    Correction scheme assigned
+                  </Typography>
+                </Grid>
               </Grid>
-              <Grid item>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  Correction scheme assigned
-                </Typography>
+              <Grid
+                item
+                container
+                direction="row"
+                justify="flex-start"
+                alignItems="center"
+                spacing={2}
+              >
+                <Grid item>
+                  <Tooltip
+                    title={`${
+                      submissions.filter((s) => s.rating_done === true).length
+                    } / ${submissions.length}`}
+                  >
+                    <div>
+                      <CircularProgressWithLabel
+                        value={
+                          (submissions.filter((s) => s.rating_done === true)
+                            .length /
+                            submissions.length) *
+                          100
+                        }
+                      />
+                    </div>
+                  </Tooltip>
+                </Grid>
+                <Grid item>
+                  <Typography
+                    variant="body2"
+                    color="textSecondary"
+                    component="p"
+                  >
+                    Corrections done
+                  </Typography>
+                </Grid>
               </Grid>
             </Grid>
-            <Grid
-              item
-              container
-              direction="row"
-              justify="flex-start"
-              alignItems="center"
-              spacing={2}
-            >
-              <Grid item>
-                <Tooltip
-                  title={`${
-                    submissions.filter((s) => s.rating_done === true).length
-                  } / ${submissions.length}`}
-                >
-                  <div>
-                    <CircularProgressWithLabel
-                      value={
-                        (submissions.filter((s) => s.rating_done === true)
-                          .length /
-                          submissions.length) *
-                        100
-                      }
-                    />
-                  </div>
-                </Tooltip>
-              </Grid>
-              <Grid item>
-                <Typography variant="body2" color="textSecondary" component="p">
-                  Corrections done
-                </Typography>
-              </Grid>
+            <Grid item>
+              <Typography variant="body2" color="textSecondary">
+                <i className="far fa-clock" style={{ marginRight: '10px' }} />
+                {msToTime(
+                  submissions
+                    .filter((s) => s.timeElapsed)
+                    .reduce((a, c) => a + c.timeElapsed, 0)
+                )}
+              </Typography>
             </Grid>
           </Grid>
         </CardContent>
