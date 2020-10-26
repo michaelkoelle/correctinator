@@ -243,31 +243,42 @@ export default function CorrectionView(props: any) {
       >
         <Grid item>
           <Tooltip title="Mark as done, save and go to the previous correction">
-            <Button color="primary" onClick={onPrevious} disabled={index === 0}>
-              {'< Previous'}
-            </Button>
+            <span>
+              <Button
+                color="primary"
+                onClick={onPrevious}
+                disabled={index === 0}
+              >
+                {'< Previous'}
+              </Button>
+            </span>
           </Tooltip>
         </Grid>
         <Grid item>
           <Tooltip title="Mark as done, save and go to the next open correction">
-            <Button
-              color="primary"
-              onClick={onNextOpen}
-              disabled={corrections.find((c) => !c.rating_done) === undefined}
-            >
-              {'Next >>'}
-            </Button>
+            <span>
+              {' '}
+              <Button
+                color="primary"
+                onClick={onNextOpen}
+                disabled={corrections.find((c) => !c.rating_done) === undefined}
+              >
+                {'Next >>'}
+              </Button>
+            </span>
           </Tooltip>
         </Grid>
         <Grid item>
           <Tooltip title="Mark as done, save and go to the next correction">
-            <Button
-              color="primary"
-              onClick={onCorrectionDone}
-              // disabled={index === corrections.length - 1}
-            >
-              {'Next >'}
-            </Button>
+            <span>
+              <Button
+                color="primary"
+                onClick={onCorrectionDone}
+                // disabled={index === corrections.length - 1}
+              >
+                {'Next >'}
+              </Button>
+            </span>
           </Tooltip>
         </Grid>
       </Grid>
