@@ -1,5 +1,4 @@
-import { Typography } from '@material-ui/core';
-import date from 'date-and-time';
+import { Tooltip, Typography } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 
 export default function TimeElapsedDisplay(props: {
@@ -43,5 +42,12 @@ export default function TimeElapsedDisplay(props: {
     };
   });
 
-  return <Typography>{time}</Typography>;
+  return (
+    <Tooltip title="Elapsed time for this correction">
+      <Typography>
+        <i className="fas fa-stopwatch" style={{ marginRight: '10px' }} />
+        {time}
+      </Typography>
+    </Tooltip>
+  );
 }

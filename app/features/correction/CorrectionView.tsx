@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -6,10 +7,12 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
+  Paper,
   Typography,
 } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import ExportDialog from '../../components/ExportDialog';
+import TimeAverage from '../../components/TimeAverage';
 import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import TimeRemaining from '../../components/TimeRemaining';
 import Status from '../../model/Status';
@@ -123,22 +126,61 @@ export default function CorrectionView(props: any) {
       }}
     >
       <Grid container spacing={3} justify="space-evenly" alignItems="center">
-        <Grid item xs={12}>
-          <Typography variant="h3">
-            {`Correction ${corrections?.length > 0 ? index + 1 : 0}/${
-              corrections?.length
-            }`}
-          </Typography>
+        <Grid
+          item
+          container
+          xs={12}
+          direction="row"
+          justify="space-between"
+          alignItems="center"
+        >
+          <Grid
+            item
+            container
+            direction="column"
+            style={{ width: 'fit-content' }}
+          >
+            <Grid item>
+              <Typography variant="h3">Correction</Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="body1">
+                {corrections[index]?.sheet?.name}
+              </Typography>
+            </Grid>
+          </Grid>
+          <Grid item>
+            <Paper style={{ padding: '8px' }}>
+              <Typography variant="h5">
+                {` ${corrections?.length > 0 ? index + 1 : 0}/${
+                  corrections?.length
+                }`}
+              </Typography>
+            </Paper>
+          </Grid>
+          {corrections?.length > 0 && (
+            <Grid
+              item
+              container
+              direction="column"
+              style={{ width: 'fit-content' }}
+            >
+              <Grid item>
+                <TimeElapsedDisplay
+                  start={timeStart}
+                  elapsed={corrections[index]?.timeElapsed}
+                />
+              </Grid>
+              <Grid item>
+                <TimeRemaining corrections={corrections} />
+              </Grid>
+              <Grid item>
+                <TimeAverage corrections={corrections} />
+              </Grid>
+            </Grid>
+          )}
         </Grid>
-        <Grid item xs={12}>
-          <TimeElapsedDisplay
-            start={timeStart}
-            elapsed={corrections[index]?.timeElapsed}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TimeRemaining corrections={corrections} />
-        </Grid>
+
         <Grid item xs={12}>
           <CorrectionOverview
             correction={corrections[index]}

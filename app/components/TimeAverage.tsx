@@ -1,9 +1,10 @@
 import { Tooltip, Typography } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 
-export default function TimeRemaining(props: any) {
+export default function TimeAverage(props: any) {
   const { corrections = [] } = props;
-  const [millis, setMillis] = useState<number>(0);
+
+  const last = 5;
 
   function getAverageCorrectionTime(n: number) {
     let correctionsWithTimes: any[] = corrections.filter(
@@ -15,12 +16,6 @@ export default function TimeRemaining(props: any) {
 
     const timeSum = correctionsWithTimes.reduce((a, c) => a + c.timeElapsed, 0);
     return timeSum / Math.max(correctionsWithTimes.length, 1);
-  }
-
-  function getRemainingCorrectionTime() {
-    const remainingCount = corrections.filter((c) => !c.rating_done).length;
-    const avgTime = getAverageCorrectionTime(5);
-    return remainingCount * avgTime;
   }
 
   function msToTime(s) {
@@ -38,28 +33,13 @@ export default function TimeRemaining(props: any) {
     return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
   }
 
-  function tick() {
-    if (corrections.length > 0) {
-      setMillis(getRemainingCorrectionTime());
-    }
-  }
-
-  useEffect(() => {
-    const intervalID = setInterval(() => tick(), 1000);
-    return () => {
-      clearInterval(intervalID);
-    };
-  });
-
   return (
     <Tooltip
-      title={`Estimated correction time for the remaining ${
-        corrections.filter((c) => !c.rating_done).length
-      } corrections`}
+      title={`Average time based on the last ${last.toString()} corrections`}
     >
       <Typography>
-        <i className="fas fa-hourglass-half" style={{ marginRight: '10px' }} />
-        {msToTime(millis)}
+        <span style={{ marginRight: '10px' }}>Ø</span>
+        {msToTime(getAverageCorrectionTime(last))}
       </Typography>
     </Tooltip>
   );
