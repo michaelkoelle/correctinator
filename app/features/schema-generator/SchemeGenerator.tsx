@@ -329,9 +329,6 @@ export default function SchemeGenerator(props: any) {
             <Button type="button" onClick={clearAllTasks}>
               Clear Tasks
             </Button>
-            <Button type="button" onClick={onAssignToSheet}>
-              Assign scheme to sheet
-            </Button>
           </ButtonGroup>
         </Grid>
       </Grid>
