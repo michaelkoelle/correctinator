@@ -184,6 +184,10 @@ export function getSubmissionFromAppDataDir(dir: string) {
       : Status.Todo;
   }
 
+  if (ratingFileJson.points === null) {
+    ratingFileJson.points = 0;
+  }
+
   return ratingFileJson;
 }
 
@@ -388,19 +392,32 @@ export function exportCorrections(
   console.log(`Writing ${submissions.length} submissions!`);
   // Add all submission directories
   submissions.forEach((sub) => {
-    const { files, path, tasks, id, ...rest } = sub;
-    const doc = new YAML.Document(rest);
+    const { files, submission } = sub;
+
+    const doc = new YAML.Document({
+      term: sub.term,
+      school: sub.school,
+      course: sub.course,
+      sheet: sub.sheet,
+      rated_by: sub.rated_by,
+      rated_at: sub.rated_at,
+      submission: sub.submission,
+      points: sub.points,
+      rating_done: sub.rating_done,
+    });
+
     const ratingFile = `${doc.toString()}...\n${correctionToString(
       sub,
       condComments
     )}`;
+
     archive.append(ratingFile, {
-      name: `/${sub.submission}/bewertung_${sub.submission}.txt`,
+      name: `/${submission}/bewertung_${submission}.txt`,
     });
 
     files.forEach((file) => {
       archive.append(fs.createReadStream(file), {
-        name: `/${sub.submission}/files/${Path.parse(file).base}`,
+        name: `/${submission}/files/${Path.parse(file).base}`,
       });
     });
   });
