@@ -77,13 +77,11 @@ export default function CorrectionView(props: any) {
     );
 
     if (nextOpenHigherIndex >= 0) {
-      console.log(nextOpenHigherIndex);
       setIndex(nextOpenHigherIndex);
     } else {
       // try to find open correction with lower index
-      const nextOpen = corrections?.findIndex((c, i) => !c?.rating_done);
+      const nextOpen = corrections?.findIndex((c) => !c?.rating_done);
       if (nextOpen >= 0) {
-        console.log(nextOpen);
         setIndex(nextOpen);
       }
     }
@@ -243,7 +241,8 @@ export default function CorrectionView(props: any) {
                 onClick={onPrevious}
                 disabled={index === 0}
               >
-                {'< Previous'}
+                <NavigateBeforeIcon />
+                {' Previous'}
               </Button>
             </span>
           </Tooltip>
@@ -270,9 +269,14 @@ export default function CorrectionView(props: any) {
               <Button color="primary" onClick={onNext} variant="contained">
                 {index + 1 === corrections.length &&
                 corrections.find((c, i) => i !== index && !c.rating_done) ===
-                  undefined
-                  ? 'Finish'
-                  : 'Next >'}
+                  undefined ? (
+                  'Finish'
+                ) : (
+                  <>
+                    {'Next '}
+                    <NavigateNextIcon />
+                  </>
+                )}
               </Button>
             </span>
           </Tooltip>
