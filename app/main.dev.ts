@@ -108,8 +108,8 @@ const createWindow = async () => {
     width: 1600,
     height: 900,
     icon: getAssetPath('icon.png'),
-    minWidth: 600, // set a min width!
-    minHeight: 300, // and a min height!
+    minWidth: 800, // set a min width!
+    minHeight: 600, // and a min height!
     // Remove the window frame from windows applications
     frame: false,
     // Hide the titlebar from MacOS applications while keeping the stop lights
