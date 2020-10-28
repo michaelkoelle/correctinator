@@ -7,7 +7,7 @@ import {
   Paper,
   Box,
 } from '@material-ui/core';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
 import WebIcon from '@material-ui/icons/Web';
@@ -21,6 +21,7 @@ import {
   getSubmissionFromAppDataDir,
   getUniqueSheets,
   isSubmissionFromSheet,
+  saveSubmissions,
 } from '../utils/FileAccess';
 import SheetOverviewPage from '../containers/SheetOverviewPage';
 import OverviewPage from '../containers/OverviewPage';
@@ -34,19 +35,17 @@ const useStyle = makeStyles({
 });
 
 export default function Home(): JSX.Element {
-  const [tab, setTab] = React.useState(0);
-  const [submissions, setSubmissions] = React.useState([]) as any;
-  const [sheetToCorrect, setSheetToCorrect] = React.useState({}) as any;
-  const [sheets, setSheets] = React.useState([]) as any;
-  const [schemaSheet, setSchemaSheet] = React.useState(undefined) as any;
+  const [tab, setTabValue] = useState<number>(0);
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [sheetToCorrect, setSheetToCorrectValue] = useState<any>({});
+  const [sheets, setSheets] = useState<any[]>([]);
+  const [schemaSheet, setSchemaSheet] = useState<any>(undefined);
+  const [index, setIndexValue] = useState<number>(0);
+  const [timeStart, setTimeStart] = useState<Date>(new Date());
   const classes = useStyle();
 
-  const handleChange = (
-    _event: React.ChangeEvent<unknown>,
-    newValue: number
-  ) => {
-    setTab(newValue);
-  };
+  // todo: corrections vs submissions
+  //
 
   function setCorrections(corrections: any[]) {
     const temp = [...submissions];
@@ -54,6 +53,79 @@ export default function Home(): JSX.Element {
       temp[c.id] = c;
     });
     setSubmissions(temp);
+    saveSubmissions(temp);
+  }
+
+  function setCorrection(correction) {
+    const temps = [...submissions];
+    temps.forEach((s, i) => {
+      if (s.submission === correction.submission) {
+        temps[i] = correction;
+      }
+    });
+    setCorrections(temps);
+  }
+
+  function saveTimeElapsed() {
+    const timeEnd = new Date();
+    if (timeStart) {
+      const diff = timeEnd.getTime() - timeStart?.getTime();
+      let temp = {
+        ...submissions.filter((s: any) =>
+          isSubmissionFromSheet(s, sheetToCorrect)
+        )[index],
+      };
+      if (temp) {
+        if (temp.timeElapsed) {
+          temp.timeElapsed += diff;
+        } else {
+          temp = {
+            ...temp,
+            timeElapsed: diff,
+          };
+        }
+        setCorrection(temp);
+      }
+    }
+  }
+
+  function setTab(newValue) {
+    const oldValue = tab;
+
+    // Avoid unnessesary renders
+    if (oldValue === newValue) {
+      return;
+    }
+
+    if (oldValue === 3) {
+      // save time
+      saveTimeElapsed();
+    }
+
+    if (newValue === 3) {
+      // start time
+      setTimeStart(new Date());
+    }
+
+    setTabValue(newValue);
+  }
+
+  function setIndex(newIndex) {
+    const oldIndex = index;
+
+    // Avoid unnessesary renders
+    if (oldIndex === newIndex) {
+      return;
+    }
+
+    saveTimeElapsed();
+    setIndexValue(newIndex);
+    setTimeStart(new Date());
+  }
+
+  function setSheetToCorrect(val) {
+    setSheetToCorrectValue(val);
+    setIndex(0);
   }
 
   function reload() {
@@ -96,7 +168,7 @@ export default function Home(): JSX.Element {
               variant="standard"
               indicatorColor="primary"
               value={tab}
-              onChange={handleChange}
+              onChange={(_e, v) => setTab(v)}
               classes={{
                 indicator: classes.indicator,
               }}
@@ -202,6 +274,10 @@ export default function Home(): JSX.Element {
               sheets={sheets}
               sheetToCorrect={sheetToCorrect}
               setSheetToCorrect={setSheetToCorrect}
+              index={index}
+              setIndex={setIndex}
+              setCorrection={setCorrection}
+              timeStart={timeStart}
             />
           </TabPanel>
         </Grid>

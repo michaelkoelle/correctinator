@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import {
   Button,
   Dialog,
@@ -9,7 +10,7 @@ import {
   ListItem,
   ListItemText,
 } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import SplitPane from 'react-split-pane';
 import CorrectionView from '../features/correction/CorrectionView';
 import MediaViewer from '../features/correction/MediaViewer';
@@ -17,9 +18,15 @@ import { getSubmissionsOfSheet } from '../utils/FileAccess';
 import './SplitPane.css';
 
 export default function CorrectionViewPage(props: any) {
-  const [index, setIndex] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
-  const { corrections, setCorrections, sheets, setSheetToCorrect } = props;
+  const {
+    corrections,
+    setCorrections,
+    sheets,
+    setSheetToCorrect,
+    index,
+    setIndex,
+  } = props;
 
   function handleCloseDialog() {
     setOpenDialog(false);
@@ -53,12 +60,7 @@ export default function CorrectionViewPage(props: any) {
         allowResize
       >
         <div style={{ height: '100%', margin: '0 10px 0 0' }}>
-          <CorrectionView
-            corrections={corrections}
-            index={index}
-            setIndex={setIndex}
-            setCorrections={setCorrections}
-          />
+          <CorrectionView {...props} />
         </div>
         <div style={{ height: '100%', margin: '0 5px 0 0' }}>
           <MediaViewer files={corrections[index]?.files} />

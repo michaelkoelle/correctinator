@@ -23,10 +23,16 @@ import CorrectionOverview from './CorrectionOverview';
 import TaskView from './TaskView';
 
 export default function CorrectionView(props: any) {
-  const { corrections = [], setCorrections, index, setIndex } = props;
+  const {
+    corrections = [],
+    setCorrections,
+    index,
+    setIndex,
+    setCorrection,
+    timeStart,
+  } = props;
   const [open, setOpen] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
-  const [timeStart, setTimeStart] = useState<Date>(new Date());
 
   function onExport() {
     setOpen(false);
@@ -41,45 +47,11 @@ export default function CorrectionView(props: any) {
     setOpenExportDialog(false);
   }
 
-  function setCorrection(correction) {
-    const temps = [...corrections];
-    temps[index] = correction;
-    setCorrections(temps);
-    saveSubmissions(temps);
-  }
-
-  function saveTimeElapsed() {
-    const timeEnd = new Date();
-    if (timeStart) {
-      const diff = timeEnd.getTime() - timeStart?.getTime();
-      let temp = { ...corrections[index] };
-      if (temp) {
-        if (temp.timeElapsed) {
-          temp.timeElapsed += diff;
-        } else {
-          temp = {
-            ...temp,
-            timeElapsed: diff,
-          };
-        }
-        setCorrection(temp);
-      }
-    }
-  }
-
-  useEffect(() => {
-    setTimeStart(new Date());
-    return () => {
-      saveTimeElapsed();
-    };
-  }, []);
-
   function setTasks(tasks: any) {
     const temps = [...corrections];
     temps[index].tasks = tasks;
     temps[index].points = sumParam(tasks, 'value');
     setCorrections(temps);
-    saveSubmissions(temps);
   }
 
   function onCorrectionDone() {
@@ -90,15 +62,12 @@ export default function CorrectionView(props: any) {
       temps[index].status = Status.Done;
     }
     setCorrections(temps);
-    saveSubmissions(temps);
     if (index + 1 < corrections.length) {
-      saveTimeElapsed();
       setIndex(index + 1);
-      setTimeStart(new Date());
       // Check if really finished
-    } else if (
-      corrections.filter((s) => s.rating_done === false).length === 0
-    ) {
+    }
+
+    if (corrections.filter((s) => s.rating_done === false).length === 0) {
       // Prompt to export and create zip
       setOpen(true);
     } else if (
@@ -115,12 +84,9 @@ export default function CorrectionView(props: any) {
       temps[index].status = Status.Done;
     }
     setCorrections(temps);
-    saveSubmissions(temps);
 
     if (index > 0) {
-      saveTimeElapsed();
       setIndex(index - 1);
-      setTimeStart(new Date());
     }
   }
 
@@ -132,13 +98,19 @@ export default function CorrectionView(props: any) {
       temps[index].status = Status.Done;
     }
     setCorrections(temps);
-    saveSubmissions(temps);
     const nextOpen = corrections?.find((c) => !c?.rating_done);
     if (nextOpen !== undefined) {
       const i = corrections?.indexOf(nextOpen);
-      saveTimeElapsed();
       setIndex(i);
-      setTimeStart(new Date());
+    }
+
+    if (corrections.filter((s) => s.rating_done === false).length === 0) {
+      // Prompt to export and create zip
+      setOpen(true);
+    } else if (
+      corrections.filter((s) => s.status === Status.Marked).length > 0
+    ) {
+      // TODO: go back to marked
     }
   }
 
