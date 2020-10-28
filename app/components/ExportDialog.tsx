@@ -66,7 +66,7 @@ export default function ExportDialog(props: any) {
     'Sehr gut!',
     'Perfekt',
   ]);
-  const [path, setPath] = React.useState<string>();
+  const [path, setPath] = React.useState<string>('');
   const [format, setFormat] = React.useState('Uni2Work');
   const [conditionalComment, setConditionalComment] = React.useState(true);
   const [showLabel, setShowLabel] = React.useState(true);
