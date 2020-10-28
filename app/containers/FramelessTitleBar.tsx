@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MenuItem, remote, shell } from 'electron';
 import TitleBar from 'frameless-titlebar';
+import { UnfoldLess } from '@material-ui/icons';
 import ReleaseNotes from '../components/ReleaseNotes';
 
 const { version } = require('../package.json');
@@ -138,6 +139,9 @@ export default function FramelessTitleBar(props: any) {
             const info = await remote
               .require('electron-updater')
               .autoUpdater.checkForUpdates();
+            if (info === undefined) {
+              setOpen(false);
+            }
             setVersionInfo(info.versionInfo);
           },
         },
