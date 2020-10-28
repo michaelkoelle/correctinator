@@ -227,7 +227,11 @@ export default function Home(): JSX.Element {
           container
           justify="center"
           alignItems="flex-start"
-          style={{ marginLeft: '16px' }}
+          style={{
+            marginLeft: '16px',
+            marginRight: '4px',
+            marginBottom: '4px',
+          }}
         >
           <TabPanel
             value="0"
