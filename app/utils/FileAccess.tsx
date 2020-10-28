@@ -282,19 +282,20 @@ export function sumParam(tasks: any, param: string): any {
   return sum;
 }
 
-export function tasksToString(tasks: any[], depth = 0): string {
+export function tasksToString(tasks: any[], type: string, depth = 0): string {
   let out = '';
   tasks?.forEach((t) => {
     if (t.tasks.length > 0) {
       out += `${'\t'.repeat(depth)}${t.name}: ${sumParam(
         t.tasks,
         'value'
-      )}/${sumParam(t.tasks, 'max')} ${t.type}\n${tasksToString(
+      )}/${sumParam(t.tasks, 'max')} ${type}\n${tasksToString(
         t.tasks,
+        type,
         depth + 1
       )}`;
     } else {
-      out += `${'\t'.repeat(depth)}${t.name}: ${t.value}/${t.max} ${t.type}\n${
+      out += `${'\t'.repeat(depth)}${t.name}: ${t.value}/${t.max} ${type}\n${
         t?.comment?.trim().length > 0
           ? `${'\t'.repeat(depth + 1) + wordWrap(t?.comment, 60, depth + 1)}\n`
           : ''
@@ -333,7 +334,7 @@ export function correctionToString(
 ): string {
   let out = '';
 
-  out += tasksToString(correction.tasks);
+  out += tasksToString(correction.tasks, correction.sheet.grading.type);
 
   if (correction?.comment?.trim().length > 0) {
     out += `\n${wordWrap(correction?.comment, 60, 0)}\n`;
