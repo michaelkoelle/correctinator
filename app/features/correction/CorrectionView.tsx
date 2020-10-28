@@ -7,11 +7,17 @@ import {
   DialogContentText,
   DialogTitle,
   Grid,
+  IconButton,
   Paper,
   Tooltip,
   Typography,
 } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
+import FirstPageIcon from '@material-ui/icons/FirstPage';
+import LastPageIcon from '@material-ui/icons/LastPage';
+import FindInPageIcon from '@material-ui/icons/FindInPage';
+import NavigateNextIcon from '@material-ui/icons/NavigateNext';
+import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import ExportDialog from '../../components/ExportDialog';
 import TimeAverage from '../../components/TimeAverage';
 import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
@@ -54,7 +60,7 @@ export default function CorrectionView(props: any) {
     setCorrections(temps);
   }
 
-  function onCorrectionDone() {
+  function setStatusDone() {
     // Rating done
     const temps = [...corrections];
     if (temps[index].status !== Status.Marked) {
@@ -62,56 +68,59 @@ export default function CorrectionView(props: any) {
       temps[index].status = Status.Done;
     }
     setCorrections(temps);
+  }
+
+  function goToNextOpen() {
+    // try to find open correction with higher index
+    const nextOpenHigherIndex = corrections?.findIndex(
+      (c, i) => i > index && !c?.rating_done
+    );
+
+    if (nextOpenHigherIndex >= 0) {
+      console.log(nextOpenHigherIndex);
+      setIndex(nextOpenHigherIndex);
+    } else {
+      // try to find open correction with lower index
+      const nextOpen = corrections?.findIndex((c, i) => !c?.rating_done);
+      if (nextOpen >= 0) {
+        console.log(nextOpen);
+        setIndex(nextOpen);
+      }
+    }
+  }
+
+  function onNext() {
+    setStatusDone();
+
     if (index + 1 < corrections.length) {
       setIndex(index + 1);
-      // Check if really finished
-    }
-
-    if (corrections.filter((s) => s.rating_done === false).length === 0) {
+    } else if (
+      corrections.filter((s) => s.rating_done === false).length === 0
+    ) {
       // Prompt to export and create zip
       setOpen(true);
-    } else if (
-      corrections.filter((s) => s.status === Status.Marked).length > 0
-    ) {
-      // TODO: go back to marked
+    } else {
+      goToNextOpen();
     }
   }
 
   function onPrevious() {
-    const temps = [...corrections];
-    if (temps[index].status !== Status.Marked) {
-      temps[index].rating_done = true;
-      temps[index].status = Status.Done;
-    }
-    setCorrections(temps);
-
     if (index > 0) {
       setIndex(index - 1);
     }
   }
 
-  function onNextOpen() {
-    // Rating done
-    const temps = [...corrections];
-    if (temps[index].status !== Status.Marked) {
-      temps[index].rating_done = true;
-      temps[index].status = Status.Done;
-    }
-    setCorrections(temps);
-    const nextOpen = corrections?.find((c) => !c?.rating_done);
-    if (nextOpen !== undefined) {
-      const i = corrections?.indexOf(nextOpen);
-      setIndex(i);
-    }
+  function onFindNextOpen() {
+    setStatusDone();
+    goToNextOpen();
+  }
 
-    if (corrections.filter((s) => s.rating_done === false).length === 0) {
-      // Prompt to export and create zip
-      setOpen(true);
-    } else if (
-      corrections.filter((s) => s.status === Status.Marked).length > 0
-    ) {
-      // TODO: go back to marked
-    }
+  function onFirst() {
+    setIndex(0);
+  }
+
+  function onLast() {
+    setIndex(corrections.length - 1);
   }
 
   return (
@@ -214,7 +223,20 @@ export default function CorrectionView(props: any) {
         style={{ padding: '10px' }}
       >
         <Grid item>
-          <Tooltip title="Mark as done, save and go to the previous correction">
+          <Tooltip title="To first correction">
+            <span>
+              <IconButton
+                color="primary"
+                onClick={onFirst}
+                disabled={index === 0}
+              >
+                <FirstPageIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Grid>
+        <Grid item>
+          <Tooltip title="To previous correction">
             <span>
               <Button
                 color="primary"
@@ -227,29 +249,44 @@ export default function CorrectionView(props: any) {
           </Tooltip>
         </Grid>
         <Grid item>
-          <Tooltip title="Mark as done, save and go to the next open correction">
+          <Tooltip title="Find open correction">
             <span>
-              {' '}
-              <Button
+              <IconButton
                 color="primary"
-                onClick={onNextOpen}
-                disabled={corrections.find((c) => !c.rating_done) === undefined}
+                onClick={onFindNextOpen}
+                disabled={
+                  corrections.find((c, i) => i !== index && !c.rating_done) ===
+                  undefined
+                }
               >
-                {'Next >>'}
+                <FindInPageIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Grid>
+        <Grid item>
+          <Tooltip title="Mark as done and next correction">
+            <span>
+              <Button color="primary" onClick={onNext} variant="contained">
+                {index + 1 === corrections.length &&
+                corrections.find((c, i) => i !== index && !c.rating_done) ===
+                  undefined
+                  ? 'Finish'
+                  : 'Next >'}
               </Button>
             </span>
           </Tooltip>
         </Grid>
         <Grid item>
-          <Tooltip title="Mark as done, save and go to the next correction">
+          <Tooltip title="To last correction">
             <span>
-              <Button
+              <IconButton
                 color="primary"
-                onClick={onCorrectionDone}
-                // disabled={index === corrections.length - 1}
+                onClick={onLast}
+                disabled={index + 1 === corrections.length}
               >
-                {'Next >'}
-              </Button>
+                <LastPageIcon />
+              </IconButton>
             </span>
           </Tooltip>
         </Grid>
