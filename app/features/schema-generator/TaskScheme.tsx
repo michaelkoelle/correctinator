@@ -2,7 +2,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import React, { ChangeEvent } from 'react';
 import TextField from '@material-ui/core/TextField';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import {
   Button,
   ButtonGroup,
@@ -14,6 +13,7 @@ import {
   InputAdornment,
   OutlinedInput,
 } from '@material-ui/core';
+import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import styles from './TaskScheme.css';
 import { hasTasksWithZeroMax, sumParam } from '../../utils/FileAccess';
 
@@ -180,7 +180,11 @@ export default function TaskScheme(props: any) {
         className={styles.expand}
         size="medium"
       >
-        <ExpandMoreIcon className={styles.expandIcon} />
+        {expanded ? (
+          <ExpandLess className={styles.expandIcon} />
+        ) : (
+          <ExpandMore className={styles.expandIcon} />
+        )}
       </IconButton>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <TextField
