@@ -257,7 +257,17 @@ export default function CorrectionView(props: any) {
         <Grid item>
           <Tooltip title="Mark as done and next correction">
             <span>
-              <Button color="primary" onClick={onNext} variant="contained">
+              <Button
+                color={
+                  index + 1 === corrections.length &&
+                  corrections.find((c, i) => i !== index && !c.rating_done) ===
+                    undefined
+                    ? 'secondary'
+                    : 'primary'
+                }
+                onClick={onNext}
+                variant="contained"
+              >
                 {index + 1 === corrections.length &&
                 corrections.find((c, i) => i !== index && !c.rating_done) ===
                   undefined ? (
