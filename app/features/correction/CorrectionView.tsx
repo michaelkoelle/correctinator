@@ -218,16 +218,12 @@ export default function CorrectionView(props: any) {
         spacing={3}
         justify="flex-end"
         alignItems="center"
-        style={{ padding: '10px' }}
+        style={{ paddingTop: '10px' }}
       >
         <Grid item>
           <Tooltip title="To first correction">
             <span>
-              <IconButton
-                color="primary"
-                onClick={onFirst}
-                disabled={index === 0}
-              >
+              <IconButton onClick={onFirst} disabled={index === 0}>
                 <FirstPageIcon />
               </IconButton>
             </span>
@@ -236,11 +232,7 @@ export default function CorrectionView(props: any) {
         <Grid item>
           <Tooltip title="To previous correction">
             <span>
-              <Button
-                color="primary"
-                onClick={onPrevious}
-                disabled={index === 0}
-              >
+              <Button onClick={onPrevious} disabled={index === 0}>
                 <NavigateBeforeIcon />
                 {' Previous'}
               </Button>
@@ -251,7 +243,6 @@ export default function CorrectionView(props: any) {
           <Tooltip title="Find open correction">
             <span>
               <IconButton
-                color="primary"
                 onClick={onFindNextOpen}
                 disabled={
                   corrections.find((c, i) => i !== index && !c.rating_done) ===
@@ -285,7 +276,6 @@ export default function CorrectionView(props: any) {
           <Tooltip title="To last correction">
             <span>
               <IconButton
-                color="primary"
                 onClick={onLast}
                 disabled={index + 1 === corrections.length}
               >
