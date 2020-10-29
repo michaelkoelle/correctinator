@@ -7,6 +7,7 @@ import {
   Container,
   Fab,
   Grid,
+  Hidden,
   Icon,
   IconButton,
   Paper,
@@ -54,10 +55,6 @@ export default function MediaViewer(props: any) {
 
   function onOpenFolder() {
     shell.showItemInFolder(files[fileIndex]);
-  }
-
-  function onOpenInNew() {
-    // TODO:
   }
 
   function onZoomIn() {
@@ -161,7 +158,6 @@ export default function MediaViewer(props: any) {
             <Grid item>
               <Tooltip title="Previous file">
                 <IconButton
-                  color="primary"
                   size="medium"
                   aria-label="add"
                   onClick={onPreviousFile}
@@ -173,7 +169,6 @@ export default function MediaViewer(props: any) {
             <Grid item>
               <Tooltip title="Rotate left">
                 <IconButton
-                  color="primary"
                   size="medium"
                   aria-label="add"
                   onClick={onRotateLeft}
@@ -184,12 +179,7 @@ export default function MediaViewer(props: any) {
             </Grid>
             <Grid item>
               <Tooltip title="Zoom in">
-                <IconButton
-                  color="primary"
-                  size="medium"
-                  aria-label="add"
-                  onClick={onZoomIn}
-                >
+                <IconButton size="medium" aria-label="add" onClick={onZoomIn}>
                   <AddIcon />
                 </IconButton>
               </Tooltip>
@@ -201,12 +191,7 @@ export default function MediaViewer(props: any) {
             </Grid>
             <Grid item>
               <Tooltip title="Zoom out">
-                <IconButton
-                  color="primary"
-                  size="medium"
-                  aria-label="add"
-                  onClick={onZoomOut}
-                >
+                <IconButton size="medium" aria-label="add" onClick={onZoomOut}>
                   <RemoveIcon />
                 </IconButton>
               </Tooltip>
@@ -214,7 +199,6 @@ export default function MediaViewer(props: any) {
             <Grid item>
               <Tooltip title="Rotate right">
                 <IconButton
-                  color="primary"
                   size="medium"
                   aria-label="add"
                   onClick={onRotateRight}
@@ -225,12 +209,7 @@ export default function MediaViewer(props: any) {
             </Grid>
             <Grid item>
               <Tooltip title="Next file">
-                <IconButton
-                  color="primary"
-                  size="medium"
-                  aria-label="add"
-                  onClick={onNextFile}
-                >
+                <IconButton size="medium" aria-label="add" onClick={onNextFile}>
                   <NavigateNextIcon />
                 </IconButton>
               </Tooltip>
@@ -238,7 +217,6 @@ export default function MediaViewer(props: any) {
             <Grid item>
               <Tooltip title="Reset scale">
                 <IconButton
-                  color="primary"
                   size="medium"
                   aria-label="add"
                   onClick={onResetScale}
@@ -250,28 +228,12 @@ export default function MediaViewer(props: any) {
             <Grid item>
               <Tooltip title="Open file in folder">
                 <IconButton
-                  color="primary"
                   size="medium"
                   aria-label="add"
                   onClick={onOpenFolder}
                 >
                   <FolderOpenIcon />
                 </IconButton>
-              </Tooltip>
-            </Grid>
-            <Grid item>
-              <Tooltip title="Open in new window">
-                <span>
-                  <IconButton
-                    disabled
-                    color="primary"
-                    size="medium"
-                    aria-label="add"
-                    onClick={onOpenInNew}
-                  >
-                    <OpenInNewIcon />
-                  </IconButton>
-                </span>
               </Tooltip>
             </Grid>
           </Grid>
