@@ -60,7 +60,13 @@ export default function CorrectionOverview(props: any) {
 
   return (
     <Paper>
-      <Grid container spacing={2} justify="space-evenly" alignItems="center">
+      <Grid
+        container
+        spacing={2}
+        justify="space-evenly"
+        alignItems="center"
+        style={{ padding: '0px 15px' }}
+      >
         <Grid item style={{ padding: '4px' }}>
           <StatusIcon status={correction?.status} />
         </Grid>
