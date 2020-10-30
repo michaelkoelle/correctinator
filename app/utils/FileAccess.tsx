@@ -3,6 +3,7 @@ import { OpenDialogReturnValue, remote } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
 import deepEqual from 'deep-equal';
+import 'setimmediate';
 import archiver from 'archiver';
 import Status from '../model/Status';
 
