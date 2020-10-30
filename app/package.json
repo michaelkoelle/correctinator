@@ -15,8 +15,11 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
+    "@types/archiver": "^3.1.1",
+    "@types/deep-equal": "^1.0.1",
     "@types/mui-datatables": "^3.4.1",
     "@types/react-pdf": "^4.0.6",
-    "@types/react-virtualized": "^9.21.10"
+    "@types/react-virtualized": "^9.21.10",
+    "@types/setimmediate": "^1.0.2"
   }
 }
