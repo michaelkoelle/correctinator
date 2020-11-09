@@ -22,8 +22,8 @@ export default function TaskCorrection(props: any) {
   const { correction, task, corrections, setTask, setTasks } = props;
   const [expanded, setExpanded] = React.useState(true);
 
-  function getCommentsForTask(tsk, subs, comments: string[] = []) {
-    subs?.forEach((t) => {
+  function getCommentsForTask(tsk, tsks: any[], comments: string[] = []) {
+    tsks?.forEach((t) => {
       if (t?.id === tsk?.id && t?.comment?.trim().length > 0) {
         comments.push(t.comment);
       } else if (t?.tasks?.length > 0) {
@@ -116,7 +116,7 @@ export default function TaskCorrection(props: any) {
           <Collapse in={expanded} timeout="auto" unmountOnExit>
             <TaskCorrectionList
               correction={correction}
-              submissions={corrections}
+              corrections={corrections}
               setTaskParent={setTask}
               tasks={task?.tasks}
               setTasks={setTasks}
