@@ -112,8 +112,6 @@ const createWindow = async () => {
     minHeight: 600, // and a min height!
     // Remove the window frame from windows applications
     frame: false,
-    // Hide the titlebar from MacOS applications while keeping the stop lights
-    titleBarStyle: 'hidden',
     webPreferences:
       (process.env.NODE_ENV === 'development' ||
         process.env.E2E_BUILD === 'true') &&
