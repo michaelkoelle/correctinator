@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MenuItem, remote, shell } from 'electron';
 import TitleBar from 'frameless-titlebar';
-import { UnfoldLess } from '@material-ui/icons';
+import 'setimmediate';
 import ReleaseNotes from '../components/ReleaseNotes';
 
 const { version } = require('../package.json');
@@ -115,6 +115,13 @@ export default function FramelessTitleBar(props: any) {
                     .shouldUseDarkColors
                     ? 'light'
                     : 'dark';
+                },
+              },
+              {
+                label: 'Toggle Developer Tools',
+                accelerator: 'Alt+Ctrl+I',
+                click: () => {
+                  currentWindow.webContents.toggleDevTools();
                 },
               },
             ],

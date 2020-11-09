@@ -6,7 +6,7 @@ import LensIcon from '@material-ui/icons/Lens';
 import Tooltip from '@material-ui/core/Tooltip';
 import Status from '../model/Status';
 
-export default function StatusIcon(props: { status: Status }): JSX.Element {
+function StatusIcon(props: { status: Status }): JSX.Element {
   const { status } = props;
 
   switch (status) {
@@ -36,3 +36,5 @@ export default function StatusIcon(props: { status: Status }): JSX.Element {
       );
   }
 }
+
+export default React.memo(StatusIcon);

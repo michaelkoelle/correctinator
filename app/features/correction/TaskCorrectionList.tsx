@@ -1,19 +1,19 @@
 /* eslint-disable import/no-cycle */
 import { List, ListItem } from '@material-ui/core';
-import React from 'react';
+import React, { useCallback } from 'react';
 import TaskCorrection from './TaskCorrection';
 
-export default function TaskCorrectionList(props: any) {
+function TaskCorrectionList(props: any) {
   const {
     tasks,
-    setTaskParent = undefined,
-    setTasks,
     disableGutters = false,
-    corrections,
-    correction,
+    type,
+    setTasks,
+    setTaskParent = undefined,
+    acOptionsArray,
   } = props;
 
-  function updateTask(tasksArray: any, tasksToUpdate: any[]) {
+  const updateTask = useCallback((tasksArray: any, tasksToUpdate: any[]) => {
     tasksToUpdate.forEach((task) => {
       for (let i = 0; i < tasksArray.length; i += 1) {
         if (tasksArray[i].id === task.id) {
@@ -23,21 +23,24 @@ export default function TaskCorrectionList(props: any) {
         updateTask(tasksArray[i].tasks, [task]);
       }
     });
-  }
+  }, []);
 
-  function setTask(task: any[]) {
-    const temp = [...tasks];
-    updateTask(temp, task);
-    if (setTaskParent !== undefined) {
-      setTaskParent(temp);
-    } else {
-      setTasks(temp);
-    }
-  }
+  const setTask = useCallback(
+    (task: any[]) => {
+      const temp = [...tasks];
+      updateTask(temp, task);
+      if (setTaskParent !== undefined) {
+        setTaskParent(temp);
+      } else {
+        setTasks(temp);
+      }
+    },
+    [setTaskParent, setTasks, tasks, updateTask]
+  );
 
   return (
     <List style={{ paddingBottom: disableGutters ? 0 : undefined }}>
-      {tasks.map((t: any, i: number, a: any[]) => {
+      {tasks?.map((t: any, i: number, a: any[]) => {
         return (
           <ListItem
             key={t?.id}
@@ -48,11 +51,10 @@ export default function TaskCorrectionList(props: any) {
           >
             <TaskCorrection
               task={t}
-              corrections={corrections}
-              correction={correction}
-              setTask={setTask}
-              setTaskParent={setTaskParent}
+              acOptionsArray={acOptionsArray}
+              type={type}
               setTasks={setTasks}
+              setTask={setTask}
             />
           </ListItem>
         );
@@ -60,3 +62,5 @@ export default function TaskCorrectionList(props: any) {
     </List>
   );
 }
+
+export default React.memo(TaskCorrectionList);

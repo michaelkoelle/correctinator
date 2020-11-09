@@ -15,7 +15,11 @@ import WidgetsIcon from '@material-ui/icons/Widgets';
 import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
 import { TabPanel, TabContext } from '@material-ui/lab';
+import { useDispatch, useSelector } from 'react-redux';
+import { normalize } from 'normalizr';
+import { createSelector } from '@reduxjs/toolkit';
 import {
+  convertToCorrection,
   getAllSubmissionDirectories,
   getSubmissionDir,
   getSubmissionFromAppDataDir,
@@ -27,6 +31,15 @@ import SheetOverviewPage from '../containers/SheetOverviewPage';
 import OverviewPage from '../containers/OverviewPage';
 import SchemeGeneratorPage from '../containers/SchemeGeneratorPage';
 import CorrectionViewPage from '../containers/CorrectionViewPage';
+import {
+  correctionsAddOne,
+  correctionsImport,
+  selectAllCorrections,
+  selectCorrectionById,
+} from '../model/CorrectionsSlice';
+import { correctionsSchema } from '../model/NormalizationSchema';
+import Correction from '../model/Correction';
+import Task from '../model/Task';
 
 const useStyle = makeStyles({
   indicator: {
@@ -35,6 +48,7 @@ const useStyle = makeStyles({
 });
 
 export default function Home(): JSX.Element {
+  const dispatch = useDispatch();
   const [tab, setTabValue] = useState<number>(0);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [sheetToCorrect, setSheetToCorrectValue] = useState<any>({});
@@ -44,6 +58,22 @@ export default function Home(): JSX.Element {
   const [timeStart, setTimeStart] = useState<Date>(new Date());
   const classes = useStyle();
 
+  /*
+  const tasksForCorr1 = (state) =>
+    state.corrections.entities
+      .find((c) => c.submission === 'uwa3fcjatpirlrnk')
+      .tasks.map((i) => state.tasks.entities[i]);
+
+  const selectC = useSelector((state) =>
+    selectCorrectionById(state, 'uwa3fcjatpirlrnk')
+  );
+
+  const tasdsd = createSelector(selectCorrectionById('uwa3fcjatpirlrnk'), (c) =>
+    c.tasks.map((i) => state.tasks.entities[i])
+  );
+  const tasksOf = useSelector(tasksForCorr1);
+  console.log(tasksOf);
+*/
   // todo: corrections vs submissions
   //
 
@@ -132,12 +162,23 @@ export default function Home(): JSX.Element {
     const path = getSubmissionDir();
     const subs: any[] = [];
     const submissionDirectories: string[] = getAllSubmissionDirectories(path);
+    const testArray: Correction[] = [];
     submissionDirectories.forEach((dir, i) => {
       const temp = getSubmissionFromAppDataDir(dir);
+      const test = convertToCorrection(temp);
+      testArray.push(test);
+      // dispatch(correctionsAddOne(test));
       temp.id = i;
       subs.push(temp);
     });
     setSubmissions(subs);
+
+    console.log('////////////////////////');
+    const normal = normalize(testArray, correctionsSchema);
+    console.log(normal);
+    dispatch(correctionsImport(normal.entities));
+    console.log('////////////////////////');
+
     if (subs.length > 0) {
       setSheets(getUniqueSheets(subs));
     } else {

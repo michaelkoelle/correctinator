@@ -1,0 +1,44 @@
+import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import { correctionsImport } from './CorrectionsSlice';
+import Corrector from './Corrector';
+
+const adapter = createEntityAdapter<Corrector>({
+  selectId: (corr) => corr.name,
+  sortComparer: (a, b) => a.name.localeCompare(b.name),
+});
+
+const slice = createSlice({
+  name: 'correctors',
+  initialState: adapter.getInitialState(),
+  reducers: {
+    correctorsAddOne: adapter.addOne,
+    correctorsAddMany: adapter.addMany,
+    correctorsUpdateOne: adapter.updateOne,
+    correctorsUpdateMany: adapter.updateMany,
+    correctorsRemoveOne: adapter.removeOne,
+    correctorsRemoveMany: adapter.removeMany,
+    correctorsRemoveAll: adapter.removeAll,
+    correctorsUpsertOne: adapter.upsertOne,
+    correctorsUpsertMany: adapter.upsertMany,
+  },
+  extraReducers: {
+    [correctionsImport.type]: (state, action) => {
+      adapter.upsertMany(state, action.payload.correctors);
+    },
+  },
+});
+
+export const correctorsSelector = (state) => state.correctors;
+
+export const {
+  correctorsAddOne,
+  correctorsAddMany,
+  correctorsUpdateOne,
+  correctorsUpdateMany,
+  correctorsRemoveOne,
+  correctorsRemoveMany,
+  correctorsRemoveAll,
+  correctorsUpsertOne,
+  correctorsUpsertMany,
+} = slice.actions;
+export default slice.reducer;

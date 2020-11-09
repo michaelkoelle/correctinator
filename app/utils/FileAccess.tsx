@@ -6,6 +6,8 @@ import deepEqual from 'deep-equal';
 import 'setimmediate';
 import archiver from 'archiver';
 import Status from '../model/Status';
+import Correction from '../model/Correction';
+import Task from '../model/Task';
 
 export function createDirectory(dir: string) {
   if (fs.existsSync(dir)) {
@@ -192,6 +194,27 @@ export function getSubmissionFromAppDataDir(dir: string) {
   return ratingFileJson;
 }
 
+export function convertToCorrection(json): Correction {
+  const test: Correction = {
+    submission: json.submission,
+    term: { name: json.term },
+    school: { name: json.school },
+    course: { name: json.course },
+    sheet: {
+      id: `${json.school}-${json.course}-${json.term}-${json.sheet.name}`.replaceAll(
+        ' ',
+        '-'
+      ),
+      ...json.sheet,
+    },
+    corrector: { name: json.rated_by },
+    location: { name: json.rated_at },
+    status: json.status,
+    tasks: json.tasks,
+  };
+  return test;
+}
+
 export function saveSubmission(submission) {
   const config = YAML.stringify(submission);
   if (submission.path) {
@@ -275,12 +298,12 @@ function wordWrap(long_string, max_char, depth) {
   return wrapedLines.join(`\n${'\t'.repeat(depth)}`);
 }
 
-export function sumParam(tasks: any, param: string): any {
+export function sumParam(tasks: Task[], param: string): number {
   let sum = 0;
-  tasks?.forEach((t: any) => {
+  tasks?.forEach((t) => {
     if (t?.tasks?.length > 0) {
-      sum += Number.parseFloat(sumParam(t.tasks, param));
-    } else {
+      sum += sumParam(t.tasks as Task[], param);
+    } else if (t) {
       sum += Number.parseFloat(t[param]);
     }
   });
@@ -426,12 +449,12 @@ export function exportCorrections(
   archive.finalize();
 }
 
-export function hasTasksWithZeroMax(tasks: any[]): boolean {
+export function hasTasksWithZeroMax(tasks: Task[]): boolean {
   let zeroMax = false;
   tasks?.forEach((t) => {
     if (t?.tasks?.length > 0) {
-      zeroMax = hasTasksWithZeroMax(t.tasks) ? true : zeroMax;
-    } else if (t.max <= 0) {
+      zeroMax = hasTasksWithZeroMax(t.tasks as Task[]) ? true : zeroMax;
+    } else if (t?.max && t?.max <= 0) {
       zeroMax = true;
     }
   });

@@ -12,7 +12,7 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FindInPageIcon from '@material-ui/icons/FindInPage';
@@ -53,12 +53,15 @@ export default function CorrectionView(props: any) {
     setOpenExportDialog(false);
   }
 
-  function setTasks(tasks: any) {
-    const temps = [...corrections];
-    temps[index].tasks = tasks;
-    temps[index].points = sumParam(tasks, 'value');
-    setCorrections(temps);
-  }
+  const setTasks = useCallback(
+    (tasks: any) => {
+      const temps = [...corrections];
+      temps[index].tasks = tasks;
+      temps[index].points = sumParam(tasks, 'value');
+      setCorrections(temps);
+    },
+    [corrections, index, setCorrections]
+  );
 
   function setStatusDone() {
     // Rating done
