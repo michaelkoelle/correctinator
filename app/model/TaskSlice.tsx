@@ -24,6 +24,8 @@ const slice = createSlice({
     tasksRemoveAll: adapter.removeAll,
     tasksUpsertOne: adapter.upsertOne,
     tasksUpsertMany: adapter.upsertMany,
+    tasksRemoveOneById: (state, action: PayloadAction<{ id: string }>) =>
+      adapter.removeOne(state, action.payload.id),
     tasksAddOneSubtask: (
       state,
       action: PayloadAction<{ id: string | undefined; subTask: Task }>
@@ -55,6 +57,28 @@ const slice = createSlice({
       adapter.upsertOne(state, action.payload);
     },
     /*
+    TODO:
+    [schemaRemoveTask.type]: (state: any, action) => {
+
+      const parent = state.ids
+        .map((id) => state.entities[id])
+        .find((t) => t.tasks.includes(action.payload.id));
+      console.log(state.ids);
+      const { tasks } = state.entities[parent];
+
+      const index = tasks.findIndex((t) => t.id === action.payload.id);
+
+      if (index > -1) {
+        tasks.splice(index, 1);
+
+        adapter.updateOne(state, {
+          id: parent.id,
+          changes: { tasks },
+        });
+      }
+      adapter.removeOne(state, action.payload.id);
+    },
+
     [schemaRemoveTask.type]: (state: any, action) => {
       adapter.removeOne(state, action.payload.id);
     },
@@ -80,6 +104,7 @@ export const {
   tasksUpsertOne,
   tasksUpsertMany,
   tasksAddOneSubtask,
+  tasksRemoveOneById,
 } = slice.actions;
 export default slice.reducer;
 

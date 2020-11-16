@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-no-duplicate-props */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AceEditor from 'react-ace';
 import YAML from 'yaml';
 import { v4 as uuidv4 } from 'uuid';
@@ -33,9 +33,9 @@ import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import { clipboard, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
-import { denormalize } from 'normalizr';
 import TaskSchemeList from './TaskSchemeList';
 import {
+  denormalizeTasks,
   getSubmissionsOfSheet,
   hasTasksWithZeroMax,
   isSubmissionFromSheet,
@@ -55,6 +55,7 @@ import {
   tasksAddOne,
   tasksAddOneSubtask,
   tasksRemoveOne,
+  tasksUpdateMany,
   tasksUpdateOne,
 } from '../../model/TaskSlice';
 import Task from '../../model/Task';
@@ -63,22 +64,12 @@ import Sheet from '../../model/Sheet';
 import { correctionsInitializeTasksForSheet } from '../../model/CorrectionsSlice';
 import Schema from '../../model/Schema';
 
-function denormalizeTasks(taskIds: string[], tasks: Task[]): Task[] {
-  return taskIds
-    .map((id: string) => {
-      return tasks[id];
-    })
-    .map((t: Task) => {
-      if (t?.tasks?.length > 0) {
-        t.tasks = denormalizeTasks(t.tasks as string[], tasks);
-      }
-      return t;
-    });
-}
+// TODO:
+// entweder eigene datensturkur für schema tasks machen oder tasks in tasks löschen wenn ein task/subtask gelöscht wird
 
 export default function SchemeGenerator(props: { initialSheet: Sheet }) {
   const { initialSheet } = props;
-
+  console.log('RERENDER: SchemaGenerator');
   const dispatch = useDispatch();
   const tasks: Task[] = useSelector(selectAllTasks);
   const schema: Schema = useSelector(selectSchema);
@@ -89,7 +80,9 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [correctionDialog, setCorrectionDialog] = useState<boolean>(false);
   const [type, setType] = useState<string>('points');
-  const [schemaString, setSchemaString] = useState('');
+  const [schemaString, setSchemaString] = useState(
+    YAML.stringify(schemaTasks) || ''
+  );
 
   const defaultTask: Task = {
     id: uuidv4(),
@@ -103,6 +96,16 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
   const [selectedSheetId, setSelectedSheetId] = useState<string>(
     initialSheet?.id || 'custom'
   );
+
+  const getSchemaString = () => {
+    try {
+      return YAML.stringify(schemaTasks);
+    } catch (error) {
+      return '';
+    }
+  };
+
+  useEffect(() => setSchemaString(getSchemaString()), [tasks]);
 
   function onSelectSheet(event) {
     setSelectedSheetId(event.target.value);
@@ -129,12 +132,11 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
   }
 
   function onStartCorrection() {
-    /*
-    if (schemaSheet !== '' && schemaSheet !== undefined) {
-      setSheetToCorrect(schemaSheet);
-      setTab(3);
+    if (selectedSheetId !== '' && selectedSheetId !== undefined) {
+      // TODO:
+      // setSheetToCorrect(schemaSheet);
+      // setTab(3);
     }
-    */
   }
 
   function onAssignSchema() {
@@ -154,7 +156,7 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
 
   function addTask(task: Task) {
     dispatch(schemaAddTask(task));
-    // setSchemaString(YAML.stringify([...schema, task]));
+    // setSchemaString(YAML.stringify(schemaTasks));
   }
 
   function onAddTask() {
@@ -175,7 +177,7 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
 
   function onDeleteSelected() {
     if (schema.selectedTask) {
-      dispatch(schemaRemoveTask(schema.selectedTask));
+      dispatch(schemaRemoveTask({ id: schema.selectedTask }));
     }
     // setSchemaString(YAML.stringify([...schema, task]));
   }
@@ -183,27 +185,29 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
   function onAddSubTask() {
     dispatch(
       tasksAddOneSubtask({
-        id: schema.selectedTask?.id,
+        id: schema.selectedTask,
         subTask: { ...defaultTask },
       })
     );
-    // setSchemaString(YAML.stringify(denormalize(temp, TasksSchema, enitities)));
+    // setSchemaString(YAML.stringify(schemaTasks));
   }
 
   function onChange(newValue: any) {
-    /*
     if (newValue !== null) {
       try {
-        const tasks = YAML.parse(newValue);
-
-        setSchema(tasks);
+        const parsedTasks: any[] = YAML.parse(newValue);
+        dispatch(
+          tasksUpdateMany(
+            parsedTasks.map((t) => {
+              return { id: t.id, changes: t };
+            })
+          )
+        );
       } catch (error) {
         console.log('YAML Parse Error');
-        setSchema([]);
       }
+      setSchemaString(newValue);
     }
-    setSchemaString(newValue);
-    */
   }
 
   return (
@@ -232,14 +236,14 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
             <Button
               type="button"
               onClick={onAddSubTask}
-              disabled={schema.selectedTask !== undefined}
+              disabled={schema.selectedTask === undefined}
             >
               Add subtask
             </Button>
             <Button
               type="button"
               onClick={onDeleteSelected}
-              disabled={schema.selectedTask !== undefined}
+              disabled={schema.selectedTask === undefined}
             >
               Delete selected task
             </Button>
@@ -353,10 +357,14 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
                         (schema.selectedSheet &&
                           (sumParam(schemaTasks, 'max') !==
                             schema.selectedSheet?.grading?.max ||
-                            hasTasksWithZeroMax(schema.tasks) ||
+                            hasTasksWithZeroMax(
+                              denormalizeTasks(schema.tasks, tasks)
+                            ) ||
                             sumParam(schemaTasks, 'max') <= 0)) ||
                         (!schema.selectedSheet &&
-                          (hasTasksWithZeroMax(schema.tasks) ||
+                          (hasTasksWithZeroMax(
+                            denormalizeTasks(schema.tasks, tasks)
+                          ) ||
                             sumParam(schemaTasks, 'max') <= 0))
                       }
                     />
@@ -490,7 +498,7 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
               }}
             >
               <TaskSchemeList
-                tasks={schemaTasks}
+                schemaTasks={schemaTasks}
                 selectedTask={schema.selectedTask}
                 type={schema.selectedSheet?.grading?.type || type}
               />

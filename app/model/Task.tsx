@@ -6,7 +6,7 @@ type Task = {
   value?: number;
   step?: number;
   max?: number;
-  tasks: string[] | Task[];
+  tasks: string[];
   comment?: Comment;
 };
 export default Task;

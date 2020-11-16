@@ -1,8 +1,7 @@
 import Sheet from './Sheet';
-import Task from './Task';
 
 type Schema = {
-  selectedTask: Task | undefined;
+  selectedTask: string | undefined;
   selectedSheet: Sheet | undefined;
   tasks: string[];
 };

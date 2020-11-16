@@ -298,7 +298,7 @@ function wordWrap(long_string, max_char, depth) {
   return wrapedLines.join(`\n${'\t'.repeat(depth)}`);
 }
 
-export function sumParam(tasks: Task[], param: string): number {
+export function sumParam(tasks: any, param: string): number {
   let sum = 0;
   tasks?.forEach((t) => {
     if (t?.tasks?.length > 0) {
@@ -449,7 +449,7 @@ export function exportCorrections(
   archive.finalize();
 }
 
-export function hasTasksWithZeroMax(tasks: Task[]): boolean {
+export function hasTasksWithZeroMax(tasks: any): boolean {
   let zeroMax = false;
   tasks?.forEach((t) => {
     if (t?.tasks?.length > 0) {
@@ -512,4 +512,25 @@ export function deleteSheet(sheet: any) {
 export function existsInAppDir(path: string): boolean {
   const appPath = Path.join(getSubmissionDir(), Path.parse(path).base);
   return fs.existsSync(appPath);
+}
+
+export function denormalizeTasks(taskIds: string[], tasks: Task[]): any[] {
+  return taskIds
+    .map((id: string) => {
+      const res = tasks.find((t: Task) => t.id === id);
+      if (res !== undefined) {
+        return res;
+      }
+      console.log(id);
+      throw new Error();
+    })
+    .map((t: Task) => {
+      if (t?.tasks?.length > 0) {
+        return {
+          ...t,
+          tasks: denormalizeTasks(t.tasks as string[], tasks),
+        };
+      }
+      return t;
+    });
 }

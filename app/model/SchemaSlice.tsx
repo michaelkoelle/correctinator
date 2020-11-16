@@ -11,7 +11,7 @@ const slice = createSlice({
     tasks: [],
   } as Schema,
   reducers: {
-    schemaSelectTask: (state, action: PayloadAction<Task>) => {
+    schemaSelectTask: (state, action: PayloadAction<string>) => {
       state.selectedTask = action.payload;
     },
     schemaAddTask: (
@@ -20,10 +20,7 @@ const slice = createSlice({
     ) => {
       state.tasks.push(action.payload.id);
     },
-    schemaRemoveTask: (
-      state,
-      action: PayloadAction<Task> | PayloadAction<{ id: string }>
-    ) => {
+    schemaRemoveTask: (state, action: PayloadAction<{ id: string }>) => {
       const index = state.tasks.indexOf(action.payload.id);
       if (index > -1) {
         state.tasks.splice(index, 1);
@@ -40,7 +37,7 @@ const slice = createSlice({
     schemaClearSelectedSheet: (state) => {
       state.selectedSheet = undefined;
     },
-    schemaSetSelectedTask: (state, action: PayloadAction<Task>) => {
+    schemaSetSelectedTask: (state, action: PayloadAction<string>) => {
       state.selectedTask = action.payload;
     },
     schemaClearSelectedTask: (state) => {

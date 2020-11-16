@@ -14,29 +14,51 @@ import {
   OutlinedInput,
 } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import { useDispatch, useSelector } from 'react-redux';
 import styles from './TaskScheme.css';
 import { hasTasksWithZeroMax, sumParam } from '../../utils/FileAccess';
+import { schemaSetSelectedTask, selectSchema } from '../../model/SchemaSlice';
+import Schema from '../../model/Schema';
+import { tasksUpdateOne } from '../../model/TaskSlice';
 
 export default function TaskScheme(props: any) {
-  const { task, setTask, selected, setSelected, depth, type } = props;
+  const { task, depth } = props;
+  const dispatch = useDispatch();
+  const schema: Schema = useSelector(selectSchema);
+  const selected = schema.selectedTask === task.id;
+
+  const type = 'test type';
   const [expanded, setExpanded] = React.useState(false);
   const INDENT_SIZE = 25;
 
   function handleChange(e: any) {
-    const temp = { ...task };
-    const { name, value } = e.target;
-    temp[name] = value;
+    const { value } = e.target;
+    const { name } = e.target;
 
     // Make sure that value <= max
-    if (name === 'max' || name === 'value') {
-      temp.value = Math.min(temp.value, temp.max);
+    if (name === 'max') {
+      dispatch(
+        tasksUpdateOne({
+          id: task.id,
+          changes: { [name]: value, value: Math.min(task.value, value) },
+        })
+      );
+    } else if (name === 'value') {
+      dispatch(
+        tasksUpdateOne({
+          id: task.id,
+          changes: { value: Math.min(value, task.max) },
+        })
+      );
+    } else {
+      dispatch(tasksUpdateOne({ id: task.id, changes: { [name]: value } }));
     }
-
-    setTask(temp);
   }
 
   function onSelection() {
-    setSelected(task);
+    if (!selected) {
+      dispatch(schemaSetSelectedTask(task.id));
+    }
   }
 
   const handleExpandClick = () => {
@@ -53,12 +75,9 @@ export default function TaskScheme(props: any) {
       <Card
         style={{ marginLeft }}
         raised={selected}
-        // variant={selected ? 'elevation' : undefined}
         className={styles.card}
         onClick={onSelection}
         onKeyDown={onSelection}
-        // variant="outlined"
-        // className={[styles.card, selected ? styles.selected : ''].join(' ')}
       >
         <TextField
           id="outlined-number"
