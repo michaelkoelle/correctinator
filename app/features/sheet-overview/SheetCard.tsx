@@ -20,17 +20,14 @@ import {
 } from '@material-ui/core';
 import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import { remote } from 'electron';
-import {
-  deleteSheet,
-  exportCorrections,
-  getUniqueSheets,
-} from '../../utils/FileAccess';
-import { resolveLoader } from '../../../configs/webpack.config.eslint';
+
+import { useSelector } from 'react-redux';
+import { deleteSheet } from '../../utils/FileAccess';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 import ExportDialog from '../../components/ExportDialog';
 
 export default function SheetCard(props: any) {
+  const workspacePath = useSelector((state: any) => state.workspace.path);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
@@ -81,7 +78,7 @@ export default function SheetCard(props: any) {
 
   function onDeleteSheet() {
     onCloseConfirmDialog();
-    deleteSheet(sheet);
+    deleteSheet(sheet, workspacePath);
     reload();
   }
 
