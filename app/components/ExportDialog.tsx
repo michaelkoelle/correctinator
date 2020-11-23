@@ -117,12 +117,15 @@ export default function ExportDialog(props: any) {
       defaultPath: getUniqueSheets(correctionsToExport)
         .map(
           (s) =>
-            `${s.sheet.name.replace(' ', '-')}-${s.course.replace(
+            `${s.course.replace(' ', '-')}-${s.term.replace(
               ' ',
               '-'
-            )}-${s.term.replace(' ', '-')}`
+            )}-${s.sheet.name.replace(' ', '-')}`
         )
-        .join('-'),
+        .join('-')
+        .replaceAll('/', '-')
+        .replaceAll('\\', '-')
+        .concat('.zip'),
       filters: [{ name: 'Zip', extensions: ['zip'] }],
     });
 
