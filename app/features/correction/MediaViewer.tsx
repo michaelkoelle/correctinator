@@ -24,7 +24,7 @@ import ErrorIcon from '@material-ui/icons/Error';
 import CropFreeIcon from '@material-ui/icons/CropFree';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { shell } from 'electron';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import mime from 'mime-types';
@@ -39,6 +39,8 @@ export default function MediaViewer(props: any) {
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const { files = [] } = props;
+
+  useEffect(() => setFileIndex(0), [files]);
 
   const ZOOMSTEP = 20 / 100;
   const ZOOMMIN = 40 / 100;
