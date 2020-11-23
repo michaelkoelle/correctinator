@@ -4,14 +4,38 @@ import { routerMiddleware } from 'connected-react-router';
 import { createLogger } from 'redux-logger';
 import { ThunkAction } from 'redux-thunk';
 // eslint-disable-next-line import/no-cycle
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  persistReducer,
+  persistStore,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+} from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
 import createRootReducer from './rootReducer';
 
+const persistConfig = {
+  key: 'root',
+  storage,
+};
+
 export const history = createHashHistory();
-const rootReducer = createRootReducer(history);
+const combinedReducer = createRootReducer(history);
+const rootReducer: any = persistReducer(persistConfig, combinedReducer);
 export type RootState = ReturnType<typeof rootReducer>;
 
 const router = routerMiddleware(history);
-const middleware = [...getDefaultMiddleware(), router];
+const defMiddleware = (mid) =>
+  mid({
+    serializableCheck: {
+      ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+    },
+  });
+
+const middleware = [...defMiddleware(getDefaultMiddleware), router];
 
 const excludeLoggerEnvs = ['test', 'production'];
 const shouldIncludeLogger = !excludeLoggerEnvs.includes(
@@ -35,13 +59,15 @@ export const configuredStore = (initialState?: RootState) => {
   });
 
   if (process.env.NODE_ENV === 'development' && module.hot) {
-    module.hot.accept(
-      './rootReducer',
-      // eslint-disable-next-line global-require
-      () => store.replaceReducer(require('./rootReducer').default)
+    module.hot.accept('./rootReducer', () =>
+      store.replaceReducer(
+        // eslint-disable-next-line global-require
+        persistReducer(persistConfig, require('./rootReducer').default)
+      )
     );
   }
-  return store;
+  const persistor = persistStore(store);
+  return { store, persistor };
 };
 export type Store = ReturnType<typeof configuredStore>;
 export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;

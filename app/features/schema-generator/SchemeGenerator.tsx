@@ -31,6 +31,7 @@ import {
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import { clipboard, remote } from 'electron';
+import { useSelector } from 'react-redux';
 import TaskSchemeList from './TaskSchemeList';
 import {
   getSubmissionsOfSheet,
@@ -57,6 +58,7 @@ export default function SchemeGenerator(props: any) {
     schemaSheet,
     setSchemaSheet,
   } = props;
+  const workspacePath = useSelector((state: any) => state.workspace.path);
   const [schema, setSchema] = useState([]) as any;
   const [taskCounter, setTaskCounter] = useState(0) as any;
   const [selected, setSelected] = useState({}) as any;
@@ -464,9 +466,10 @@ export default function SchemeGenerator(props: any) {
                     <Grid item>
                       <Button
                         onClick={
-                          getSubmissionsOfSheet(schemaSheet).filter(
-                            (s) => s?.tasks?.length > 0
-                          ).length > 0
+                          getSubmissionsOfSheet(
+                            schemaSheet,
+                            workspacePath
+                          ).filter((s) => s?.tasks?.length > 0).length > 0
                             ? onOverwriteSchema
                             : onAssignSchema
                         }
@@ -477,9 +480,10 @@ export default function SchemeGenerator(props: any) {
                           sumParam(schema, 'max') <= 0
                         }
                       >
-                        {getSubmissionsOfSheet(schemaSheet).filter(
-                          (s) => s?.tasks?.length > 0
-                        ).length > 0
+                        {getSubmissionsOfSheet(
+                          schemaSheet,
+                          workspacePath
+                        ).filter((s) => s?.tasks?.length > 0).length > 0
                           ? 'Overwrite'
                           : 'Assign'}
                       </Button>

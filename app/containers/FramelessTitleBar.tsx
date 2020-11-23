@@ -1,8 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { MenuItem, remote, shell } from 'electron';
+import fse from 'fs-extra';
 import TitleBar from 'frameless-titlebar';
+import * as Path from 'path';
 import { UnfoldLess } from '@material-ui/icons';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from '@material-ui/core';
 import ReleaseNotes from '../components/ReleaseNotes';
+import { openDirectory } from '../utils/FileAccess';
+import { workspaceSetPath } from '../features/workspace/workspaceSlice';
+import { resolveLoader } from '../../configs/webpack.config.eslint';
 
 const { version } = require('../package.json');
 
@@ -10,7 +24,14 @@ const currentWindow = remote.getCurrentWindow();
 
 export default function FramelessTitleBar(props: any) {
   // manage window state, default to currentWindow maximized state
+  const { reload } = props;
+  const dispatch = useDispatch();
+  const workspacePath = useSelector((state: any) => state.workspace.path);
+  const [oldPath, setOldPath] = useState<string>();
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
+  const [openMoveFilesDialog, setOpenMoveFilesDialog] = useState<boolean>(
+    false
+  );
   const [versionInfo, setVersionInfo] = useState({
     releaseNotes: '',
     releaseName: '',
@@ -48,6 +69,15 @@ export default function FramelessTitleBar(props: any) {
     {
       label: 'File',
       submenu: [
+        {
+          label: 'Change Workspace Directory',
+          click: async () => {
+            const dir: string = await openDirectory();
+            setOldPath(workspacePath);
+            dispatch(workspaceSetPath(dir));
+            setOpenMoveFilesDialog(true);
+          },
+        },
         {
           label: 'Exit',
           accelerator: 'Ctrl+W',
@@ -222,6 +252,46 @@ export default function FramelessTitleBar(props: any) {
         releaseNotes={versionInfo?.releaseNotes}
         handleClose={onCloseReleaseNotes}
       />
+      <Dialog
+        open={openMoveFilesDialog}
+        onClose={() => setOpenMoveFilesDialog(false)}
+      >
+        <DialogTitle>Move old submissions?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Do you want to move your old submissions to the new workspace?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              if (oldPath !== undefined) {
+                const filesToCopy: string[] = fse.readdirSync(oldPath);
+                filesToCopy?.forEach((file) => {
+                  const from = Path.join(oldPath, file);
+                  const to = Path.join(workspacePath, Path.parse(file).base);
+                  console.log(`${from} --> ${to}`);
+                  fse.moveSync(from, to);
+                });
+              }
+              reload();
+              setOpenMoveFilesDialog(false);
+            }}
+            color="primary"
+            autoFocus
+          >
+            Yes
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenMoveFilesDialog(false);
+            }}
+            color="primary"
+          >
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

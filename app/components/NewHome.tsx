@@ -15,9 +15,9 @@ import WidgetsIcon from '@material-ui/icons/Widgets';
 import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
 import { TabPanel, TabContext } from '@material-ui/lab';
+import { useSelector } from 'react-redux';
 import {
   getAllSubmissionDirectories,
-  getSubmissionDir,
   getSubmissionFromAppDataDir,
   getUniqueSheets,
   isSubmissionFromSheet,
@@ -35,6 +35,7 @@ const useStyle = makeStyles({
 });
 
 export default function Home(): JSX.Element {
+  const workspacePath = useSelector((state: any) => state.workspace.path);
   const [tab, setTabValue] = useState<number>(0);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [sheetToCorrect, setSheetToCorrectValue] = useState<any>({});
@@ -129,11 +130,11 @@ export default function Home(): JSX.Element {
   }
 
   function reload() {
-    const path = getSubmissionDir();
+    const path = workspacePath;
     const subs: any[] = [];
     const submissionDirectories: string[] = getAllSubmissionDirectories(path);
     submissionDirectories.forEach((dir, i) => {
-      const temp = getSubmissionFromAppDataDir(dir);
+      const temp = getSubmissionFromAppDataDir(dir, path);
       temp.id = i;
       subs.push(temp);
     });
@@ -146,6 +147,7 @@ export default function Home(): JSX.Element {
   }
 
   useEffect(() => reload(), []);
+  useEffect(() => reload(), [workspacePath]);
 
   return (
     <Grid container wrap="nowrap" style={{ height: '100%' }}>

@@ -11,24 +11,20 @@ import {
   IconButton,
   Typography,
 } from '@material-ui/core';
-import fs from 'fs';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
   createSubmissionFileStruture,
   existsInAppDir,
-  getAllFilesInDirectory,
-  getAllRatingFiles,
   getAllSubmissionDirectories,
-  getSubmissionDir,
-  getSubmissionFromAppDataDir,
-  getUniqueSheets,
   openDirectory,
 } from '../../utils/FileAccess';
 import SheetCardList from './SheetCardList';
 
 export default function SheetOverview(props: any) {
   const { sheets, reload, setSchemaSheet, setSheetToCorrect, setTab } = props;
+  const workspacePath = useSelector((state: any) => state.workspace.path);
   const [loading, setLoading] = useState<boolean>(false);
   const [openOverwriteDialog, setOpenOverwriteDialog] = useState<boolean>(
     false
@@ -38,7 +34,7 @@ export default function SheetOverview(props: any) {
   function createFileStructures(paths: string[]) {
     const subs: any[] = [];
     paths.forEach((dir, i) => {
-      const temp = createSubmissionFileStruture(dir);
+      const temp = createSubmissionFileStruture(dir, workspacePath);
       temp.id = i;
       subs.push(temp);
     });
@@ -49,8 +45,12 @@ export default function SheetOverview(props: any) {
     const path: string = await openDirectory();
     setLoading(true);
     const submissionDirectories: string[] = getAllSubmissionDirectories(path);
-    const noConflict = submissionDirectories.filter((d) => !existsInAppDir(d));
-    const conflict = submissionDirectories.filter((d) => existsInAppDir(d));
+    const noConflict = submissionDirectories.filter(
+      (d) => !existsInAppDir(d, workspacePath)
+    );
+    const conflict = submissionDirectories.filter((d) =>
+      existsInAppDir(d, workspacePath)
+    );
     createFileStructures(noConflict);
     setLoading(false);
     if (conflict.length > 0) {
