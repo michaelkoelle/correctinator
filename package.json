@@ -1,7 +1,7 @@
 {
   "name": "correctinator",
   "productName": "correctinator",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Ein Korrekturprogramm mit Media Viewer für Uni2Work Bewertungsdateien.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
