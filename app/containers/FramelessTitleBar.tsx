@@ -24,7 +24,7 @@ const currentWindow = remote.getCurrentWindow();
 
 export default function FramelessTitleBar(props: any) {
   // manage window state, default to currentWindow maximized state
-  const { reload } = props;
+  // const { reload } = props;
   const dispatch = useDispatch();
   const workspacePath = useSelector((state: any) => state.workspace.path);
   const [oldPath, setOldPath] = useState<string>();
@@ -274,7 +274,7 @@ export default function FramelessTitleBar(props: any) {
                   fse.moveSync(from, to);
                 });
               }
-              reload();
+              // reload();
               setOpenMoveFilesDialog(false);
             }}
             color="primary"
