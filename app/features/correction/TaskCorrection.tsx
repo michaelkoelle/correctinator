@@ -6,15 +6,18 @@ import {
   Collapse,
   Grid,
   IconButton,
-  InputAdornment,
   TextField,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
 import React from 'react';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import {
+  CheckCircleOutline,
+  ExpandLess,
+  ExpandMore,
+  HighlightOff,
+} from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
-import styles from './TaskCorrection.css';
 import TaskCorrectionList from './TaskCorrectionList';
 import { sumParam } from '../../utils/FileAccess';
 
@@ -54,6 +57,40 @@ export default function TaskCorrection(props: any) {
     }
 
     setTask([temp]);
+  }
+
+  function setFullPoints(t) {
+    const temp = { ...t };
+    temp.comment = '';
+    temp.value = temp.max;
+    setTask([temp]);
+  }
+
+  function setSolutionMissing(t) {
+    const temp = { ...t };
+    temp.comment = 'Lösung fehlt';
+    temp.value = 0.0;
+    setTask([temp]);
+  }
+
+  function setFullPointsAllTasks(t) {
+    t?.tasks?.forEach((tsk) => {
+      if (tsk?.tasks?.length > 0) {
+        setFullPointsAllTasks(tsk);
+      } else {
+        setFullPoints(tsk);
+      }
+    });
+  }
+
+  function setSolutionMissingAllTasks(t) {
+    t?.tasks?.forEach((tsk) => {
+      if (tsk?.tasks?.length > 0) {
+        setSolutionMissingAllTasks(tsk);
+      } else {
+        setSolutionMissing(tsk);
+      }
+    });
   }
 
   if (task.tasks.length > 0) {
@@ -100,6 +137,30 @@ export default function TaskCorrection(props: any) {
                 </Grid>
                 <Grid item>
                   <Typography>{correction.sheet.grading.type}</Typography>
+                </Grid>
+                <Grid item>
+                  <Tooltip title="Full points">
+                    <span>
+                      <IconButton
+                        onClick={() => setFullPointsAllTasks(task)}
+                        size="small"
+                      >
+                        <CheckCircleOutline />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Grid>
+                <Grid item style={{ marginLeft: '-15px' }}>
+                  <Tooltip title="Missing Solution">
+                    <span>
+                      <IconButton
+                        onClick={() => setSolutionMissingAllTasks(task)}
+                        size="small"
+                      >
+                        <HighlightOff />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
                 </Grid>
                 <Grid item>
                   <IconButton
@@ -173,6 +234,30 @@ export default function TaskCorrection(props: any) {
               </Grid>
               <Grid item>
                 <Typography>{correction.sheet.grading.type}</Typography>
+              </Grid>
+              <Grid item>
+                <Tooltip title="Full points">
+                  <span>
+                    <IconButton
+                      onClick={() => setFullPoints(task)}
+                      size="small"
+                    >
+                      <CheckCircleOutline />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Grid>
+              <Grid item style={{ marginLeft: '-15px' }}>
+                <Tooltip title="Missing Solution">
+                  <span>
+                    <IconButton
+                      onClick={() => setSolutionMissing(task)}
+                      size="small"
+                    >
+                      <HighlightOff />
+                    </IconButton>
+                  </span>
+                </Tooltip>
               </Grid>
             </Grid>
           </Grid>
