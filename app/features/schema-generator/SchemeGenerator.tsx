@@ -388,7 +388,7 @@ export default function SchemeGenerator(props: any) {
                         value={selectValue}
                         onChange={onSelectSheet}
                       >
-                        <MenuItem value="custom">Custom shema</MenuItem>
+                        <MenuItem value="custom">Custom schema</MenuItem>
                         {sheets.map((s) => {
                           return (
                             <MenuItem
