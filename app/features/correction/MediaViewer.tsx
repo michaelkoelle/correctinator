@@ -76,6 +76,23 @@ export default function MediaViewer(props: any) {
     setFileIndex(Math.abs((fileIndex + (files.length - 1)) % files.length));
   }
 
+  function handleScrollEvent(event: WheelEvent) {
+    if (event.ctrlKey) {
+      if (event.deltaY > 0) {
+        onZoomOut();
+      } else {
+        onZoomIn();
+      }
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('wheel', handleScrollEvent);
+    return () => {
+      window.removeEventListener('wheel', handleScrollEvent);
+    };
+  }, [handleScrollEvent]);
+
   useEffect(() => {
     resetScaleAndRotation();
     setFileIndex(0);
