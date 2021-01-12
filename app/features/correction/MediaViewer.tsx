@@ -1,14 +1,8 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable import/no-cycle */
 import {
-  Backdrop,
   Box,
-  Button,
-  Container,
-  Fab,
   Grid,
-  Hidden,
-  Icon,
   IconButton,
   Paper,
   Tooltip,
@@ -23,7 +17,6 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import ErrorIcon from '@material-ui/icons/Error';
 import CropFreeIcon from '@material-ui/icons/CropFree';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import React, { useEffect, useState } from 'react';
 import { shell } from 'electron';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -39,8 +32,6 @@ export default function MediaViewer(props: any) {
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const { files = [] } = props;
-
-  useEffect(() => setFileIndex(0), [files]);
 
   const ZOOMSTEP = 20 / 100;
   const ZOOMMIN = 40 / 100;
@@ -84,6 +75,11 @@ export default function MediaViewer(props: any) {
     resetScaleAndRotation();
     setFileIndex(Math.abs((fileIndex + (files.length - 1)) % files.length));
   }
+
+  useEffect(() => {
+    resetScaleAndRotation();
+    setFileIndex(0);
+  }, [files]);
 
   if (files.length === 0 || !fs.existsSync(files[fileIndex])) {
     return (
