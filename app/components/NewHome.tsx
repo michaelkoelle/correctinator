@@ -21,7 +21,6 @@ import { createSelector } from '@reduxjs/toolkit';
 import {
   convertToCorrection,
   getAllSubmissionDirectories,
-  getSubmissionDir,
   getSubmissionFromAppDataDir,
   getUniqueSheets,
   isSubmissionFromSheet,
@@ -49,6 +48,7 @@ const useStyle = makeStyles({
 
 export default function Home(): JSX.Element {
   const dispatch = useDispatch();
+  const workspacePath = useSelector((state: any) => state.workspace.path);
   const [tab, setTabValue] = useState<number>(0);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [sheetToCorrect, setSheetToCorrectValue] = useState<any>({});
@@ -159,12 +159,12 @@ export default function Home(): JSX.Element {
   }
 
   function reload() {
-    const path = getSubmissionDir();
+    const path = workspacePath;
     const subs: any[] = [];
     const submissionDirectories: string[] = getAllSubmissionDirectories(path);
     const corrections: Correction[] = [];
     submissionDirectories.forEach((dir, i) => {
-      const temp = getSubmissionFromAppDataDir(dir);
+      const temp = getSubmissionFromAppDataDir(dir, path);
       const test = convertToCorrection(temp);
       corrections.push(test);
       // dispatch(correctionsAddOne(test));
@@ -187,6 +187,7 @@ export default function Home(): JSX.Element {
   }
 
   useEffect(() => reload(), []);
+  useEffect(() => reload(), [workspacePath]);
 
   return (
     <Grid container wrap="nowrap" style={{ height: '100%' }}>

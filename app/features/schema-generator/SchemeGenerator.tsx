@@ -67,6 +67,7 @@ import Schema from '../../model/Schema';
 // TODO:
 // entweder eigene datensturkur für schema tasks machen oder tasks in tasks löschen wenn ein task/subtask gelöscht wird
 
+/*
 export default function SchemeGenerator(props: { initialSheet: Sheet }) {
   const { initialSheet } = props;
   console.log('RERENDER: SchemaGenerator');
@@ -82,6 +83,33 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
   const [type, setType] = useState<string>('points');
   const [schemaString, setSchemaString] = useState(
     YAML.stringify(schemaTasks) || ''
+    */
+
+export default function SchemeGenerator(props: any) {
+  const {
+    sheets,
+    submissions,
+    reload,
+    setTab,
+    setSheetToCorrect,
+    schemaSheet,
+    setSchemaSheet,
+  } = props;
+  const workspacePath = useSelector((state: any) => state.workspace.path);
+  const [schema, setSchema] = useState([]) as any;
+  const [taskCounter, setTaskCounter] = useState(0) as any;
+  const [selected, setSelected] = useState({}) as any;
+  const [, setOpen] = useState(false) as any;
+  const [openDialog, setOpenDialog] = useState(false) as any;
+  const [, setMessage] = useState('Test Message') as any;
+  const [selectValue, setSelectValue] = useState<string>(
+    sheetToString(schemaSheet) || 'custom'
+  );
+  const [type, setType] = useState('points') as any;
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [schemaString, setSchemaString] = useState('');
+  const [openStartCorrectionDialog, setOpenStartCorrectionDialog] = useState(
+    false
   );
 
   const defaultTask: Task = {
@@ -307,7 +335,7 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
                         value={selectedSheetId}
                         onChange={onSelectSheet}
                       >
-                        <MenuItem value="custom">Custom shema</MenuItem>
+                        <MenuItem value="custom">Custom schema</MenuItem>
                         {sheets.map((s) => {
                           return (
                             <MenuItem key={s.id} value={s.id}>
@@ -386,9 +414,10 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
                     <Grid item>
                       <Button
                         onClick={
-                          getSubmissionsOfSheet(schema.selectedSheet).filter(
-                            (s) => s?.tasks?.length > 0
-                          ).length > 0
+                          getSubmissionsOfSheet(
+                            schemaSheet,
+                            workspacePath
+                          ).filter((s) => s?.tasks?.length > 0).length > 0
                             ? onOverwriteSchema
                             : onAssignSchema
                         }
@@ -399,9 +428,10 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
                           sumParam(schemaTasks, 'max') <= 0
                         }
                       >
-                        {getSubmissionsOfSheet(schema.selectedSheet).filter(
-                          (s) => s?.tasks?.length > 0
-                        ).length > 0
+                        {getSubmissionsOfSheet(
+                          schemaSheet,
+                          workspacePath
+                        ).filter((s) => s?.tasks?.length > 0).length > 0
                           ? 'Overwrite'
                           : 'Assign'}
                       </Button>

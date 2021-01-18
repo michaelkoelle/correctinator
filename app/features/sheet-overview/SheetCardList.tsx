@@ -1,10 +1,13 @@
 import { Box, List, ListItem, Paper, Typography } from '@material-ui/core';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { getSubmissionsOfSheet } from '../../utils/FileAccess';
 import SheetCard from './SheetCard';
 
 export default function SheetCardList(props: any) {
   const { sheets, setSheetToCorrect, setSchemaSheet, setTab, reload } = props;
+  const workspacePath = useSelector((state: any) => state.workspace.path);
+
   if (sheets?.length > 0) {
     return (
       <List
@@ -24,7 +27,7 @@ export default function SheetCardList(props: any) {
                 sheet.rated_by
               }
               sheet={sheet}
-              submissions={getSubmissionsOfSheet(sheet)}
+              submissions={getSubmissionsOfSheet(sheet, workspacePath)}
               setSheetToCorrect={setSheetToCorrect}
               setSchemaSheet={setSchemaSheet}
               setTab={setTab}

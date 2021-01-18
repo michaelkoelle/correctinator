@@ -11,6 +11,7 @@ import {
   ListItemText,
 } from '@material-ui/core';
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import SplitPane from 'react-split-pane';
 import CorrectionView from '../features/correction/CorrectionView';
 import MediaViewer from '../features/correction/MediaViewer';
@@ -19,6 +20,7 @@ import './SplitPane.css';
 
 export default function CorrectionViewPage(props: any) {
   const [openDialog, setOpenDialog] = useState(false);
+  const workspacePath = useSelector((state: any) => state.workspace.path);
   const {
     corrections,
     setCorrections,
@@ -34,7 +36,7 @@ export default function CorrectionViewPage(props: any) {
 
   function missingSchemas(sheet) {
     return (
-      getSubmissionsOfSheet(sheet).filter(
+      getSubmissionsOfSheet(sheet, workspacePath).filter(
         (s) => s?.tasks === undefined || s?.tasks?.length === 0
       ).length > 0
     );

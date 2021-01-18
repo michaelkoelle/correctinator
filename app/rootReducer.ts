@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import { History } from 'history';
+import workspaceReducer from './features/workspace/workspaceSlice';
 // eslint-disable-next-line import/no-cycle
-import counterReducer from './features/counter/counterSlice';
 import termsReducer from './model/TermSlice';
 import schoolsReducer from './model/SchoolSlice';
 import coursesReducer from './model/CourseSlice';
@@ -24,7 +24,7 @@ export default function createRootReducer(history: History) {
     locations: locationsReducer,
     tasks: tasksReducer,
     corrections: correctionsReducer,
-    counter: counterReducer,
     schema: schemaReducer,
+    workspace: workspaceReducer,
   });
 }

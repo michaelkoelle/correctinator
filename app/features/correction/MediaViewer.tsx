@@ -1,14 +1,8 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable import/no-cycle */
 import {
-  Backdrop,
   Box,
-  Button,
-  Container,
-  Fab,
   Grid,
-  Hidden,
-  Icon,
   IconButton,
   Paper,
   Tooltip,
@@ -23,8 +17,7 @@ import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import ErrorIcon from '@material-ui/icons/Error';
 import CropFreeIcon from '@material-ui/icons/CropFree';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { shell } from 'electron';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import mime from 'mime-types';
@@ -82,6 +75,28 @@ export default function MediaViewer(props: any) {
     resetScaleAndRotation();
     setFileIndex(Math.abs((fileIndex + (files.length - 1)) % files.length));
   }
+
+  function handleScrollEvent(event: WheelEvent) {
+    if (event.ctrlKey) {
+      if (event.deltaY > 0) {
+        onZoomOut();
+      } else {
+        onZoomIn();
+      }
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener('wheel', handleScrollEvent);
+    return () => {
+      window.removeEventListener('wheel', handleScrollEvent);
+    };
+  }, [handleScrollEvent]);
+
+  useEffect(() => {
+    resetScaleAndRotation();
+    setFileIndex(0);
+  }, [files]);
 
   if (files.length === 0 || !fs.existsSync(files[fileIndex])) {
     return (

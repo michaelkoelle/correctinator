@@ -6,10 +6,18 @@ import {
   Collapse,
   Grid,
   IconButton,
+  TextField,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
+import {
+  CheckCircleOutline,
+  ExpandLess,
+  ExpandMore,
+  HighlightOff,
+} from '@material-ui/icons';
+import { Autocomplete } from '@material-ui/lab';
 import React, { useCallback, useMemo } from 'react';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import TaskCorrectionList from './TaskCorrectionList';
 import { sumParam } from '../../utils/FileAccess';
 import TaskCorrectionRating from './TaskCorrectionRating';
@@ -33,6 +41,16 @@ function TaskCorrection(props: any) {
     []
   );
   */
+  function getCommentsForTask(tsk, tsks: any[], comments: string[] = []) {
+    tsks?.forEach((t) => {
+      if (t?.id === tsk?.id && t?.comment?.trim().length > 0) {
+        comments.push(t.comment);
+      } else if (t?.tasks?.length > 0) {
+        getCommentsForTask(tsk, t?.tasks, comments);
+      }
+    });
+    return comments;
+  }
 
   const onChangeComment = useCallback(
     (_event, value) => {
@@ -63,6 +81,40 @@ function TaskCorrection(props: any) {
     acOptionsArray,
     task.id,
   ]);
+
+  function setFullPoints(t) {
+    const temp = { ...t };
+    temp.comment = '';
+    temp.value = temp.max;
+    setTask([temp]);
+  }
+
+  function setSolutionMissing(t) {
+    const temp = { ...t };
+    temp.comment = 'Lösung fehlt';
+    temp.value = 0.0;
+    setTask([temp]);
+  }
+
+  function setFullPointsAllTasks(t) {
+    t?.tasks?.forEach((tsk) => {
+      if (tsk?.tasks?.length > 0) {
+        setFullPointsAllTasks(tsk);
+      } else {
+        setFullPoints(tsk);
+      }
+    });
+  }
+
+  function setSolutionMissingAllTasks(t) {
+    t?.tasks?.forEach((tsk) => {
+      if (tsk?.tasks?.length > 0) {
+        setSolutionMissingAllTasks(tsk);
+      } else {
+        setSolutionMissing(tsk);
+      }
+    });
+  }
 
   if (task.tasks.length > 0) {
     return (

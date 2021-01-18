@@ -86,23 +86,17 @@ export function getAllSubmissionFiles(dir: string): string[] {
   return filePaths.filter((file) => !file.match(ratingFilePattern));
 }
 
-export function getSubmissionDir(): string {
-  const userDataPath: string = remote.app.getPath('userData');
-  const subDir: string = Path.join(userDataPath, 'submissions');
-  return subDir;
-}
-
 export function getAllSubmissionDirectories(dir: string): string[] {
+  console.log(dir);
   const directoryPattern = new RegExp('([a-z0-9]{16})[\\\\/|\\\\]?$', 'g');
   const dirPaths: string[] = getAllDirectoriesInDirectory(dir);
   dirPaths.push(dir);
   return dirPaths.filter((d) => d.match(directoryPattern));
 }
 
-export function createSubmissionFileStruture(dir: string) {
-  const userDataPath: string = remote.app.getPath('userData');
+export function createSubmissionFileStruture(dir: string, workspaceDir) {
   const submissionName: string = Path.parse(dir).name;
-  const subDir: string = Path.join(userDataPath, 'submissions', submissionName);
+  const subDir: string = Path.join(workspaceDir, submissionName);
 
   // Reading the Uni2Work rating file
   const ratingFilePaths: string[] = getAllRatingFiles(dir);
@@ -152,7 +146,10 @@ export function getAllRatingFilesInAppData(dir: string): string[] {
   return filePaths.filter((file) => Path.parse(file).base === 'config.yml');
 }
 
-export function getSubmissionFromAppDataDir(dir: string) {
+export function getSubmissionFromAppDataDir(
+  dir: string,
+  submissionDir: string
+) {
   const ratingFilePaths: string[] = getAllRatingFilesInAppData(dir);
 
   if (ratingFilePaths.length > 1) {
@@ -175,7 +172,7 @@ export function getSubmissionFromAppDataDir(dir: string) {
   const ratingFileJson = ratingFile.toJSON();
 
   const filesDir: string = Path.join(
-    getSubmissionDir(),
+    submissionDir,
     ratingFileJson.submission,
     'files'
   );
@@ -495,12 +492,13 @@ export function isSubmissionFromSheet(s, sheet) {
   return false;
 }
 
-export function getSubmissionsOfSheet(sheet: any) {
-  const path = getSubmissionDir();
+export function getSubmissionsOfSheet(sheet: any, submissionDir: string) {
+  const path = submissionDir;
+  console.log();
   const subs: any[] = [];
   const submissionDirectories: string[] = getAllSubmissionDirectories(path);
   submissionDirectories.forEach((dir, i) => {
-    const temp = getSubmissionFromAppDataDir(dir);
+    const temp = getSubmissionFromAppDataDir(dir, submissionDir);
     temp.id = i;
     subs.push(temp);
   });
@@ -521,17 +519,18 @@ function deleteFolderRecursive(path) {
   }
 }
 
-export function deleteSubmission(s: any) {
-  const subDir = getSubmissionDir();
-  deleteFolderRecursive(Path.join(subDir, s.submission));
+export function deleteSubmission(s: any, submissionDir: string) {
+  deleteFolderRecursive(Path.join(submissionDir, s.submission));
 }
 
-export function deleteSheet(sheet: any) {
-  getSubmissionsOfSheet(sheet).forEach((s) => deleteSubmission(s));
+export function deleteSheet(sheet: any, submissionDir: string) {
+  getSubmissionsOfSheet(sheet, submissionDir).forEach((s) =>
+    deleteSubmission(s, submissionDir)
+  );
 }
 
-export function existsInAppDir(path: string): boolean {
-  const appPath = Path.join(getSubmissionDir(), Path.parse(path).base);
+export function existsInAppDir(path: string, submissionDir: string): boolean {
+  const appPath = Path.join(submissionDir, Path.parse(path).base);
   return fs.existsSync(appPath);
 }
 

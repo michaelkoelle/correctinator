@@ -33,6 +33,18 @@ export default function PDFViewer(props: any) {
     console.log(error);
   }
 
+  function removeTextLayerOffset() {
+    const textLayers = document.querySelectorAll(
+      '.react-pdf__Page__textContent'
+    );
+    textLayers.forEach((layer: any) => {
+      const { style } = layer;
+      style.top = '0';
+      style.left = '0';
+      style.transform = '';
+    });
+  }
+
   return (
     <AutoSizer disableHeight>
       {({ width }) => (
@@ -53,6 +65,7 @@ export default function PDFViewer(props: any) {
               width={width - 20}
               scale={scale}
               rotate={rotation}
+              onLoadSuccess={removeTextLayerOffset}
             />
           ))}
         </Document>
