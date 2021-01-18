@@ -5,7 +5,7 @@ import * as Path from 'path';
 import deepEqual from 'deep-equal';
 import 'setimmediate';
 import archiver from 'archiver';
-import { stringify as uuidStringify } from 'uuid';
+import { v5 as uuidv5 } from 'uuid';
 import Status from '../model/Status';
 import Correction from '../model/Correction';
 import Task from '../model/TaskEntity';
@@ -193,6 +193,8 @@ export function getSubmissionFromAppDataDir(
 }
 
 export function convertToCorrection(json): Correction {
+  const pattern = /[/| |_|\\]/g;
+
   const correction: Correction = {
     id: json.submission,
     submission: {
@@ -200,7 +202,8 @@ export function convertToCorrection(json): Correction {
       files: json.files,
       sheet: {
         id: `${json.school}-${json.course}-${json.term}-${json.sheet.name}`
-          .replaceAll(' ', '-')
+          .trim()
+          .replaceAll(pattern, '-')
           .toLowerCase(),
         name: json.sheet.name,
         type: json.sheet.type,
@@ -218,7 +221,10 @@ export function convertToCorrection(json): Correction {
           name: json.term,
         },
         course: {
-          // id: json.course.replaceAll(' ', '-').toLowerCase(),
+          id: `${json.school}-${json.course}`
+            .trim()
+            .replaceAll(pattern, '-')
+            .toLowerCase(),
           name: json.course,
         },
       },
