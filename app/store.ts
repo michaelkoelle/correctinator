@@ -19,6 +19,7 @@ import createRootReducer from './rootReducer';
 
 const persistConfig = {
   key: 'root',
+  whitelist: ['workspace'],
   storage,
 };
 
