@@ -4,9 +4,13 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import Comment from './Comment';
+import CommentEntity from './CommentEntity';
 import { correctionsImport } from './CorrectionsSlice';
 
-const adapter = createEntityAdapter<Comment>();
+const adapter = createEntityAdapter<CommentEntity>({
+  selectId: (sel) => sel.text,
+  sortComparer: (a, b) => a.text.localeCompare(b.text),
+});
 
 const slice = createSlice({
   name: 'comments',
@@ -48,7 +52,7 @@ export const {
   selectAll: selectAllcomments,
   selectTotal: selectTotalcomments,
 } = adapter.getSelectors(
-  (state: { comments: EntityState<Comment> }) => state.comments
+  (state: { comments: EntityState<CommentEntity> }) => state.comments
 );
 
 export default slice.reducer;

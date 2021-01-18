@@ -58,7 +58,7 @@ import {
   tasksUpdateMany,
   tasksUpdateOne,
 } from '../../model/TaskSlice';
-import Task from '../../model/Task';
+import Task from '../../model/TaskEntity';
 import { selectAllSheets } from '../../model/SheetSlice';
 import Sheet from '../../model/Sheet';
 import { correctionsInitializeTasksForSheet } from '../../model/CorrectionsSlice';

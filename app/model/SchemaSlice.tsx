@@ -1,7 +1,7 @@
 import { createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 import Schema from './Schema';
 import Sheet from './Sheet';
-import Task from './Task';
+import Task from './TaskEntity';
 
 const slice = createSlice({
   name: 'schema',

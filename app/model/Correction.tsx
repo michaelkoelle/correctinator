@@ -1,22 +1,19 @@
+/* eslint-disable import/no-cycle */
 import Corrector from './Corrector';
-import Course from './Course';
-import School from './School';
-import Sheet from './Sheet';
 import Status from './Status';
-import Term from './Term';
 import Location from './Location';
-import Task from './Task';
+import Note from './Note';
+import Annotation from './Annotation';
+import Submission from './Submission';
 
 type Correction = {
-  submission: string;
-  term: Term;
-  school: School;
-  course: Course;
-  sheet: Sheet;
+  id: string;
+  submission: Submission;
   corrector: Corrector;
-  location: Location;
-  tasks: Task[] | string[];
   status: Status;
+  location?: Location;
+  note?: Note;
+  annotation?: Annotation;
 };
 
 export default Correction;

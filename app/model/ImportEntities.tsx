@@ -5,7 +5,7 @@ import School from './School';
 import Sheet from './Sheet';
 import Term from './Term';
 import Location from './Location';
-import Task from './Task';
+import Task from './TaskEntity';
 
 type ImportEntities = {
   terms: Term[];

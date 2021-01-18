@@ -5,15 +5,12 @@ import {
   EntityState,
   PayloadAction,
 } from '@reduxjs/toolkit';
-import Correction from './Correction';
+import CorrectionEntity from './CorrectionEntity';
 import Sheet from './Sheet';
 
 export const correctionsImport = createAction<unknown>('correctionsImport');
 
-const adapter = createEntityAdapter<Correction>({
-  selectId: (corr) => corr.submission,
-  sortComparer: (a, b) => a.submission.localeCompare(b.submission),
-});
+const adapter = createEntityAdapter<CorrectionEntity>();
 
 const slice = createSlice({
   name: 'corrections',
@@ -62,7 +59,7 @@ export const {
   selectAll: selectAllCorrections,
   selectTotal: selectTotalCorrections,
 } = adapter.getSelectors(
-  (state: { corrections: EntityState<Correction> }) => state.corrections
+  (state: { corrections: EntityState<CorrectionEntity> }) => state.corrections
 );
 
 export default slice.reducer;

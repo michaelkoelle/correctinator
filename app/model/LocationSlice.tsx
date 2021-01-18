@@ -23,7 +23,9 @@ const slice = createSlice({
   },
   extraReducers: {
     [correctionsImport.type]: (state, action) => {
-      adapter.upsertMany(state, action.payload.locations);
+      if (action.payload.locations !== undefined) {
+        adapter.upsertMany(state, action.payload.locations);
+      }
     },
   },
 });

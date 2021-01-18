@@ -7,9 +7,9 @@ import {
 } from '@reduxjs/toolkit';
 import { correctionsImport, selectCorrectionById } from './CorrectionsSlice';
 import { schemaAddTask, schemaRemoveTask } from './SchemaSlice';
-import Task from './Task';
+import TaskEntity from './TaskEntity';
 
-const adapter = createEntityAdapter<Task>();
+const adapter = createEntityAdapter<TaskEntity>();
 
 const slice = createSlice({
   name: 'tasks',
@@ -26,32 +26,32 @@ const slice = createSlice({
     tasksUpsertMany: adapter.upsertMany,
     tasksRemoveOneById: (state, action: PayloadAction<{ id: string }>) =>
       adapter.removeOne(state, action.payload.id),
-    tasksAddOneSubtask: (
+    /* tasksAddOneSubtask: (
       state,
-      action: PayloadAction<{ id: string | undefined; subTask: Task }>
+      action: PayloadAction<{ id: string | undefined; subTask: TaskEntity }>
     ) => {
       const { id, subTask } = action.payload;
 
       if (id) {
-        const parent: Task | undefined = state.entities[id];
+        const parent: TaskEntity | undefined = state.entities[id];
         if (parent) {
           adapter.addOne(state, action.payload.subTask);
           state.entities[id] = {
             id,
             name: parent.name,
-            value: undefined,
             max: undefined,
             step: undefined,
-            comment: undefined,
             tasks: [subTask.id, ...parent.tasks],
           };
         }
       }
-    },
+    }, */
   },
   extraReducers: {
     [correctionsImport.type]: (state: any, action) => {
-      adapter.upsertMany(state, action.payload.tasks);
+      if (action.payload.tasks !== undefined) {
+        adapter.upsertMany(state, action.payload.tasks);
+      }
     },
     [schemaAddTask.type]: (state: any, action) => {
       adapter.upsertOne(state, action.payload);
@@ -103,7 +103,7 @@ export const {
   tasksRemoveAll,
   tasksUpsertOne,
   tasksUpsertMany,
-  tasksAddOneSubtask,
+  // tasksAddOneSubtask,
   tasksRemoveOneById,
 } = slice.actions;
 export default slice.reducer;
@@ -114,4 +114,6 @@ export const {
   selectEntities: selectTaskEntities,
   selectAll: selectAllTasks,
   selectTotal: selectTotalTasks,
-} = adapter.getSelectors((state: { tasks: EntityState<Task> }) => state.tasks);
+} = adapter.getSelectors(
+  (state: { tasks: EntityState<TaskEntity> }) => state.tasks
+);

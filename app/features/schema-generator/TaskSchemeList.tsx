@@ -6,7 +6,7 @@ import Schema from '../../model/Schema';
 import { selectSchema } from '../../model/SchemaSlice';
 import Sheet from '../../model/Sheet';
 import { selectAllSheets } from '../../model/SheetSlice';
-import Task from '../../model/Task';
+import Task from '../../model/TaskEntity';
 import { selectAllTasks } from '../../model/TaskSlice';
 import { denormalizeTasks } from '../../utils/FileAccess';
 import TaskScheme from './TaskScheme';

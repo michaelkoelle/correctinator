@@ -5,9 +5,10 @@ import * as Path from 'path';
 import deepEqual from 'deep-equal';
 import 'setimmediate';
 import archiver from 'archiver';
+import { stringify as uuidStringify } from 'uuid';
 import Status from '../model/Status';
 import Correction from '../model/Correction';
-import Task from '../model/Task';
+import Task from '../model/TaskEntity';
 
 export function createDirectory(dir: string) {
   if (fs.existsSync(dir)) {
@@ -195,24 +196,44 @@ export function getSubmissionFromAppDataDir(dir: string) {
 }
 
 export function convertToCorrection(json): Correction {
-  const test: Correction = {
-    submission: json.submission,
-    term: { name: json.term },
-    school: { name: json.school },
-    course: { name: json.course },
-    sheet: {
-      id: `${json.school}-${json.course}-${json.term}-${json.sheet.name}`.replaceAll(
-        ' ',
-        '-'
-      ),
-      ...json.sheet,
+  const correction: Correction = {
+    id: json.submission,
+    submission: {
+      id: json.submission,
+      files: json.files,
+      sheet: {
+        id: `${json.school}-${json.course}-${json.term}-${json.sheet.name}`
+          .replaceAll(' ', '-')
+          .toLowerCase(),
+        name: json.sheet.name,
+        type: json.sheet.type,
+        // tasks: json.tasks,
+        maxValue: json.sheet.grading.max,
+        valueType: json.sheet.grading.type,
+        school: {
+          // id: json.school.replaceAll(' ', '-').toLowerCase(),
+          name: json.school,
+        },
+        term: {
+          // id: json.term.replaceAll(' ', '-').toLowerCase(),
+          // year: ???,
+          // summerterm: ??? bool
+          name: json.term,
+        },
+        course: {
+          // id: json.course.replaceAll(' ', '-').toLowerCase(),
+          name: json.course,
+        },
+      },
     },
     corrector: { name: json.rated_by },
-    location: { name: json.rated_at },
     status: json.status,
-    tasks: json.tasks,
+    // location: { name: json.rated_at },
+    // note: { text: '' },
+    // annotation: { text: '' },
   };
-  return test;
+  correction.submission.correction = correction;
+  return correction;
 }
 
 export function saveSubmission(submission) {
