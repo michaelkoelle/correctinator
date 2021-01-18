@@ -1,7 +1,53 @@
 /* eslint-disable import/prefer-default-export */
 import { schema } from 'normalizr';
-import Correction from './Correction';
-import Sheet from './Sheet';
+
+export const TermSchema = new schema.Entity(
+  'terms',
+  {},
+  { idAttribute: 'name' }
+);
+
+export const SchoolSchema = new schema.Entity(
+  'schools',
+  {},
+  { idAttribute: 'name' }
+);
+
+export const CourseSchema = new schema.Entity(
+  'courses',
+  {},
+  { idAttribute: 'name' }
+);
+
+export const CorrectorSchema = new schema.Entity(
+  'correctors',
+  {},
+  { idAttribute: 'name' }
+);
+
+export const LocationSchema = new schema.Entity(
+  'locations',
+  {},
+  { idAttribute: 'name' }
+);
+
+export const NoteSchema = new schema.Entity(
+  'notes',
+  {},
+  { idAttribute: 'text' }
+);
+
+export const AnnotationSchema = new schema.Entity(
+  'annotations',
+  {},
+  { idAttribute: 'text' }
+);
+
+export const CommentSchema = new schema.Entity(
+  'comments',
+  {},
+  { idAttribute: 'text' }
+);
 
 export const TaskSchema = new schema.Entity('tasks');
 export const TasksSchema = new schema.Array(TaskSchema);
@@ -10,18 +56,43 @@ TaskSchema.define({
   comment: new schema.Entity('comments'),
 });
 
-export const correctionSchema = new schema.Entity(
-  'corrections',
+export const SheetSchema = new schema.Entity(
+  'sheets',
   {
-    term: new schema.Entity('terms', {}, { idAttribute: 'name' }),
-    school: new schema.Entity('schools', {}, { idAttribute: 'name' }),
-    course: new schema.Entity('courses', {}, { idAttribute: 'name' }),
-    sheet: new schema.Entity('sheets', {}),
-    corrector: new schema.Entity('correctors', {}, { idAttribute: 'name' }),
-    location: new schema.Entity('locations', {}, { idAttribute: 'name' }),
+    term: TermSchema,
+    course: CourseSchema,
+    school: SchoolSchema,
     tasks: TasksSchema,
   },
-  { idAttribute: 'submission' }
+  { idAttribute: 'name' }
 );
 
-export const correctionsSchema = new schema.Array(correctionSchema);
+export const RatingSchema = new schema.Entity('ratings', {
+  comment: CommentSchema,
+  task: TaskSchema,
+});
+export const RatingsSchema = new schema.Array(RatingSchema);
+
+export const CorrectionSchema = new schema.Entity('corrections');
+
+export const SubmissionSchema = new schema.Entity(
+  'submissions',
+  {
+    sheet: SheetSchema,
+    correction: CorrectionSchema,
+  },
+  { idAttribute: 'id' }
+);
+
+export const SubmissionsSchema = new schema.Array(SubmissionSchema);
+
+CorrectionSchema.define({
+  location: LocationSchema,
+  corrector: CorrectorSchema,
+  note: NoteSchema,
+  annotation: AnnotationSchema,
+  ratings: RatingsSchema,
+  submission: SubmissionSchema,
+});
+
+export const CorrectionsSchema = new schema.Array(CorrectionSchema);

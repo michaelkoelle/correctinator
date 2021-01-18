@@ -37,9 +37,9 @@ import {
   selectAllCorrections,
   selectCorrectionById,
 } from '../model/CorrectionsSlice';
-import { correctionsSchema } from '../model/NormalizationSchema';
+import { CorrectionsSchema } from '../model/NormalizationSchema';
 import Correction from '../model/Correction';
-import Task from '../model/Task';
+import Task from '../model/TaskEntity';
 
 const useStyle = makeStyles({
   indicator: {
@@ -162,11 +162,11 @@ export default function Home(): JSX.Element {
     const path = getSubmissionDir();
     const subs: any[] = [];
     const submissionDirectories: string[] = getAllSubmissionDirectories(path);
-    const testArray: Correction[] = [];
+    const corrections: Correction[] = [];
     submissionDirectories.forEach((dir, i) => {
       const temp = getSubmissionFromAppDataDir(dir);
       const test = convertToCorrection(temp);
-      testArray.push(test);
+      corrections.push(test);
       // dispatch(correctionsAddOne(test));
       temp.id = i;
       subs.push(temp);
@@ -174,7 +174,7 @@ export default function Home(): JSX.Element {
     setSubmissions(subs);
 
     console.log('////////////////////////');
-    const normal = normalize(testArray, correctionsSchema);
+    const normal = normalize(corrections, CorrectionsSchema);
     console.log(normal);
     dispatch(correctionsImport(normal.entities));
     console.log('////////////////////////');
