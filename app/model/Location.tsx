@@ -1,2 +1,2 @@
-type Location = { name: string };
+type Location = { id: string; name: string };
 export default Location;

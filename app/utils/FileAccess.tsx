@@ -197,6 +197,7 @@ export function convertToCorrection(json): Correction {
   // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
   // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
   const termPattern = /(wise|sose)\s*(\d{4})/i;
+  const summertermPattern = /sose/gi;
   const termGroups = json.term.match(termPattern);
   const termYear = Number.parseInt(termGroups[2], 10);
   const termType = termGroups[1];
@@ -217,7 +218,7 @@ export function convertToCorrection(json): Correction {
         maxValue: json.sheet.grading.max,
         valueType: json.sheet.grading.type,
         school: {
-          // id: json.school.replaceAll(' ', '-').toLowerCase(),
+          id: json.school.trim().replaceAll(replacePattern, '-').toLowerCase(),
           name: json.school,
         },
         term: {
@@ -226,7 +227,7 @@ export function convertToCorrection(json): Correction {
             .replaceAll(replacePattern, '-')
             .toLowerCase(),
           year: termYear,
-          summerterm: termType === 'sose',
+          summerterm: termType.match(summertermPattern) !== null,
         },
         course: {
           id: `${json.school}-${json.course}`
@@ -237,9 +238,18 @@ export function convertToCorrection(json): Correction {
         },
       },
     },
-    corrector: { name: json.rated_by },
+    corrector: {
+      id: json.rated_by.trim().replaceAll(replacePattern, '-').toLowerCase(),
+      name: json.rated_by,
+    },
     status: json.status,
-    // location: { name: json.rated_at },
+    location: {
+      id: String(json.rated_at)
+        .trim()
+        .replaceAll(replacePattern, '-')
+        .toLowerCase(),
+      name: json.rated_at,
+    },
     // note: { text: '' },
     // annotation: { text: '' },
   };

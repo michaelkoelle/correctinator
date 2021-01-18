@@ -2,26 +2,10 @@
 import { schema } from 'normalizr';
 
 export const TermSchema = new schema.Entity('terms');
-
-export const SchoolSchema = new schema.Entity(
-  'schools',
-  {},
-  { idAttribute: 'name' }
-);
-
+export const SchoolSchema = new schema.Entity('schools');
 export const CourseSchema = new schema.Entity('courses');
-
-export const CorrectorSchema = new schema.Entity(
-  'correctors',
-  {},
-  { idAttribute: 'name' }
-);
-
-export const LocationSchema = new schema.Entity(
-  'locations',
-  {},
-  { idAttribute: 'name' }
-);
+export const CorrectorSchema = new schema.Entity('correctors');
+export const LocationSchema = new schema.Entity('locations');
 
 export const NoteSchema = new schema.Entity(
   'notes',
