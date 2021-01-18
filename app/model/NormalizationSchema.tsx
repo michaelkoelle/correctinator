@@ -1,11 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import { schema } from 'normalizr';
 
-export const TermSchema = new schema.Entity(
-  'terms',
-  {},
-  { idAttribute: 'name' }
-);
+export const TermSchema = new schema.Entity('terms');
 
 export const SchoolSchema = new schema.Entity(
   'schools',
@@ -13,11 +9,7 @@ export const SchoolSchema = new schema.Entity(
   { idAttribute: 'name' }
 );
 
-export const CourseSchema = new schema.Entity(
-  'courses',
-  {},
-  { idAttribute: 'name' }
-);
+export const CourseSchema = new schema.Entity('courses');
 
 export const CorrectorSchema = new schema.Entity(
   'correctors',

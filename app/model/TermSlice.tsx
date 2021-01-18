@@ -3,8 +3,7 @@ import { correctionsImport } from './CorrectionsSlice';
 import Term from './Term';
 
 const adapter = createEntityAdapter<Term>({
-  selectId: (sel) => sel.name,
-  sortComparer: (a, b) => a.name.localeCompare(b.name),
+  selectId: (term) => term.id,
 });
 
 const slice = createSlice({

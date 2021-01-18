@@ -193,7 +193,13 @@ export function getSubmissionFromAppDataDir(
 }
 
 export function convertToCorrection(json): Correction {
-  const pattern = /[/| |_|\\]/g;
+  const replacePattern = /[/| |_|\\]/g;
+  // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
+  // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
+  const termPattern = /(wise|sose)\s*(\d{4})/i;
+  const termGroups = json.term.match(termPattern);
+  const termYear = Number.parseInt(termGroups[2], 10);
+  const termType = termGroups[1];
 
   const correction: Correction = {
     id: json.submission,
@@ -203,7 +209,7 @@ export function convertToCorrection(json): Correction {
       sheet: {
         id: `${json.school}-${json.course}-${json.term}-${json.sheet.name}`
           .trim()
-          .replaceAll(pattern, '-')
+          .replaceAll(replacePattern, '-')
           .toLowerCase(),
         name: json.sheet.name,
         type: json.sheet.type,
@@ -215,15 +221,17 @@ export function convertToCorrection(json): Correction {
           name: json.school,
         },
         term: {
-          // id: json.term.replaceAll(' ', '-').toLowerCase(),
-          // year: ???,
-          // summerterm: ??? bool
-          name: json.term,
+          id: `${termType}-${termYear}`
+            .trim()
+            .replaceAll(replacePattern, '-')
+            .toLowerCase(),
+          year: termYear,
+          summerterm: termType === 'sose',
         },
         course: {
           id: `${json.school}-${json.course}`
             .trim()
-            .replaceAll(pattern, '-')
+            .replaceAll(replacePattern, '-')
             .toLowerCase(),
           name: json.course,
         },
