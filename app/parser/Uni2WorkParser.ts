@@ -138,7 +138,10 @@ export default abstract class Uni2WorkParser extends Parser {
     return ratings.map((r) => r.value).reduce((acc, r) => acc + r);
   }
 
-  public static serialize(correction: Correction): string {
+  public static serialize(
+    correction: Correction,
+    tasksAndComments = ''
+  ): string {
     const u2wData: Uni2WorkDataStructure = {
       term: Uni2WorkParser.serializeTerm(correction.submission.sheet.term),
       school: correction.submission.sheet.school.name,
@@ -162,6 +165,6 @@ export default abstract class Uni2WorkParser extends Parser {
     };
 
     const doc = new YAML.Document(u2wData);
-    return doc.toString();
+    return `${doc.toString()}...\n${tasksAndComments}`;
   }
 }

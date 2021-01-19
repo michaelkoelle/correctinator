@@ -5,7 +5,7 @@ export default abstract class Parser {
     throw new Error('Method not implemented.');
   }
 
-  static serialize(correction: Correction): string {
+  static serialize(correction: Correction, tasksAndComments = ''): string {
     throw new Error('Method not implemented.');
   }
 }
