@@ -4,6 +4,7 @@ type CorrectionEntity = {
   id: string;
   submission: string;
   corrector: string;
+  ratings?: string[];
   status: Status;
   location?: string;
   note?: string;

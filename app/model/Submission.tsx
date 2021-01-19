@@ -4,6 +4,7 @@ import Sheet from './Sheet';
 
 type Submission = {
   id: string;
+  name: string;
   files: string[];
   sheet: Sheet;
   correction?: Correction;

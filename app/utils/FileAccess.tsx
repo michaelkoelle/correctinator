@@ -171,6 +171,8 @@ export function getSubmissionFromAppDataDir(
 
   const ratingFileJson = ratingFile.toJSON();
 
+  console.log(JSON.stringify(ratingFileJson));
+
   const filesDir: string = Path.join(
     submissionDir,
     ratingFileJson.submission,
@@ -192,8 +194,18 @@ export function getSubmissionFromAppDataDir(
   return ratingFileJson;
 }
 
-export function convertToCorrection(json): Correction {
+export function stringToUUID5(
+  name: string,
+  namespace: string = uuidv5.URL
+): string {
   const replacePattern = /[/| |_|\\]/g;
+  return uuidv5(
+    name.trim().replaceAll(replacePattern, '-').toLowerCase(),
+    namespace
+  );
+}
+
+export function convertToCorrection(json): Correction {
   // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
   // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
   const termPattern = /(wise|sose)\s*(\d{4})/i;
@@ -203,51 +215,42 @@ export function convertToCorrection(json): Correction {
   const termType = termGroups[1];
 
   const correction: Correction = {
-    id: json.submission,
+    id: stringToUUID5(json.submission),
     submission: {
-      id: json.submission,
+      id: stringToUUID5(json.submission),
+      name: json.submission,
       files: json.files,
       sheet: {
-        id: `${json.school}-${json.course}-${json.term}-${json.sheet.name}`
-          .trim()
-          .replaceAll(replacePattern, '-')
-          .toLowerCase(),
+        id: stringToUUID5(
+          `${json.school}-${json.course}-${json.term}-${json.sheet.name}`
+        ),
         name: json.sheet.name,
         type: json.sheet.type,
         // tasks: json.tasks,
         maxValue: json.sheet.grading.max,
         valueType: json.sheet.grading.type,
         school: {
-          id: json.school.trim().replaceAll(replacePattern, '-').toLowerCase(),
+          id: stringToUUID5(json.school),
           name: json.school,
         },
         term: {
-          id: `${termType}-${termYear}`
-            .trim()
-            .replaceAll(replacePattern, '-')
-            .toLowerCase(),
+          id: stringToUUID5(`${termType}-${termYear}`),
           year: termYear,
           summerterm: termType.match(summertermPattern) !== null,
         },
         course: {
-          id: `${json.school}-${json.course}`
-            .trim()
-            .replaceAll(replacePattern, '-')
-            .toLowerCase(),
+          id: stringToUUID5(`${json.school}-${json.course}`),
           name: json.course,
         },
       },
     },
     corrector: {
-      id: json.rated_by.trim().replaceAll(replacePattern, '-').toLowerCase(),
+      id: stringToUUID5(json.rated_by),
       name: json.rated_by,
     },
     status: json.status,
     location: {
-      id: String(json.rated_at)
-        .trim()
-        .replaceAll(replacePattern, '-')
-        .toLowerCase(),
+      id: stringToUUID5(String(json.rated_at)),
       name: json.rated_at,
     },
     // note: { text: '' },
