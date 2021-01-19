@@ -1,6 +1,6 @@
 import Status from './Status';
 
-type Correction = {
+type CorrectionEntity = {
   id: string;
   submission: string;
   corrector: string;
@@ -10,4 +10,4 @@ type Correction = {
   annotation?: string;
 };
 
-export default Correction;
+export default CorrectionEntity;
