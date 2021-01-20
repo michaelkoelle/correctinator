@@ -3,9 +3,9 @@ import Rating from '../model/Rating';
 import Status from '../model/Status';
 import Task from '../model/Task';
 import {
-  getMaxValueForTask,
+  getMaxValueForTasks,
   getRatingForTask,
-  getRatingValueForTask,
+  getRatingValueForTasks,
   serializeTasks,
   wordWrap,
 } from './Formatter';
@@ -233,12 +233,12 @@ test('getRatingForTask Parent', () => {
 });
 
 test('getRatingValueForTask', () => {
-  expect(getRatingValueForTask(tasks, ratings)).toBe(8.5);
+  expect(getRatingValueForTasks(tasks, ratings)).toBe(8.5);
 });
 
 test('getRatingValueForTask inner task', () => {
   expect(
-    getRatingValueForTask(
+    getRatingValueForTasks(
       [
         {
           id: '45f61c3e-5a31-11eb-b0d6-cf4c183ddd7e',
@@ -253,12 +253,12 @@ test('getRatingValueForTask inner task', () => {
 });
 
 test('getMaxValueForTask', () => {
-  expect(getMaxValueForTask(tasks)).toBe(10);
+  expect(getMaxValueForTasks(tasks)).toBe(10);
 });
 
 test('getMaxValueForTask inner task', () => {
   expect(
-    getMaxValueForTask([
+    getMaxValueForTasks([
       {
         id: '45f61c3e-5a31-11eb-b0d6-cf4c183ddd7e',
         name: 'Task 1.1',
@@ -277,6 +277,6 @@ test('serializeTasks', () => {
       correctionTestData2.submission.sheet.valueType
     )
   ).toBe(
-    'Task 1: 3.5/5 points\n\tTask 1.1: 2/3 points\n\tTask 1.2: 1.5/2 points\n\t\tthis is a test comment, a really long test comment, a really really long\n\t\tone, i wonder how long it really is,\n\t\tit still goes on,\n\t\tthat is insane this is the longest comment in the history of comments,\n\t\tmaybe ever\nTask 2: 5/5 points'
+    'Task 1: 3.5/5 points\n\tTask 1.1: 2/3 points\n\tTask 1.2: 1.5/2 points\n\t\tthis is a test comment, a really long test comment, a really really long\n\t\tone, i wonder how long it really is,\n\t\tit still goes on,\n\t\tthat is insane this is the longest comment in the history of comments,\n\t\tmaybe ever\nTask 2: 5/5 points\n'
   );
 });
