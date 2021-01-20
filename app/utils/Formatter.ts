@@ -44,24 +44,24 @@ export function getRatingForTask(task: Task, ratings: Rating[]): Rating {
   throw new Error(`Cannot find rating for task ${task.id}`);
 }
 
-export function getRatingValueForTask(
+export function getRatingValueForTasks(
   tasks: Task[],
   ratings: Rating[]
 ): number {
   return tasks
     .map((t) =>
       t.tasks?.length
-        ? getRatingValueForTask(t.tasks, ratings)
+        ? getRatingValueForTasks(t.tasks, ratings)
         : getRatingForTask(t, ratings).value
     )
     .reduce((acc, v) => acc + v);
 }
 
-export function getMaxValueForTask(tasks: Task[]): number {
+export function getMaxValueForTasks(tasks: Task[]): number {
   return tasks
     .map((task) => {
       if (task.tasks?.length) {
-        return getMaxValueForTask(task.tasks);
+        return getMaxValueForTasks(task.tasks);
       }
       return task.max ? task.max : 0;
     })
@@ -73,33 +73,34 @@ export function serializeTasks(
   ratings: Rating[],
   type: string,
   depth = 0,
-  delimiter = ':'
+  delimiter = ':',
+  maxChars = 60
 ) {
   return tasks
-    .map((t) => {
-      if (t.tasks && t?.tasks?.length > 0) {
-        return `${'\t'.repeat(depth)}${
-          t.name
-        }${delimiter} ${getRatingValueForTask(
-          t.tasks,
-          ratings
-        )}/${getMaxValueForTask(t.tasks)} ${type}\n${serializeTasks(
-          t.tasks,
-          ratings,
-          type,
-          depth + 1
-        )}`;
-      }
-      const rating: Rating = getRatingForTask(t, ratings);
-      return `${'\t'.repeat(depth)}${t.name}${delimiter} ${rating.value}/${
-        t.max
-      } ${type}\n${
-        rating.comment.text.trim().length > 0
+    .map((task) => {
+      const subTasks: Task[] = task.tasks !== undefined ? task.tasks : [];
+      const isParentTask = subTasks.length > 0;
+      const rating = isParentTask ? undefined : getRatingForTask(task, ratings);
+      const indent = '\t'.repeat(depth);
+      const taskName = task.name;
+      const value = isParentTask
+        ? getRatingValueForTasks(subTasks, ratings)
+        : rating?.value;
+      const max = isParentTask ? getMaxValueForTasks(subTasks) : task.max;
+      const commentOrSubtask =
+        !isParentTask && rating && rating?.comment.text.trim().length > 0
           ? `${wordWrap(rating.comment.text, 60, depth + 1)}\n`
-          : ''
-      }`;
+          : serializeTasks(
+              subTasks,
+              ratings,
+              type,
+              depth + 1,
+              delimiter,
+              maxChars
+            );
+      return `${indent}${taskName}${delimiter} ${value}/${max} ${type}\n${commentOrSubtask}`;
     })
-    .reduce((acc, s) => `${acc} ${s}`);
+    .join('');
 }
 
 export function getConditionalComment(percent: number, commentValues: any[]) {
@@ -150,7 +151,7 @@ export function correctionToString(
     condComments?.length > 0
   ) {
     out += getConditionalComment(
-      getRatingValueForTask(
+      getRatingValueForTasks(
         correction.submission.sheet.tasks,
         correction.ratings
       ) / correction.submission.sheet.maxValue,
