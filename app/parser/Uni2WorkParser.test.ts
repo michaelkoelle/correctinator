@@ -100,7 +100,9 @@ rated_by: John Doe
 rated_at: null
 submission: uwazxvya2akrnnc2
 points: 8.5
-rating_done: false`;
+rating_done: false
+...
+`;
 
 const correctionTestData2: Correction = {
   id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
@@ -108,6 +110,16 @@ const correctionTestData2: Correction = {
     {
       id: 'f928b81f-2bba-5635-8633-94fc0bc89b68',
       value: 2,
+      comment: {
+        // id: 'f35c6903-6ba8-4f82-8213-5f63afcd0dcb',
+        text: '',
+        task: {
+          id: '45f61c3e-5a31-11eb-b0d6-cf4c183ddd7e',
+          name: 'Task 1.1',
+          max: 3,
+          step: 1,
+        },
+      },
       task: {
         id: '45f61c3e-5a31-11eb-b0d6-cf4c183ddd7e',
         name: 'Task 1.1',
@@ -118,6 +130,16 @@ const correctionTestData2: Correction = {
     {
       id: 'c0efdf57-9b65-564c-a12b-f6e2907e7cd9',
       value: 1.5,
+      comment: {
+        // id: '627ec545-83b2-493c-a10e-6a0dd2515b1e',
+        text: '',
+        task: {
+          id: '3de4bec5-5608-44f7-8dad-08022b61a232',
+          name: 'Task 1.2',
+          max: 2,
+          step: 0.5,
+        },
+      },
       task: {
         id: '3de4bec5-5608-44f7-8dad-08022b61a232',
         name: 'Task 1.2',
@@ -128,6 +150,16 @@ const correctionTestData2: Correction = {
     {
       id: '50d53aa3-5e3b-5d2f-8239-9c51db727b10',
       value: 5,
+      comment: {
+        // id: '40f6a198-49bc-4505-9844-e4203928a4e6',
+        text: '',
+        task: {
+          id: '3573ec3a-9ae9-4c52-bcb6-05c7e0ca14962',
+          name: 'Task 2',
+          max: 5,
+          step: 1,
+        },
+      },
       task: {
         id: '3573ec3a-9ae9-4c52-bcb6-05c7e0ca14962',
         name: 'Task 2',
