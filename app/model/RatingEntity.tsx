@@ -1,2 +1,7 @@
-type RatingEntity = { id: string; value: number; task: string };
+type RatingEntity = {
+  id: string;
+  value: number;
+  comment: string;
+  task: string;
+};
 export default RatingEntity;
