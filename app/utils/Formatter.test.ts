@@ -1,11 +1,14 @@
+import ConditionalComment from '../model/ConditionalComment';
 import Correction from '../model/Correction';
 import Rating from '../model/Rating';
 import Status from '../model/Status';
 import Task from '../model/Task';
 import {
+  getConditionalCommentForValue,
   getMaxValueForTasks,
   getRatingForTask,
   getRatingValueForTasks,
+  serializeCorrection,
   serializeTasks,
   wordWrap,
 } from './Formatter';
@@ -138,9 +141,15 @@ const correctionTestData2: Correction = {
     name: null,
   },
   // note: { text: '' },
-  // annotation: { text: '' },
+  annotation: { text: 'This is a test annotation :)' },
 };
 correctionTestData2.submission.correction = correctionTestData2;
+
+const conditionalComments: ConditionalComment[] = [
+  { text: 'Gut!', minPercentage: 0.7 },
+  { text: 'Sehr gut!', minPercentage: 0.9 },
+  { text: 'Perfekt!', minPercentage: 1 },
+];
 
 const tasks: Task[] = correctionTestData2.submission.sheet.tasks
   ? correctionTestData2.submission.sheet.tasks
@@ -278,5 +287,51 @@ test('serializeTasks', () => {
     )
   ).toBe(
     'Task 1: 3.5/5 points\n\tTask 1.1: 2/3 points\n\tTask 1.2: 1.5/2 points\n\t\tthis is a test comment, a really long test comment, a really really long\n\t\tone, i wonder how long it really is,\n\t\tit still goes on,\n\t\tthat is insane this is the longest comment in the history of comments,\n\t\tmaybe ever\nTask 2: 5/5 points\n'
+  );
+});
+
+test('getConditionalCommentForValue 1', () => {
+  expect(getConditionalCommentForValue(0.2, conditionalComments)).toStrictEqual(
+    {
+      text: '',
+      minPercentage: 0,
+    }
+  );
+});
+
+test('getConditionalCommentForValue 2', () => {
+  expect(
+    getConditionalCommentForValue(0.93, conditionalComments)
+  ).toStrictEqual({
+    text: 'Sehr gut!',
+    minPercentage: 0.9,
+  });
+});
+
+test('getConditionalCommentForValue 3', () => {
+  expect(getConditionalCommentForValue(1, conditionalComments)).toStrictEqual({
+    text: 'Perfekt!',
+    minPercentage: 1,
+  });
+});
+
+test('getConditionalCommentForValue 4', () => {
+  expect(
+    getConditionalCommentForValue(0.85, conditionalComments)
+  ).toStrictEqual({
+    text: 'Gut!',
+    minPercentage: 0.7,
+  });
+});
+
+test('serializeCorrection', () => {
+  expect(serializeCorrection(correctionTestData2, conditionalComments)).toBe(
+    'Task 1: 3.5/5 points\n\tTask 1.1: 2/3 points\n\tTask 1.2: 1.5/2 points\n\t\tthis is a test comment, a really long test comment, a really really long\n\t\tone, i wonder how long it really is,\n\t\tit still goes on,\n\t\tthat is insane this is the longest comment in the history of comments,\n\t\tmaybe ever\nTask 2: 5/5 points\n\nThis is a test annotation :)\n\nGut!\n'
+  );
+});
+
+test('serializeCorrection 2', () => {
+  expect(serializeCorrection(correctionTestData2)).toBe(
+    'Task 1: 3.5/5 points\n\tTask 1.1: 2/3 points\n\tTask 1.2: 1.5/2 points\n\t\tthis is a test comment, a really long test comment, a really really long\n\t\tone, i wonder how long it really is,\n\t\tit still goes on,\n\t\tthat is insane this is the longest comment in the history of comments,\n\t\tmaybe ever\nTask 2: 5/5 points\n\nThis is a test annotation :)\n'
   );
 });
