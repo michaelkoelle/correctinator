@@ -109,8 +109,8 @@ export function getConditionalCommentForValue(
   conditionalComments: ConditionalComment[]
 ) {
   const conditionalComment: ConditionalComment | undefined = conditionalComments
-    .filter((comment) => comment.minPercentage >= percent)
-    .sort((a, b) => a.minPercentage - b.minPercentage)
+    .filter((comment) => comment.minPercentage <= percent)
+    .sort((a, b) => b.minPercentage - a.minPercentage)
     .shift();
 
   return conditionalComment || { text: '', minPercentage: 0 };
