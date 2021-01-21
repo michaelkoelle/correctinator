@@ -126,21 +126,19 @@ export function serializeCorrection(
     : [];
   const serializedTasks =
     tasks && ratings
-      ? serializeTasks(tasks, ratings, correction.submission.sheet.type)
+      ? serializeTasks(tasks, ratings, correction.submission.sheet.valueType)
       : '';
   const serializedAnnotation =
     correction.annotation && correction.annotation.text.trim().length > 0
       ? `\n${wordWrap(correction.annotation.text, 60)}\n`
       : '';
-  const serializedConditionalComment = correction.submission.sheet.tasks
-    ? `\n${
-        getConditionalCommentForValue(
-          getRatingValueForTasks(tasks, ratings) /
-            correction.submission.sheet.maxValue,
-          conditionalComments
-        ).text
-      }\n`
-    : '';
+  const conditionalComment = getConditionalCommentForValue(
+    getRatingValueForTasks(tasks, ratings) /
+      correction.submission.sheet.maxValue,
+    conditionalComments
+  ).text;
+  const serializedConditionalComment =
+    conditionalComment.length > 0 ? `\n${conditionalComment}\n` : '';
 
   return serializedTasks + serializedAnnotation + serializedConditionalComment;
 }
