@@ -19,7 +19,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { normalize } from 'normalizr';
 import { createSelector } from '@reduxjs/toolkit';
 import {
-  convertToCorrection,
   getAllSubmissionDirectories,
   getSubmissionFromAppDataDir,
   getUniqueSheets,
@@ -39,6 +38,9 @@ import {
 import { CorrectionsSchema } from '../model/NormalizationSchema';
 import Correction from '../model/Correction';
 import Task from '../model/TaskEntity';
+import Uni2WorkParser from '../parser/Uni2WorkParser';
+import Parser from '../parser/Parser';
+import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
 
 const useStyle = makeStyles({
   indicator: {
@@ -49,6 +51,7 @@ const useStyle = makeStyles({
 export default function Home(): JSX.Element {
   const dispatch = useDispatch();
   const workspacePath = useSelector((state: any) => state.workspace.path);
+  const tabIndex = useSelector(selectTabIndex);
   const [tab, setTabValue] = useState<number>(0);
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [sheetToCorrect, setSheetToCorrectValue] = useState<any>({});
@@ -120,6 +123,7 @@ export default function Home(): JSX.Element {
   }
 
   function setTab(newValue) {
+    dispatch(setTabIndex(newValue));
     const oldValue = tab;
 
     // Avoid unnessesary renders
@@ -129,12 +133,12 @@ export default function Home(): JSX.Element {
 
     if (oldValue === 3) {
       // save time
-      saveTimeElapsed();
+      // saveTimeElapsed();
     }
 
     if (newValue === 3) {
       // start time
-      setTimeStart(new Date());
+      // setTimeStart(new Date());
     }
 
     setTabValue(newValue);
@@ -165,10 +169,9 @@ export default function Home(): JSX.Element {
     const corrections: Correction[] = [];
     submissionDirectories.forEach((dir, i) => {
       const temp = getSubmissionFromAppDataDir(dir, path);
-      const test = convertToCorrection(temp);
-      corrections.push(test);
+      corrections.push(Uni2WorkParser.deserialize(temp));
       // dispatch(correctionsAddOne(test));
-      temp.id = i;
+      // temp.id = i;
       subs.push(temp);
     });
     setSubmissions(subs);
@@ -209,7 +212,7 @@ export default function Home(): JSX.Element {
               orientation="vertical"
               variant="standard"
               indicatorColor="primary"
-              value={tab}
+              value={tabIndex}
               onChange={(_e, v) => setTab(v)}
               classes={{
                 indicator: classes.indicator,
@@ -279,24 +282,30 @@ export default function Home(): JSX.Element {
             value="0"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <SheetOverviewPage
+            {/*
+           <SheetOverviewPage
               sheets={sheets}
               reload={reload}
               setSheetToCorrect={setSheetToCorrect}
               setSchemaSheet={setSchemaSheet}
               setTab={setTab}
-            />
+          /> */}
+            1
           </TabPanel>
           <TabPanel
             value="1"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
+            {/*
             <OverviewPage submissions={submissions} />
+          */}
+            2
           </TabPanel>
           <TabPanel
             value="2"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
+            {/*
             <SchemeGeneratorPage
               sheets={sheets}
               reload={reload}
@@ -306,12 +315,14 @@ export default function Home(): JSX.Element {
               setSubmissions={setSubmissions}
               setTab={setTab}
               setSheetToCorrect={setSheetToCorrect}
-            />
+            /> */}
+            3
           </TabPanel>
           <TabPanel
             value="3"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
+            {/*
             <CorrectionViewPage
               corrections={submissions.filter((s: any) =>
                 isSubmissionFromSheet(s, sheetToCorrect)
@@ -324,7 +335,8 @@ export default function Home(): JSX.Element {
               setIndex={setIndex}
               setCorrection={setCorrection}
               timeStart={timeStart}
-            />
+              /> */}
+            4
           </TabPanel>
         </Grid>
       </TabContext>

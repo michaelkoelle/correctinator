@@ -12,6 +12,7 @@ import locationsReducer from './model/LocationSlice';
 import tasksReducer from './model/TaskSlice';
 import correctionsReducer from './model/CorrectionsSlice';
 import schemaReducer from './model/SchemaSlice';
+import homeReducer from './model/HomeSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
@@ -26,5 +27,6 @@ export default function createRootReducer(history: History) {
     corrections: correctionsReducer,
     schema: schemaReducer,
     workspace: workspaceReducer,
+    home: homeReducer,
   });
 }
