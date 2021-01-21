@@ -116,38 +116,31 @@ export function getConditionalCommentForValue(
   return conditionalComment || { text: '', minPercentage: 0 };
 }
 
-export function correctionToString(
+export function serializeCorrection(
   correction: Correction,
-  condComments: any[] = []
+  conditionalComments: ConditionalComment[] = []
 ): string {
-  let out = '';
+  const ratings: Rating[] = correction.ratings ? correction.ratings : [];
+  const tasks: Task[] = correction.submission.sheet.tasks
+    ? correction.submission.sheet.tasks
+    : [];
+  const serializedTasks =
+    tasks && ratings
+      ? serializeTasks(tasks, ratings, correction.submission.sheet.type)
+      : '';
+  const serializedAnnotation =
+    correction.annotation && correction.annotation.text.trim().length > 0
+      ? `\n${wordWrap(correction.annotation.text, 60)}\n`
+      : '';
+  const serializedConditionalComment = correction.submission.sheet.tasks
+    ? `\n${
+        getConditionalCommentForValue(
+          getRatingValueForTasks(tasks, ratings) /
+            correction.submission.sheet.maxValue,
+          conditionalComments
+        ).text
+      }\n`
+    : '';
 
-  if (correction.submission.sheet.tasks && correction.ratings) {
-    out += serializeTasks(
-      correction.submission.sheet.tasks,
-      correction.ratings,
-      correction.submission.sheet.type
-    );
-  }
-
-  if (correction.annotation && correction.annotation.text.trim().length > 0) {
-    out += `\n${wordWrap(correction.annotation.text, 60, 0)}\n`;
-  }
-
-  if (
-    correction.submission.sheet.tasks &&
-    correction.ratings &&
-    condComments !== undefined &&
-    condComments?.length > 0
-  ) {
-    out += getConditionalComment(
-      getRatingValueForTasks(
-        correction.submission.sheet.tasks,
-        correction.ratings
-      ) / correction.submission.sheet.maxValue,
-      condComments
-    );
-  }
-
-  return out;
+  return serializedTasks + serializedAnnotation + serializedConditionalComment;
 }
