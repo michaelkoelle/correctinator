@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
+import ConditionalComment from '../model/ConditionalComment';
 import Correction from '../model/Correction';
 import Rating from '../model/Rating';
 import Task from '../model/Task';
@@ -103,27 +104,16 @@ export function serializeTasks(
     .join('');
 }
 
-export function getConditionalComment(percent: number, commentValues: any[]) {
-  const suitableComments: any[] = [];
+export function getConditionalCommentForValue(
+  percent: number,
+  conditionalComments: ConditionalComment[]
+) {
+  const conditionalComment: ConditionalComment | undefined = conditionalComments
+    .filter((comment) => comment.minPercentage >= percent)
+    .sort((a, b) => a.minPercentage - b.minPercentage)
+    .shift();
 
-  commentValues.forEach((commentValue: any) => {
-    if (percent * 100 >= commentValue?.value) {
-      suitableComments.push(commentValue);
-    }
-  });
-
-  let max = { text: '', value: 0 };
-
-  suitableComments.forEach((c) => {
-    if (max.value <= c.value) {
-      max = c;
-    }
-  });
-
-  if (max?.text?.trim().length > 0) {
-    return `\n${max.text}\n`;
-  }
-  return '';
+  return conditionalComment || { text: '', minPercentage: 0 };
 }
 
 export function correctionToString(
