@@ -5,10 +5,9 @@ import * as Path from 'path';
 import deepEqual from 'deep-equal';
 import 'setimmediate';
 import archiver from 'archiver';
-import { v5 as uuidv5 } from 'uuid';
 import Status from '../model/Status';
-import Correction from '../model/Correction';
 import Task from '../model/TaskEntity';
+import { serializeCorrection } from './Formatter';
 
 export function createDirectory(dir: string) {
   if (fs.existsSync(dir)) {
@@ -191,73 +190,8 @@ export function getSubmissionFromAppDataDir(
     ratingFileJson.points = 0;
   }
 
-  return ratingFileJson;
-}
-
-export function stringToUUID5(
-  name: string,
-  namespace: string = uuidv5.URL
-): string {
-  const replacePattern = /[/| |_|\\]/g;
-  return uuidv5(
-    name.trim().replaceAll(replacePattern, '-').toLowerCase(),
-    namespace
-  );
-}
-
-export function convertToCorrection(json): Correction {
-  // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
-  // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
-  const termPattern = /(wise|sose)\s*(\d{4})/i;
-  const summertermPattern = /sose/gi;
-  const termGroups = json.term.match(termPattern);
-  const termYear = Number.parseInt(termGroups[2], 10);
-  const termType = termGroups[1];
-
-  const correction: Correction = {
-    id: stringToUUID5(json.submission),
-    submission: {
-      id: stringToUUID5(json.submission),
-      name: json.submission,
-      files: json.files,
-      sheet: {
-        id: stringToUUID5(
-          `${json.school}-${json.course}-${json.term}-${json.sheet.name}`
-        ),
-        name: json.sheet.name,
-        type: json.sheet.type,
-        // tasks: json.tasks,
-        maxValue: json.sheet.grading.max,
-        valueType: json.sheet.grading.type,
-        school: {
-          id: stringToUUID5(json.school),
-          name: json.school,
-        },
-        term: {
-          id: stringToUUID5(`${termType}-${termYear}`),
-          year: termYear,
-          summerterm: termType.match(summertermPattern) !== null,
-        },
-        course: {
-          id: stringToUUID5(`${json.school}-${json.course}`),
-          name: json.course,
-        },
-      },
-    },
-    corrector: {
-      id: stringToUUID5(json.rated_by),
-      name: json.rated_by,
-    },
-    status: json.status,
-    location: {
-      id: stringToUUID5(String(json.rated_at)),
-      name: json.rated_at,
-    },
-    // note: { text: '' },
-    // annotation: { text: '' },
-  };
-  correction.submission.correction = correction;
-  return correction;
+  return { data: ratingFileContents, files };
+  // return ratingFileJson;
 }
 
 export function saveSubmission(submission) {
@@ -300,127 +234,6 @@ export function getUniqueSheets(submissions: any[]) {
   });
 
   return uniqueSheets;
-}
-
-function wordWrap(long_string, max_char, depth) {
-  const sumLengthOfWords = function (word_array) {
-    let out = 0;
-    if (word_array.length !== 0) {
-      for (let i = 0; i < word_array.length; i += 1) {
-        const word = word_array[i];
-        out += word.length;
-      }
-    }
-    return out;
-  };
-
-  const lines = long_string.split('\n');
-  const wrapedLines = lines.map((line) => {
-    let splitOut: any[] = [[]];
-    const splitString = line.split(' ');
-    for (let i = 0; i < splitString.length; i += 1) {
-      const word = splitString[i];
-
-      if (
-        sumLengthOfWords(splitOut[splitOut.length - 1]) + word.length >
-        max_char
-      ) {
-        splitOut = splitOut.concat([[]]);
-      }
-
-      splitOut[splitOut.length - 1] = splitOut[splitOut.length - 1].concat(
-        word
-      );
-    }
-
-    for (let i = 0; i < splitOut.length; i += 1) {
-      splitOut[i] = splitOut[i].join(' ');
-    }
-
-    return splitOut.join(`\n${'\t'.repeat(depth)}`);
-  });
-
-  return wrapedLines.join(`\n${'\t'.repeat(depth)}`);
-}
-
-export function sumParam(tasks: any, param: string): number {
-  let sum = 0;
-  tasks?.forEach((t) => {
-    if (t?.tasks?.length > 0) {
-      sum += sumParam(t.tasks as Task[], param);
-    } else if (t) {
-      sum += Number.parseFloat(t[param]);
-    }
-  });
-  return sum;
-}
-
-export function tasksToString(tasks: any[], type: string, depth = 0): string {
-  let out = '';
-  tasks?.forEach((t) => {
-    if (t.tasks.length > 0) {
-      out += `${'\t'.repeat(depth)}${t.name}: ${sumParam(
-        t.tasks,
-        'value'
-      )}/${sumParam(t.tasks, 'max')} ${type}\n${tasksToString(
-        t.tasks,
-        type,
-        depth + 1
-      )}`;
-    } else {
-      out += `${'\t'.repeat(depth)}${t.name}: ${t.value}/${t.max} ${type}\n${
-        t?.comment?.trim().length > 0
-          ? `${'\t'.repeat(depth + 1) + wordWrap(t?.comment, 60, depth + 1)}\n`
-          : ''
-      }`;
-    }
-  });
-  return out;
-}
-
-export function getConditionalComment(percent: number, commentValues: any[]) {
-  const suitableComments: any[] = [];
-
-  commentValues.forEach((commentValue: any) => {
-    if (percent * 100 >= commentValue?.value) {
-      suitableComments.push(commentValue);
-    }
-  });
-
-  let max = { text: '', value: 0 };
-
-  suitableComments.forEach((c) => {
-    if (max.value <= c.value) {
-      max = c;
-    }
-  });
-
-  if (max?.text?.trim().length > 0) {
-    return `\n${max.text}\n`;
-  }
-  return '';
-}
-
-export function correctionToString(
-  correction: any,
-  condComments: any[] = []
-): string {
-  let out = '';
-
-  out += tasksToString(correction.tasks, correction.sheet.grading.type);
-
-  if (correction?.comment?.trim().length > 0) {
-    out += `\n${wordWrap(correction?.comment, 60, 0)}\n`;
-  }
-
-  if (condComments !== undefined && condComments?.length > 0) {
-    out += getConditionalComment(
-      correction.points / correction.sheet.grading.max,
-      condComments
-    );
-  }
-
-  return out;
 }
 
 export function exportCorrections(
@@ -475,7 +288,7 @@ export function exportCorrections(
       rating_done: sub.rating_done,
     });
 
-    const ratingFile = `${doc.toString()}...\n${correctionToString(
+    const ratingFile = `${doc.toString()}...\n${serializeCorrection(
       sub,
       condComments
     )}`;
@@ -521,7 +334,6 @@ export function isSubmissionFromSheet(s, sheet) {
 
 export function getSubmissionsOfSheet(sheet: any, submissionDir: string) {
   const path = submissionDir;
-  console.log();
   const subs: any[] = [];
   const submissionDirectories: string[] = getAllSubmissionDirectories(path);
   submissionDirectories.forEach((dir, i) => {
@@ -560,7 +372,7 @@ export function existsInAppDir(path: string, submissionDir: string): boolean {
   const appPath = Path.join(submissionDir, Path.parse(path).base);
   return fs.existsSync(appPath);
 }
-
+/*
 export function denormalizeTasks(taskIds: string[], tasks: Task[]): any[] {
   return taskIds
     .map((id: string) => {
@@ -581,3 +393,4 @@ export function denormalizeTasks(taskIds: string[], tasks: Task[]): any[] {
       return t;
     });
 }
+*/
