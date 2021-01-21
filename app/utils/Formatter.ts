@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import ConditionalComment from '../model/ConditionalComment';
 import Correction from '../model/Correction';
 import Rating from '../model/Rating';
