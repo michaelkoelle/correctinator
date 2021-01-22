@@ -1,6 +1,6 @@
 import React from 'react';
-import NewHome from '../components/NewHome';
+import Navigation from '../components/Navigation';
 
 export default function HomePage() {
-  return <NewHome />;
+  return <Navigation />;
 }

@@ -48,17 +48,17 @@ const useStyle = makeStyles({
   },
 });
 
-export default function Home(): JSX.Element {
+export default function Navigation(): JSX.Element {
   const dispatch = useDispatch();
-  const workspacePath = useSelector((state: any) => state.workspace.path);
+  // const workspacePath = useSelector((state: any) => state.workspace.path);
   const tabIndex = useSelector(selectTabIndex);
-  const [tab, setTabValue] = useState<number>(0);
-  const [submissions, setSubmissions] = useState<any[]>([]);
-  const [sheetToCorrect, setSheetToCorrectValue] = useState<any>({});
-  const [sheets, setSheets] = useState<any[]>([]);
-  const [schemaSheet, setSchemaSheet] = useState<any>(undefined);
-  const [index, setIndexValue] = useState<number>(0);
-  const [timeStart, setTimeStart] = useState<Date>(new Date());
+  // const [tab, setTabValue] = useState<number>(0);
+  // const [submissions, setSubmissions] = useState<any[]>([]);
+  // const [sheetToCorrect, setSheetToCorrectValue] = useState<any>({});
+  // const [sheets, setSheets] = useState<any[]>([]);
+  // const [schemaSheet, setSchemaSheet] = useState<any>(undefined);
+  // const [index, setIndexValue] = useState<number>(0);
+  // const [timeStart, setTimeStart] = useState<Date>(new Date());
   const classes = useStyle();
 
   /*
@@ -78,8 +78,8 @@ export default function Home(): JSX.Element {
   console.log(tasksOf);
 */
   // todo: corrections vs submissions
-  //
 
+  /*
   function setCorrections(corrections: any[]) {
     const temp = [...submissions];
     corrections.forEach((c) => {
@@ -121,9 +121,10 @@ export default function Home(): JSX.Element {
       }
     }
   }
-
+*/
   function setTab(newValue) {
     dispatch(setTabIndex(newValue));
+    /*
     const oldValue = tab;
 
     // Avoid unnessesary renders
@@ -142,8 +143,10 @@ export default function Home(): JSX.Element {
     }
 
     setTabValue(newValue);
+    */
   }
 
+  /*
   function setIndex(newIndex) {
     const oldIndex = index;
 
@@ -192,9 +195,10 @@ export default function Home(): JSX.Element {
   useEffect(() => reload(), []);
   useEffect(() => reload(), [workspacePath]);
 
+  */
   return (
     <Grid container wrap="nowrap" style={{ height: '100%' }}>
-      <TabContext value={tab.toString()}>
+      <TabContext value={tabIndex.toString()}>
         <Grid item>
           <Paper
             style={{
