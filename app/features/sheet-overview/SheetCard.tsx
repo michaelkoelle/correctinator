@@ -38,25 +38,29 @@ import {
 } from '../../model/CorrectionsSlice';
 import CorrectionEntity from '../../model/CorrectionEntity';
 import { CorrectionSchema } from '../../model/NormalizationSchema';
+import { selectAllEntities } from '../../rootReducer';
 
 export default function SheetCard(props: { sheet: Sheet }) {
   const { sheet } = props;
   const dispatch = useDispatch();
 
   const selectCorrectionsBySheetId = (sheetId) => {
-    return createSelector(
-      selectAllCorrections,
-      selectCorrectionEntities,
-      (c, e) =>
-        c
-          .map((corr: CorrectionEntity) => {
-            console.log(corr);
-            return denormalize(corr, CorrectionSchema, e);
-          })
-          .filter((corr: Correction) => {
-            console.log(corr);
-            return corr.submission.sheet.id === sheetId;
-          })
+    return createSelector(selectAllCorrections, selectAllEntities, (c, e) =>
+      c
+        .map((corr: CorrectionEntity) => {
+          console.log(e);
+          console.log(corr);
+          const denorm = denormalize(corr, CorrectionSchema, e);
+          console.log(denorm);
+          return denorm;
+        })
+        .filter((corr: Correction) => {
+          console.log(corr);
+
+          return corr.submission && corr.submission.sheet
+            ? corr.submission.sheet.id === sheetId
+            : false;
+        })
     );
   };
 
