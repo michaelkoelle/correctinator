@@ -114,6 +114,4 @@ export const {
   selectEntities: selectTaskEntities,
   selectAll: selectAllTasks,
   selectTotal: selectTotalTasks,
-} = adapter.getSelectors(
-  (state: { tasks: EntityState<TaskEntity> }) => state.tasks
-);
+} = adapter.getSelectors((state: any) => state.tasks);
