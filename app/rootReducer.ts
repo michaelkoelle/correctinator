@@ -74,19 +74,19 @@ export const selectAllEntities = createSelector(
     terms
   ) => {
     return {
-      ...annotations,
-      ...comments,
-      ...corrections,
-      ...correctors,
-      ...courses,
-      ...locations,
-      ...notes,
-      ...ratings,
-      ...schools,
-      ...sheets,
-      ...submissions,
-      ...tasks,
-      ...terms,
+      annotations,
+      comments,
+      corrections,
+      correctors,
+      courses,
+      locations,
+      notes,
+      ratings,
+      schools,
+      sheets,
+      submissions,
+      tasks,
+      terms,
     };
   }
 );

@@ -1,3 +1,4 @@
+/* eslint-disable react/destructuring-assignment */
 import {
   Button,
   Card,
@@ -24,39 +25,32 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
 import { denormalize } from 'normalizr';
-import { deleteSheet } from '../../utils/FileAccess';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 import ExportDialog from '../../components/ExportDialog';
 import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
 import { setTabIndex } from '../../model/HomeSlice';
 import Status from '../../model/Status';
-import { selectAllSheets } from '../../model/SheetSlice';
 import {
   selectAllCorrections,
   selectCorrectionEntities,
 } from '../../model/CorrectionsSlice';
 import CorrectionEntity from '../../model/CorrectionEntity';
-import { CorrectionSchema } from '../../model/NormalizationSchema';
+import { CorrectionSchema, SheetSchema } from '../../model/NormalizationSchema';
 import { selectAllEntities } from '../../rootReducer';
 
 export default function SheetCard(props: { sheet: Sheet }) {
-  const { sheet } = props;
+  const entities = useSelector(selectAllEntities);
+  const sheet: Sheet = denormalize(props.sheet, SheetSchema, entities);
   const dispatch = useDispatch();
 
   const selectCorrectionsBySheetId = (sheetId) => {
     return createSelector(selectAllCorrections, selectAllEntities, (c, e) =>
       c
         .map((corr: CorrectionEntity) => {
-          console.log(e);
-          console.log(corr);
-          const denorm = denormalize(corr, CorrectionSchema, e);
-          console.log(denorm);
-          return denorm;
+          return denormalize(corr, CorrectionSchema, e);
         })
         .filter((corr: Correction) => {
-          console.log(corr);
-
           return corr.submission && corr.submission.sheet
             ? corr.submission.sheet.id === sheetId
             : false;
@@ -168,11 +162,11 @@ export default function SheetCard(props: { sheet: Sheet }) {
               <div>
                 {`${sheet.school.name} - ${sheet.course.name} ${
                   sheet.term.summerterm
-                    ? `SoSe${sheet.term.year}`
-                    : `WiSe${sheet.term.year}`
-                } - ${[new Set(corrections.map((c) => c.corrector.name))].join(
-                  '-'
-                )}`}
+                    ? `SoSe ${sheet.term.year}`
+                    : `WiSe ${sheet.term.year}`
+                } - ${[
+                  ...new Set(corrections.map((c) => c.corrector.name)),
+                ].join('-')}`}
               </div>
             </>
             // eslint-disable-next-line prettier/prettier
