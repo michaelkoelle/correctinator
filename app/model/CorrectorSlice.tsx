@@ -37,9 +37,7 @@ export const {
   selectEntities: selectCorrectorEntities,
   selectAll: selectAllCorrectors,
   selectTotal: selectTotalCorrectors,
-} = adapter.getSelectors(
-  (state: { correctors: EntityState<Corrector> }) => state.correctors
-);
+} = adapter.getSelectors((state: any) => state.correctors);
 
 export const {
   correctorsAddOne,

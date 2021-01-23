@@ -28,7 +28,9 @@ const slice = createSlice({
   },
   extraReducers: {
     [correctionsImport.type]: (state, action) => {
-      adapter.upsertMany(state, action.payload.comments);
+      if (action.payload.comments !== undefined) {
+        adapter.upsertMany(state, action.payload.comments);
+      }
     },
   },
 });
@@ -51,8 +53,6 @@ export const {
   selectEntities: selectCommentsEntities,
   selectAll: selectAllComments,
   selectTotal: selectTotalComments,
-} = adapter.getSelectors(
-  (state: { comments: EntityState<CommentEntity> }) => state.comments
-);
+} = adapter.getSelectors((state: any) => state.comments);
 
 export default slice.reducer;

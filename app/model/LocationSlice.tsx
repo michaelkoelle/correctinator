@@ -39,9 +39,7 @@ export const {
   selectEntities: selectLocationEntities,
   selectAll: selectAllLocations,
   selectTotal: selectTotalLocations,
-} = adapter.getSelectors(
-  (state: { locations: EntityState<Location> }) => state.locations
-);
+} = adapter.getSelectors((state: any) => state.locations);
 
 export const {
   locationsAddOne,

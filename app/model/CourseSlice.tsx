@@ -37,9 +37,7 @@ export const {
   selectEntities: selectCourseEntities,
   selectAll: selectAllCourses,
   selectTotal: selectTotalCourses,
-} = adapter.getSelectors(
-  (state: { courses: EntityState<Course> }) => state.courses
-);
+} = adapter.getSelectors((state: any) => state.courses);
 
 export const {
   coursesAddOne,

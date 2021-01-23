@@ -48,6 +48,4 @@ export const {
   selectEntities: selectSubmissionEntities,
   selectAll: selectAllSubmissions,
   selectTotal: selectTotalSubmissions,
-} = adapter.getSelectors(
-  (state: { submissions: EntityState<SubmissionEntity> }) => state.submissions
-);
+} = adapter.getSelectors((state: any) => state.submissions);

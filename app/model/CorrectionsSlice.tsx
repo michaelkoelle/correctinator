@@ -34,6 +34,7 @@ const slice = createSlice({
   },
   extraReducers: {
     [correctionsImport.type]: (state, action) => {
+      console.log(action.payload);
       adapter.upsertMany(state, action.payload.corrections);
     },
   },
@@ -58,8 +59,6 @@ export const {
   selectEntities: selectCorrectionEntities,
   selectAll: selectAllCorrections,
   selectTotal: selectTotalCorrections,
-} = adapter.getSelectors(
-  (state: { corrections: EntityState<CorrectionEntity> }) => state.corrections
-);
+} = adapter.getSelectors((state: any) => state.corrections);
 
 export default slice.reducer;

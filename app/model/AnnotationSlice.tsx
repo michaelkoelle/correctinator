@@ -52,8 +52,6 @@ export const {
   selectEntities: selectAnnotationEntities,
   selectAll: selectAllAnnotations,
   selectTotal: selectTotalAnnotations,
-} = adapter.getSelectors(
-  (state: { annotations: EntityState<Annotation> }) => state.annotations
-);
+} = adapter.getSelectors((state: any) => state.annotations);
 
 export default slice.reducer;

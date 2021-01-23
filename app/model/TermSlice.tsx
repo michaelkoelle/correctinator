@@ -37,7 +37,7 @@ export const {
   selectEntities: selectTermEntities,
   selectAll: selectAllTerms,
   selectTotal: selectTotalTerms,
-} = adapter.getSelectors((state: { terms: EntityState<Term> }) => state.terms);
+} = adapter.getSelectors((state: any) => state.terms);
 
 export const {
   termsAddOne,

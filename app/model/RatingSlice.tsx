@@ -39,9 +39,7 @@ export const {
   selectEntities: selectRatingEntities,
   selectAll: selectAllRatings,
   selectTotal: selectTotalRatings,
-} = adapter.getSelectors(
-  (state: { ratings: EntityState<RatingEntity> }) => state.ratings
-);
+} = adapter.getSelectors((state: any) => state.ratings);
 
 export const {
   ratingsAddOne,

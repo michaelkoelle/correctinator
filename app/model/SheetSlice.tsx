@@ -50,6 +50,4 @@ export const {
   selectEntities: selectSheetEntities,
   selectAll: selectAllSheets,
   selectTotal: selectTotalSheets,
-} = adapter.getSelectors(
-  (state: { sheets: EntityState<Sheet> }) => state.sheets
-);
+} = adapter.getSelectors((state: any) => state.sheets);

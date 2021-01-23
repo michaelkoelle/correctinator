@@ -52,6 +52,6 @@ export const {
   selectEntities: selectNoteEntities,
   selectAll: selectAllNotes,
   selectTotal: selectTotalNotes,
-} = adapter.getSelectors((state: { notes: EntityState<Note> }) => state.notes);
+} = adapter.getSelectors((state: any) => state.notes);
 
 export default slice.reducer;
