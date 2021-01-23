@@ -38,6 +38,8 @@ import {
 import CorrectionEntity from '../../model/CorrectionEntity';
 import { CorrectionSchema, SheetSchema } from '../../model/NormalizationSchema';
 import { selectAllEntities } from '../../rootReducer';
+import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
+import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
 
 export default function SheetCard(props: { sheet: Sheet }) {
   const entities = useSelector(selectAllEntities);
@@ -66,14 +68,13 @@ export default function SheetCard(props: { sheet: Sheet }) {
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
 
   function onStartCorrection() {
-    // TODO
-    // setSheetToCorrect(sheet);
+    dispatch(correctionPageSetSheetId(sheet.id));
     dispatch(setTabIndex(3));
   }
 
   function onCreateSchema() {
     // TODO
-    // setSchemaSheet(sheet);
+    dispatch(schemaSetSelectedSheet(sheet.id));
     dispatch(setTabIndex(2));
   }
 

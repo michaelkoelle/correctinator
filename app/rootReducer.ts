@@ -19,10 +19,12 @@ import notesReducer from './model/NoteSlice';
 import submissionsReducer from './model/SubmissionSlice';
 import commentsReducer from './model/CommentSlice';
 import ratingsReducer from './model/RatingSlice';
+import correctionPageReducer from './model/CorrectionPageSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
     router: connectRouter(history),
+    correctionPage: correctionPageReducer,
     annotations: annotationsReducer,
     submissions: submissionsReducer,
     comments: commentsReducer,

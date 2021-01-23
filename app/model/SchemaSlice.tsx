@@ -3,13 +3,19 @@ import Schema from './Schema';
 import Sheet from './Sheet';
 import Task from './TaskEntity';
 
+export interface SchemaState {
+  selectedTask: string | undefined;
+  selectedSheet: string | undefined;
+  tasks: any[];
+}
+
 const slice = createSlice({
   name: 'schema',
   initialState: {
     selectedTask: undefined,
     selectedSheet: undefined,
     tasks: [],
-  } as Schema,
+  } as SchemaState,
   reducers: {
     schemaSelectTask: (state, action: PayloadAction<string>) => {
       state.selectedTask = action.payload;
@@ -31,7 +37,12 @@ const slice = createSlice({
       state.tasks = [];
       state.selectedTask = undefined;
     },
+    /*
     schemaSetSelectedSheet: (state, action: PayloadAction<Sheet>) => {
+      state.selectedSheet = action.payload;
+    },
+    */
+    schemaSetSelectedSheet: (state, action: PayloadAction<string>) => {
       state.selectedSheet = action.payload;
     },
     schemaClearSelectedSheet: (state) => {
