@@ -32,16 +32,12 @@ TaskSchema.define({
   comment: new schema.Entity('comments'),
 });
 
-export const SheetSchema = new schema.Entity(
-  'sheets',
-  {
-    term: TermSchema,
-    course: CourseSchema,
-    school: SchoolSchema,
-    tasks: TasksSchema,
-  },
-  { idAttribute: 'name' }
-);
+export const SheetSchema = new schema.Entity('sheets', {
+  term: TermSchema,
+  course: CourseSchema,
+  school: SchoolSchema,
+  tasks: TasksSchema,
+});
 
 export const RatingSchema = new schema.Entity('ratings', {
   comment: CommentSchema,
