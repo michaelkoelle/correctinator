@@ -45,7 +45,7 @@ const u2wTestData1: Uni2WorkDataStructure = {
 };
 
 const correctionTestData1: Correction = {
-  id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
+  id: '5475c708-3ced-5ff5-ad51-a1c12f8a2757',
   submission: {
     id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
     name: 'uwazxvya2akrnnc2',
@@ -105,7 +105,7 @@ rating_done: false
 `;
 
 const correctionTestData2: Correction = {
-  id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
+  id: '5475c708-3ced-5ff5-ad51-a1c12f8a2757',
   ratings: [
     {
       id: 'f928b81f-2bba-5635-8633-94fc0bc89b68',

@@ -45,7 +45,7 @@ export default abstract class Uni2WorkParser extends Parser {
     const u2wData: Uni2WorkDataStructure = u2wDoc.toJSON();
 
     const correction: Correction = {
-      id: UUID.v5(u2wData.submission),
+      id: UUID.v5(`correction-${u2wData.submission}`),
       submission: {
         id: UUID.v5(u2wData.submission),
         name: u2wData.submission,
