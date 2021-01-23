@@ -286,15 +286,7 @@ export default function Navigation(): JSX.Element {
             value="0"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            {/*
-           <SheetOverviewPage
-              sheets={sheets}
-              reload={reload}
-              setSheetToCorrect={setSheetToCorrect}
-              setSchemaSheet={setSchemaSheet}
-              setTab={setTab}
-          /> */}
-            1
+            <SheetOverviewPage />
           </TabPanel>
           <TabPanel
             value="1"

@@ -9,6 +9,7 @@ type CorrectionEntity = {
   location?: string;
   note?: string;
   annotation?: string;
+  timeElapsed?: number;
 };
 
 export default CorrectionEntity;

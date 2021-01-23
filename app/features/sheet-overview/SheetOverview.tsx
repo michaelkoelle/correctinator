@@ -12,24 +12,47 @@ import {
   Typography,
 } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import { normalize } from 'normalizr';
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import Correction from '../../model/Correction';
+import { correctionsImport } from '../../model/CorrectionsSlice';
+import { CorrectionsSchema } from '../../model/NormalizationSchema';
+import Uni2WorkParser from '../../parser/Uni2WorkParser';
 import {
   createSubmissionFileStruture,
   existsInAppDir,
   getAllSubmissionDirectories,
+  getSubmissionFromAppDataDir,
   openDirectory,
 } from '../../utils/FileAccess';
+import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import SheetCardList from './SheetCardList';
 
-export default function SheetOverview(props: any) {
-  const { sheets, reload, setSchemaSheet, setSheetToCorrect, setTab } = props;
-  const workspacePath = useSelector((state: any) => state.workspace.path);
+export default function SheetOverview() {
+  // const { sheets, reload, setSchemaSheet, setSheetToCorrect, setTab } = props;
+  const dispatch = useDispatch();
+  // const sheets = useSelector(selectAllSheets);
+  const workspacePath = useSelector(selectWorkspacePath);
   const [loading, setLoading] = useState<boolean>(false);
   const [openOverwriteDialog, setOpenOverwriteDialog] = useState<boolean>(
     false
   );
   const [conflicts, setConflicts] = useState<string[]>([]);
+
+  function updateState() {
+    const corrections: Correction[] = [];
+    console.log(workspacePath);
+    const submissionDirectories: string[] = getAllSubmissionDirectories(
+      workspacePath
+    );
+    submissionDirectories.forEach((dir) => {
+      const temp = getSubmissionFromAppDataDir(dir, workspacePath);
+      corrections.push(Uni2WorkParser.deserialize(temp));
+    });
+    const normal = normalize(corrections, CorrectionsSchema);
+    dispatch(correctionsImport(normal.entities));
+  }
 
   function createFileStructures(paths: string[]) {
     const subs: any[] = [];
@@ -38,7 +61,7 @@ export default function SheetOverview(props: any) {
       temp.id = i;
       subs.push(temp);
     });
-    reload();
+    updateState();
   }
 
   async function onImportSubmissions() {
@@ -57,33 +80,6 @@ export default function SheetOverview(props: any) {
       setConflicts(conflict);
       setOpenOverwriteDialog(true);
     }
-  }
-
-  function onReload() {
-    reload();
-  }
-
-  function test() {
-    /*
-    const correction = {
-      status: 'DONE',
-      corrector: {
-        name: 'Michael Kölle',
-        location: null,
-      },
-      submission: {
-        name: 'uvswasdesdf',
-        filePaths: ['C://Michael Desktop', 'C://Michael Desktop2'],
-      },
-      rating: {
-        value: 12,
-        comment: {
-          text: 'EIn kommentar',
-        }
-      }
-    };
-    */
-    // console.log(submissions);
   }
 
   return (
@@ -121,7 +117,7 @@ export default function SheetOverview(props: any) {
               </Button>
             </Grid>
             <Grid item>
-              <IconButton onClick={onReload} size="small">
+              <IconButton onClick={updateState} size="small">
                 <RefreshIcon />
               </IconButton>
             </Grid>
@@ -129,13 +125,7 @@ export default function SheetOverview(props: any) {
         </Grid>
       </Box>
       <Box flex="1 1 0%" display="flex" flexDirection="column" marginTop="8px">
-        <SheetCardList
-          sheets={sheets}
-          setSheetToCorrect={setSheetToCorrect}
-          setSchemaSheet={setSchemaSheet}
-          setTab={setTab}
-          reload={reload}
-        />
+        <SheetCardList />
       </Box>
       <Dialog
         open={openOverwriteDialog}

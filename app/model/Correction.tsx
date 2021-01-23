@@ -16,6 +16,7 @@ type Correction = {
   location?: Location;
   note?: Note;
   annotation?: Annotation;
+  timeElapsed?: number;
 };
 
 export default Correction;

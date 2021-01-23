@@ -21,33 +21,62 @@ import {
 import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { createSelector } from '@reduxjs/toolkit';
+import { denormalize } from 'normalizr';
 import { deleteSheet } from '../../utils/FileAccess';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 import ExportDialog from '../../components/ExportDialog';
+import Correction from '../../model/Correction';
+import Sheet from '../../model/Sheet';
+import { setTabIndex } from '../../model/HomeSlice';
+import Status from '../../model/Status';
+import { selectAllSheets } from '../../model/SheetSlice';
+import {
+  selectAllCorrections,
+  selectCorrectionEntities,
+} from '../../model/CorrectionsSlice';
+import CorrectionEntity from '../../model/CorrectionEntity';
+import { CorrectionSchema } from '../../model/NormalizationSchema';
 
-export default function SheetCard(props: any) {
-  const workspacePath = useSelector((state: any) => state.workspace.path);
+export default function SheetCard(props: { sheet: Sheet }) {
+  const { sheet } = props;
+  const dispatch = useDispatch();
+
+  const selectCorrectionsBySheetId = (sheetId) => {
+    return createSelector(
+      selectAllCorrections,
+      selectCorrectionEntities,
+      (c, e) =>
+        c
+          .map((corr: CorrectionEntity) => {
+            console.log(corr);
+            return denormalize(corr, CorrectionSchema, e);
+          })
+          .filter((corr: Correction) => {
+            console.log(corr);
+            return corr.submission.sheet.id === sheetId;
+          })
+    );
+  };
+
+  const corrections: Correction[] = useSelector(
+    selectCorrectionsBySheetId(sheet.id)
+  );
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
-  const {
-    sheet,
-    submissions,
-    setSheetToCorrect,
-    setSchemaSheet,
-    setTab,
-    reload,
-  } = props;
 
   function onStartCorrection() {
-    setSheetToCorrect(sheet);
-    setTab(3);
+    // TODO
+    // setSheetToCorrect(sheet);
+    dispatch(setTabIndex(3));
   }
 
   function onCreateSchema() {
-    setSchemaSheet(sheet);
-    setTab(2);
+    // TODO
+    // setSchemaSheet(sheet);
+    dispatch(setTabIndex(2));
   }
 
   function onOpenMenu(event) {
@@ -78,8 +107,9 @@ export default function SheetCard(props: any) {
 
   function onDeleteSheet() {
     onCloseConfirmDialog();
-    deleteSheet(sheet, workspacePath);
-    reload();
+    // TODO remove sheet and its submissions and corrections
+    // deleteSheet(sheet, workspacePath);
+    // reload();
   }
 
   function msToTime(s) {
@@ -98,9 +128,10 @@ export default function SheetCard(props: any) {
   }
 
   function missingSchemas() {
+    // TODO Add new status not_initialized
     return (
-      submissions.filter(
-        (s) => s?.tasks === undefined || s?.tasks?.length === 0
+      corrections.filter(
+        (s) => s?.ratings === undefined || s?.ratings?.length === 0
       ).length > 0
     );
   }
@@ -130,11 +161,19 @@ export default function SheetCard(props: any) {
           // eslint-disable-next-line prettier/prettier
           subheader={(
             <>
-              <div>{`${sheet.school} - ${sheet.course} ${sheet.term} - ${sheet.rated_by}`}</div>
+              <div>
+                {`${sheet.school.name} - ${sheet.course.name} ${
+                  sheet.term.summerterm
+                    ? `SoSe${sheet.term.year}`
+                    : `WiSe${sheet.term.year}`
+                } - ${[new Set(corrections.map((c) => c.corrector.name))].join(
+                  '-'
+                )}`}
+              </div>
             </>
             // eslint-disable-next-line prettier/prettier
                     )}
-          title={sheet.sheet.name}
+          title={sheet.name}
         />
         <CardContent>
           <Grid
@@ -165,15 +204,18 @@ export default function SheetCard(props: any) {
                 <Grid item>
                   <Tooltip
                     title={`${
-                      submissions.filter((s) => s.tasks?.length > 0).length
-                    } / ${submissions.length}`}
+                      corrections.filter(
+                        (s) => s?.ratings && s?.ratings?.length > 0
+                      ).length
+                    } / ${corrections.length}`}
                   >
                     <div>
                       <CircularProgressWithLabel
                         value={
-                          (submissions.filter((s) => s.tasks?.length > 0)
-                            .length /
-                            submissions.length) *
+                          (corrections.filter(
+                            (s) => s?.ratings && s?.ratings?.length > 0
+                          ).length /
+                            corrections.length) *
                           100
                         }
                       />
@@ -201,15 +243,15 @@ export default function SheetCard(props: any) {
                 <Grid item>
                   <Tooltip
                     title={`${
-                      submissions.filter((s) => s.rating_done === true).length
-                    } / ${submissions.length}`}
+                      corrections.filter((s) => s.status === Status.Done).length
+                    } / ${corrections.length}`}
                   >
                     <div>
                       <CircularProgressWithLabel
                         value={
-                          (submissions.filter((s) => s.rating_done === true)
+                          (corrections.filter((s) => s.status === Status.Done)
                             .length /
-                            submissions.length) *
+                            corrections.length) *
                           100
                         }
                       />
@@ -231,9 +273,12 @@ export default function SheetCard(props: any) {
               <Typography variant="body2" color="textSecondary">
                 <i className="far fa-clock" style={{ marginRight: '10px' }} />
                 {msToTime(
-                  submissions
+                  corrections
                     .filter((s) => s.timeElapsed)
-                    .reduce((a, c) => a + c.timeElapsed, 0)
+                    .reduce(
+                      (a, c) => a + (c.timeElapsed ? c.timeElapsed : 0),
+                      0
+                    )
                 )}
               </Typography>
             </Grid>
@@ -248,8 +293,8 @@ export default function SheetCard(props: any) {
         <LinearProgress
           variant="determinate"
           value={
-            (submissions.filter((s) => s.rating_done === true).length /
-              submissions.length) *
+            (corrections.filter((s) => s.status === Status.Done).length /
+              corrections.length) *
             100
           }
         />
@@ -258,7 +303,7 @@ export default function SheetCard(props: any) {
         <DialogTitle>Are you sure?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to delete the sheet "${sheet.sheet.name}"?`}
+            {`Are you sure you want to delete the sheet "${sheet.name}"?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -271,7 +316,7 @@ export default function SheetCard(props: any) {
         </DialogActions>
       </Dialog>
       <ExportDialog
-        correctionsToExport={submissions}
+        correctionsToExport={corrections}
         open={openExportDialog}
         handleClose={onCloseExportDialog}
       />

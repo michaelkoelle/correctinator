@@ -1,12 +1,14 @@
 import { Box, List, ListItem, Paper, Typography } from '@material-ui/core';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { getSubmissionsOfSheet } from '../../utils/FileAccess';
+import Sheet from '../../model/Sheet';
+import { selectAllSheets } from '../../model/SheetSlice';
 import SheetCard from './SheetCard';
 
-export default function SheetCardList(props: any) {
-  const { sheets, setSheetToCorrect, setSchemaSheet, setTab, reload } = props;
-  const workspacePath = useSelector((state: any) => state.workspace.path);
+export default function SheetCardList() {
+  // const { sheets, setSheetToCorrect, setSchemaSheet, setTab, reload } = props;
+  // const workspacePath = useSelector((state: any) => state.workspace.path);
+  const sheets: Sheet[] = useSelector(selectAllSheets);
 
   if (sheets?.length > 0) {
     return (
@@ -17,23 +19,7 @@ export default function SheetCardList(props: any) {
         }}
       >
         {sheets.map((sheet) => {
-          return (
-            <SheetCard
-              key={
-                sheet.term +
-                sheet.school +
-                sheet.course +
-                sheet.sheet.name +
-                sheet.rated_by
-              }
-              sheet={sheet}
-              submissions={getSubmissionsOfSheet(sheet, workspacePath)}
-              setSheetToCorrect={setSheetToCorrect}
-              setSchemaSheet={setSchemaSheet}
-              setTab={setTab}
-              reload={reload}
-            />
-          );
+          return <SheetCard key={sheet.id} sheet={sheet} />;
         })}
       </List>
     );

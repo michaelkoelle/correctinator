@@ -86,7 +86,6 @@ export function getAllSubmissionFiles(dir: string): string[] {
 }
 
 export function getAllSubmissionDirectories(dir: string): string[] {
-  console.log(dir);
   const directoryPattern = new RegExp('([a-z0-9]{16})[\\\\/|\\\\]?$', 'g');
   const dirPaths: string[] = getAllDirectoriesInDirectory(dir);
   dirPaths.push(dir);
