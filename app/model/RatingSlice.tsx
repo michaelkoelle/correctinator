@@ -1,4 +1,8 @@
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import {
+  createEntityAdapter,
+  createSlice,
+  EntityState,
+} from '@reduxjs/toolkit';
 import { correctionsImport } from './CorrectionsSlice';
 import RatingEntity from './RatingEntity';
 
@@ -28,6 +32,16 @@ const slice = createSlice({
     },
   },
 });
+
+export const {
+  selectById: selectRatingById,
+  selectIds: selectRatingIds,
+  selectEntities: selectRatingEntities,
+  selectAll: selectAllRatings,
+  selectTotal: selectTotalRatings,
+} = adapter.getSelectors(
+  (state: { ratings: EntityState<RatingEntity> }) => state.ratings
+);
 
 export const {
   ratingsAddOne,

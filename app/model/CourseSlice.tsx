@@ -1,4 +1,8 @@
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import {
+  createEntityAdapter,
+  createSlice,
+  EntityState,
+} from '@reduxjs/toolkit';
 import { correctionsImport } from './CorrectionsSlice';
 import Course from './Course';
 
@@ -26,6 +30,16 @@ const slice = createSlice({
     },
   },
 });
+
+export const {
+  selectById: selectCourseById,
+  selectIds: selectCourseIds,
+  selectEntities: selectCourseEntities,
+  selectAll: selectAllCourses,
+  selectTotal: selectTotalCourses,
+} = adapter.getSelectors(
+  (state: { courses: EntityState<Course> }) => state.courses
+);
 
 export const {
   coursesAddOne,

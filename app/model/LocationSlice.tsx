@@ -1,4 +1,8 @@
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import {
+  createEntityAdapter,
+  createSlice,
+  EntityState,
+} from '@reduxjs/toolkit';
 import { correctionsImport } from './CorrectionsSlice';
 import Location from './Location';
 
@@ -28,6 +32,16 @@ const slice = createSlice({
     },
   },
 });
+
+export const {
+  selectById: selectLocationById,
+  selectIds: selectLocationIds,
+  selectEntities: selectLocationEntities,
+  selectAll: selectAllLocations,
+  selectTotal: selectTotalLocations,
+} = adapter.getSelectors(
+  (state: { locations: EntityState<Location> }) => state.locations
+);
 
 export const {
   locationsAddOne,

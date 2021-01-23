@@ -46,11 +46,11 @@ export const {
 } = slice.actions;
 
 export const {
-  selectById: selectCorrectionById,
-  selectIds: selectCorrectionIds,
-  selectEntities: selectCorrectionEntities,
-  selectAll: selectAllcomments,
-  selectTotal: selectTotalcomments,
+  selectById: selectCommentsById,
+  selectIds: selectCommentsIds,
+  selectEntities: selectCommentsEntities,
+  selectAll: selectAllComments,
+  selectTotal: selectTotalComments,
 } = adapter.getSelectors(
   (state: { comments: EntityState<CommentEntity> }) => state.comments
 );

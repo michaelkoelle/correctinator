@@ -1,4 +1,8 @@
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import {
+  createEntityAdapter,
+  createSlice,
+  EntityState,
+} from '@reduxjs/toolkit';
 import { correctionsImport } from './CorrectionsSlice';
 import Corrector from './Corrector';
 
@@ -27,7 +31,15 @@ const slice = createSlice({
   },
 });
 
-export const correctorsSelector = (state) => state.correctors;
+export const {
+  selectById: selectCorrectorById,
+  selectIds: selectCorrectorIds,
+  selectEntities: selectCorrectorEntities,
+  selectAll: selectAllCorrectors,
+  selectTotal: selectTotalCorrectors,
+} = adapter.getSelectors(
+  (state: { correctors: EntityState<Corrector> }) => state.correctors
+);
 
 export const {
   correctorsAddOne,
