@@ -1,10 +1,11 @@
+/* eslint-disable import/no-cycle */
 import {
   createEntityAdapter,
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
 import Annotation from './Annotation';
-import { correctionsImport } from './CorrectionsSlice';
+import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 
 const adapter = createEntityAdapter<Annotation>({
   selectId: (sel) => sel.text,
@@ -30,6 +31,9 @@ const slice = createSlice({
       if (action.payload.annotations !== undefined) {
         adapter.upsertMany(state, action.payload.annotations);
       }
+    },
+    [deleteEntities.type]: (state, action) => {
+      adapter.removeAll(state);
     },
   },
 });

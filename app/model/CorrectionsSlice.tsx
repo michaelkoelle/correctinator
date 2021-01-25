@@ -1,14 +1,21 @@
+/* eslint-disable import/no-cycle */
 import {
   createAction,
   createEntityAdapter,
+  createSelector,
   createSlice,
   EntityState,
   PayloadAction,
 } from '@reduxjs/toolkit';
+import { denormalize } from 'normalizr';
+import { selectAllEntities } from '../rootReducer';
+import Correction from './Correction';
 import CorrectionEntity from './CorrectionEntity';
+import { CorrectionSchema } from './NormalizationSchema';
 import Sheet from './Sheet';
 
 export const correctionsImport = createAction<unknown>('correctionsImport');
+export const deleteEntities = createAction<void>('deleteEntities');
 
 const adapter = createEntityAdapter<CorrectionEntity>();
 
@@ -37,6 +44,9 @@ const slice = createSlice({
       console.log(action.payload);
       adapter.upsertMany(state, action.payload.corrections);
     },
+    [deleteEntities.type]: (state, action) => {
+      adapter.removeAll(state);
+    },
   },
 });
 
@@ -60,5 +70,19 @@ export const {
   selectAll: selectAllCorrections,
   selectTotal: selectTotalCorrections,
 } = adapter.getSelectors((state: any) => state.corrections);
+
+export const selectCorrectionsBySheetId = (sheetId: string) => {
+  return createSelector(selectAllCorrections, selectAllEntities, (c, e) =>
+    c
+      .map((corr: CorrectionEntity) => {
+        return denormalize(corr, CorrectionSchema, e);
+      })
+      .filter((corr: Correction) => {
+        return corr.submission && corr.submission.sheet
+          ? corr.submission.sheet.id === sheetId
+          : false;
+      })
+  );
+};
 
 export default slice.reducer;

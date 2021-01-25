@@ -1,9 +1,10 @@
+/* eslint-disable import/no-cycle */
 import {
   createEntityAdapter,
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import { correctionsImport } from './CorrectionsSlice';
+import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 import RatingEntity from './RatingEntity';
 
 const adapter = createEntityAdapter<RatingEntity>({
@@ -29,6 +30,9 @@ const slice = createSlice({
       if (action.payload.ratings !== undefined) {
         adapter.upsertMany(state, action.payload.ratings);
       }
+    },
+    [deleteEntities.type]: (state, action) => {
+      adapter.removeAll(state);
     },
   },
 });

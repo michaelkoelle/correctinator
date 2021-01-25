@@ -1,9 +1,10 @@
+/* eslint-disable import/no-cycle */
 import {
   createEntityAdapter,
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import { correctionsImport } from './CorrectionsSlice';
+import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 import SubmissionEntity from './SubmissionEntity';
 
 const adapter = createEntityAdapter<SubmissionEntity>();
@@ -25,6 +26,9 @@ const slice = createSlice({
   extraReducers: {
     [correctionsImport.type]: (state, action) => {
       adapter.upsertMany(state, action.payload.submissions);
+    },
+    [deleteEntities.type]: (state, action) => {
+      adapter.removeAll(state);
     },
   },
 });

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import {
   createEntityAdapter,
   createSlice,
@@ -5,7 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 import Comment from './Comment';
 import CommentEntity from './CommentEntity';
-import { correctionsImport } from './CorrectionsSlice';
+import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 
 const adapter = createEntityAdapter<CommentEntity>({
   selectId: (sel) => sel.text,
@@ -31,6 +32,9 @@ const slice = createSlice({
       if (action.payload.comments !== undefined) {
         adapter.upsertMany(state, action.payload.comments);
       }
+    },
+    [deleteEntities.type]: (state, action) => {
+      adapter.removeAll(state);
     },
   },
 });

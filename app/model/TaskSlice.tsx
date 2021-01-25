@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import {
   createEntityAdapter,
   createSelector,
@@ -5,7 +6,11 @@ import {
   EntityState,
   PayloadAction,
 } from '@reduxjs/toolkit';
-import { correctionsImport, selectCorrectionById } from './CorrectionsSlice';
+import {
+  correctionsImport,
+  deleteEntities,
+  selectCorrectionById,
+} from './CorrectionsSlice';
 import { schemaAddTask, schemaRemoveTask } from './SchemaSlice';
 import TaskEntity from './TaskEntity';
 
@@ -52,6 +57,9 @@ const slice = createSlice({
       if (action.payload.tasks !== undefined) {
         adapter.upsertMany(state, action.payload.tasks);
       }
+    },
+    [deleteEntities.type]: (state, action) => {
+      adapter.removeAll(state);
     },
     [schemaAddTask.type]: (state: any, action) => {
       adapter.upsertOne(state, action.payload);
