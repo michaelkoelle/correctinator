@@ -81,9 +81,6 @@ const correctionTestData2: Correction = {
   submission: {
     id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
     name: 'uwazxvya2akrnnc2',
-    files: [
-      'C:\\Users\\Michi\\AppData\\Roaming\\Electron\\submissions\\uwazxvya2akrnnc2\\files\\Hausarbeit 5 Rechnerarchitektur Abgabe.pdf',
-    ],
     sheet: {
       id: 'e9a0d6f5-14ab-55b2-9973-c3be7f1f7c73',
       name: 'Online-Hausarbeit 5',

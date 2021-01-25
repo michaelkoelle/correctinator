@@ -30,7 +30,7 @@ export type Uni2WorkDataStructure = {
   rating_done: boolean;
 };
 
-export default abstract class Uni2WorkParser implements Parser {
+export default class Uni2WorkParser implements Parser {
   public configFilePattern = '';
 
   public deserialize(text: string): Correction {
@@ -73,7 +73,7 @@ export default abstract class Uni2WorkParser implements Parser {
     return correction;
   }
 
-  private static deserializeTerm(term: string): Term {
+  public static deserializeTerm(term: string): Term {
     // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
     // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
     const termPattern = /(wise|sose)\s*(\d{4})/i;
@@ -92,45 +92,45 @@ export default abstract class Uni2WorkParser implements Parser {
     };
   }
 
-  private static serializeTerm(term: Term): string {
+  public static serializeTerm(term: Term): string {
     return `${term.summerterm ? 'SoSe' : 'WiSe'} ${term.year}${
       term.summerterm ? '' : `/${String(term.year + 1).slice(-2)}`
     }`;
   }
 
-  private static deserializeSchool(school: string): School {
+  public static deserializeSchool(school: string): School {
     return {
       id: UUID.v5(school),
       name: school,
     };
   }
 
-  private static deserializeCourse(course: string, school: string): Course {
+  public static deserializeCourse(course: string, school: string): Course {
     return {
       id: UUID.v5(`${school}-${course}`),
       name: course,
     };
   }
 
-  private static deserializeCorrector(rated_by: string): Corrector {
+  public static deserializeCorrector(rated_by: string): Corrector {
     return {
       id: UUID.v5(rated_by),
       name: rated_by,
     };
   }
 
-  private static deserializeLocation(rated_at: string | null): Location {
+  public static deserializeLocation(rated_at: string | null): Location {
     return {
       id: UUID.v5(String(rated_at)),
       name: rated_at,
     };
   }
 
-  private static deserializeStatus(rating_done: boolean): Status {
+  public static deserializeStatus(rating_done: boolean): Status {
     return rating_done ? Status.Done : Status.Todo;
   }
 
-  private static serializeRating(ratings: Rating[]): number {
+  public static serializeRating(ratings: Rating[]): number {
     return ratings.map((r) => r.value).reduce((acc, r) => acc + r);
   }
 

@@ -1,6 +1,9 @@
 import Correction from '../model/Correction';
 import Status from '../model/Status';
+import Parser from './Parser';
 import Uni2WorkParser, { Uni2WorkDataStructure } from './Uni2WorkParser';
+
+const parser: Parser = new Uni2WorkParser();
 
 const u2wTestString1 = `
 %YAML 1.2
@@ -49,9 +52,6 @@ const correctionTestData1: Correction = {
   submission: {
     id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
     name: 'uwazxvya2akrnnc2',
-    files: [
-      'C:\\Users\\Michi\\AppData\\Roaming\\Electron\\submissions\\uwazxvya2akrnnc2\\files\\Hausarbeit 5 Rechnerarchitektur Abgabe.pdf',
-    ],
     sheet: {
       id: 'e9a0d6f5-14ab-55b2-9973-c3be7f1f7c73',
       name: 'Online-Hausarbeit 5',
@@ -171,9 +171,6 @@ const correctionTestData2: Correction = {
   submission: {
     id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
     name: 'uwazxvya2akrnnc2',
-    files: [
-      'C:\\Users\\Michi\\AppData\\Roaming\\Electron\\submissions\\uwazxvya2akrnnc2\\files\\Hausarbeit 5 Rechnerarchitektur Abgabe.pdf',
-    ],
     sheet: {
       id: 'e9a0d6f5-14ab-55b2-9973-c3be7f1f7c73',
       name: 'Online-Hausarbeit 5',
@@ -351,20 +348,11 @@ test('deserializeSchool Institut für Informatik', () => {
 // Correction
 
 test('deserialize Correction u2wTestData1', () => {
-  expect(
-    Uni2WorkParser.deserialize({
-      data: u2wTestString1,
-      files: [
-        'C:\\Users\\Michi\\AppData\\Roaming\\Electron\\submissions\\uwazxvya2akrnnc2\\files\\Hausarbeit 5 Rechnerarchitektur Abgabe.pdf',
-      ],
-    })
-  ).toStrictEqual(correctionTestData1);
+  expect(parser.deserialize(u2wTestString1)).toStrictEqual(correctionTestData1);
 });
 
 test('serialize correctionTestData2', () => {
-  expect(Uni2WorkParser.serialize(correctionTestData2)).toContain(
-    u2wTestString2
-  );
+  expect(parser.serialize(correctionTestData2)).toContain(u2wTestString2);
 });
 
 // Rating
