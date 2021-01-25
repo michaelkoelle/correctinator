@@ -160,4 +160,8 @@ export default class Uni2WorkParser implements Parser {
     const doc = new YAML.Document(u2wData);
     return `${doc.toString()}...\n${tasksAndComments}`;
   }
+
+  getConfigFileName(correction: Correction): string {
+    return `bewertung_${correction.submission.name}.txt`;
+  }
 }

@@ -364,3 +364,9 @@ test('serializeRating correctionTestData2', () => {
       : null
   ).toBe(8.5);
 });
+
+test('getConfigFileName correctionTestData2', () => {
+  expect(parser.getConfigFileName(correctionTestData2)).toBe(
+    'bewertung_uwazxvya2akrnnc2.txt'
+  );
+});
