@@ -48,13 +48,16 @@ export function getRatingValueForTasks(
   tasks: Task[],
   ratings: Rating[]
 ): number {
-  return tasks
-    .map((t) =>
-      t.tasks?.length
-        ? getRatingValueForTasks(t.tasks, ratings)
-        : getRatingForTask(t, ratings).value
-    )
-    .reduce((acc, v) => acc + v);
+  if (ratings.length > 0 && tasks.length > 0) {
+    return tasks
+      .map((t) =>
+        t.tasks?.length
+          ? getRatingValueForTasks(t.tasks, ratings)
+          : getRatingForTask(t, ratings).value
+      )
+      .reduce((acc, v) => acc + v);
+  }
+  return 0;
 }
 
 export function getMaxValueForTasks(tasks: Task[]): number {
