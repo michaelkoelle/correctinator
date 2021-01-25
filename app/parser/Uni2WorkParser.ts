@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import YAML from 'yaml';
 import Parser from './Parser';
 import UUID from '../utils/UUID';
@@ -29,13 +30,11 @@ export type Uni2WorkDataStructure = {
   rating_done: boolean;
 };
 
-export default abstract class Uni2WorkParser extends Parser {
-  public static deserialize(payload: {
-    data: string;
-    files: string[];
-  }): Correction {
-    const { data, files } = payload;
-    const u2wDoc = YAML.parseDocument(data);
+export default abstract class Uni2WorkParser implements Parser {
+  public configFilePattern = '';
+
+  public deserialize(text: string): Correction {
+    const u2wDoc = YAML.parseDocument(text);
 
     if (u2wDoc.errors.length > 0) {
       throw new Error(`Could not parse the rating file!`);
@@ -49,7 +48,6 @@ export default abstract class Uni2WorkParser extends Parser {
       submission: {
         id: UUID.v5(u2wData.submission),
         name: u2wData.submission,
-        files,
         sheet: {
           id: UUID.v5(
             `${u2wData.school}-${u2wData.course}-${u2wData.term}-${u2wData.sheet.name}`
@@ -69,15 +67,13 @@ export default abstract class Uni2WorkParser extends Parser {
       corrector: Uni2WorkParser.deserializeCorrector(u2wData.rated_by),
       status: Uni2WorkParser.deserializeStatus(u2wData.rating_done),
       location: Uni2WorkParser.deserializeLocation(u2wData.rated_at),
-      // note: { text: '' },
-      // annotation: { text: '' },
     };
     correction.submission.correction = correction;
 
     return correction;
   }
 
-  static deserializeTerm(term: string): Term {
+  private static deserializeTerm(term: string): Term {
     // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
     // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
     const termPattern = /(wise|sose)\s*(\d{4})/i;
@@ -96,52 +92,49 @@ export default abstract class Uni2WorkParser extends Parser {
     };
   }
 
-  static serializeTerm(term: Term): string {
+  private static serializeTerm(term: Term): string {
     return `${term.summerterm ? 'SoSe' : 'WiSe'} ${term.year}${
       term.summerterm ? '' : `/${String(term.year + 1).slice(-2)}`
     }`;
   }
 
-  static deserializeSchool(school: string): School {
+  private static deserializeSchool(school: string): School {
     return {
       id: UUID.v5(school),
       name: school,
     };
   }
 
-  static deserializeCourse(course: string, school: string): Course {
+  private static deserializeCourse(course: string, school: string): Course {
     return {
       id: UUID.v5(`${school}-${course}`),
       name: course,
     };
   }
 
-  static deserializeCorrector(rated_by: string): Corrector {
+  private static deserializeCorrector(rated_by: string): Corrector {
     return {
       id: UUID.v5(rated_by),
       name: rated_by,
     };
   }
 
-  static deserializeLocation(rated_at: string | null): Location {
+  private static deserializeLocation(rated_at: string | null): Location {
     return {
       id: UUID.v5(String(rated_at)),
       name: rated_at,
     };
   }
 
-  static deserializeStatus(rating_done: boolean): Status {
+  private static deserializeStatus(rating_done: boolean): Status {
     return rating_done ? Status.Done : Status.Todo;
   }
 
-  static serializeRating(ratings: Rating[]): number {
+  private static serializeRating(ratings: Rating[]): number {
     return ratings.map((r) => r.value).reduce((acc, r) => acc + r);
   }
 
-  public static serialize(
-    correction: Correction,
-    tasksAndComments = ''
-  ): string {
+  public serialize(correction: Correction, tasksAndComments = ''): string {
     const u2wData: Uni2WorkDataStructure = {
       term: Uni2WorkParser.serializeTerm(correction.submission.sheet.term),
       school: correction.submission.sheet.school.name,
