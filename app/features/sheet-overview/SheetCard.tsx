@@ -23,7 +23,6 @@ import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { createSelector } from '@reduxjs/toolkit';
 import { denormalize } from 'normalizr';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 import ExportDialog from '../../components/ExportDialog';
@@ -31,35 +30,22 @@ import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
 import { setTabIndex } from '../../model/HomeSlice';
 import Status from '../../model/Status';
-import {
-  selectAllCorrections,
-  selectCorrectionEntities,
-} from '../../model/CorrectionsSlice';
-import CorrectionEntity from '../../model/CorrectionEntity';
-import { CorrectionSchema, SheetSchema } from '../../model/NormalizationSchema';
+import { selectCorrectionsBySheetId } from '../../model/CorrectionsSlice';
+import { SheetSchema } from '../../model/NormalizationSchema';
 import { selectAllEntities } from '../../rootReducer';
 import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
 import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
+import {
+  deleteCorrectionFromWorkspace,
+  reloadState,
+} from '../../utils/FileAccess';
+import { selectWorkspacePath } from '../workspace/workspaceSlice';
 
 export default function SheetCard(props: { sheet: Sheet }) {
+  const dispatch = useDispatch();
+  const workspace = useSelector(selectWorkspacePath);
   const entities = useSelector(selectAllEntities);
   const sheet: Sheet = denormalize(props.sheet, SheetSchema, entities);
-  const dispatch = useDispatch();
-
-  const selectCorrectionsBySheetId = (sheetId) => {
-    return createSelector(selectAllCorrections, selectAllEntities, (c, e) =>
-      c
-        .map((corr: CorrectionEntity) => {
-          return denormalize(corr, CorrectionSchema, e);
-        })
-        .filter((corr: Correction) => {
-          return corr.submission && corr.submission.sheet
-            ? corr.submission.sheet.id === sheetId
-            : false;
-        })
-    );
-  };
-
   const corrections: Correction[] = useSelector(
     selectCorrectionsBySheetId(sheet.id)
   );
@@ -73,7 +59,6 @@ export default function SheetCard(props: { sheet: Sheet }) {
   }
 
   function onCreateSchema() {
-    // TODO
     dispatch(schemaSetSelectedSheet(sheet.id));
     dispatch(setTabIndex(2));
   }
@@ -106,9 +91,8 @@ export default function SheetCard(props: { sheet: Sheet }) {
 
   function onDeleteSheet() {
     onCloseConfirmDialog();
-    // TODO remove sheet and its submissions and corrections
-    // deleteSheet(sheet, workspacePath);
-    // reload();
+    corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
+    reloadState(dispatch, workspace);
   }
 
   function msToTime(s) {
@@ -130,7 +114,11 @@ export default function SheetCard(props: { sheet: Sheet }) {
     // TODO Add new status not_initialized
     return (
       corrections.filter(
-        (s) => s?.ratings === undefined || s?.ratings?.length === 0
+        (c) =>
+          c?.ratings === undefined ||
+          c?.ratings?.length === 0 ||
+          c?.submission.sheet.tasks === undefined ||
+          c?.submission.sheet.tasks?.length === 0
       ).length > 0
     );
   }

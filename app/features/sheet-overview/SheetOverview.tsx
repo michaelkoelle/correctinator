@@ -11,73 +11,111 @@ import {
   IconButton,
   Typography,
 } from '@material-ui/core';
+import * as Path from 'path';
+import fs from 'fs';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { normalize } from 'normalizr';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Correction from '../../model/Correction';
-import { correctionsImport } from '../../model/CorrectionsSlice';
-import { CorrectionsSchema } from '../../model/NormalizationSchema';
+import {
+  correctionsImport,
+  deleteEntities,
+} from '../../model/CorrectionsSlice';
+import { CorrectionSchema } from '../../model/NormalizationSchema';
+import Parser from '../../parser/Parser';
 import Uni2WorkParser from '../../parser/Uni2WorkParser';
 import {
-  createSubmissionFileStruture,
-  existsInAppDir,
-  getAllSubmissionDirectories,
-  getSubmissionFromAppDataDir,
+  copySubmissionFiles,
+  createDirectory,
+  existsInWorkspace,
+  getAllFilesInDirectory,
   openDirectory,
+  reloadState,
 } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import SheetCardList from './SheetCardList';
+
+type Conflict = {
+  correction: Correction;
+  importPath: string;
+  parser: Parser;
+};
 
 export default function SheetOverview() {
   // const { sheets, reload, setSchemaSheet, setSheetToCorrect, setTab } = props;
   const dispatch = useDispatch();
   // const sheets = useSelector(selectAllSheets);
-  const workspacePath = useSelector(selectWorkspacePath);
+  const workspace = useSelector(selectWorkspacePath);
   const [loading, setLoading] = useState<boolean>(false);
   const [openOverwriteDialog, setOpenOverwriteDialog] = useState<boolean>(
     false
   );
-  const [conflicts, setConflicts] = useState<string[]>([]);
+  const [conflicts, setConflicts] = useState<Conflict[]>([]);
 
-  function updateState() {
-    const corrections: Correction[] = [];
-    console.log(workspacePath);
-    const submissionDirectories: string[] = getAllSubmissionDirectories(
-      workspacePath
+  function ingestCorrection(
+    correction: Correction,
+    path: string,
+    parser: Parser
+  ) {
+    const submissionName = correction.submission.name;
+    const correctionDir = Path.join(workspace, submissionName);
+
+    // Create correction directory in workspace
+    createDirectory(correctionDir);
+
+    // Create file folder and copy submission files
+    // This is not really modular, other parsers could use a different folder structure -> need to add new parser method
+    const files: string[] = getAllFilesInDirectory(Path.dirname(path)).filter(
+      (file) => !file.match(parser.configFilePattern)
     );
-    submissionDirectories.forEach((dir) => {
-      const temp = getSubmissionFromAppDataDir(dir, workspacePath);
-      corrections.push(Uni2WorkParser.deserialize(temp));
-    });
-    const normal = normalize(corrections, CorrectionsSchema);
-    dispatch(correctionsImport(normal.entities));
-  }
+    copySubmissionFiles(correctionDir, files, submissionName);
 
-  function createFileStructures(paths: string[]) {
-    const subs: any[] = [];
-    paths.forEach((dir, i) => {
-      const temp = createSubmissionFileStruture(dir, workspacePath);
-      temp.id = i;
-      subs.push(temp);
-    });
-    updateState();
+    // Save config file
+    const { entities } = normalize(correction, CorrectionSchema);
+    fs.writeFileSync(
+      Path.join(correctionDir, 'config.json'),
+      JSON.stringify(entities)
+    );
+
+    // Update state
+    dispatch(correctionsImport(entities));
   }
 
   async function onImportSubmissions() {
-    const path: string = await openDirectory();
+    const importDir: string = await openDirectory();
+
     setLoading(true);
-    const submissionDirectories: string[] = getAllSubmissionDirectories(path);
-    const noConflict = submissionDirectories.filter(
-      (d) => !existsInAppDir(d, workspacePath)
+
+    const parser: Parser = new Uni2WorkParser();
+    const configFilePaths = getAllFilesInDirectory(importDir).filter((file) =>
+      file.match(parser.configFilePattern)
     );
-    const conflict = submissionDirectories.filter((d) =>
-      existsInAppDir(d, workspacePath)
-    );
-    createFileStructures(noConflict);
+
+    const redundantCorrections: Conflict[] = [];
+
+    configFilePaths.forEach((importPath) => {
+      const content = fs.readFileSync(importPath, 'utf8');
+      const correction: Correction = parser.deserialize(content);
+
+      // Were the submissions already imported?
+      if (existsInWorkspace(correction.submission.name, workspace)) {
+        redundantCorrections.push({
+          correction,
+          importPath,
+          parser,
+        });
+        return;
+      }
+
+      ingestCorrection(correction, importPath, parser);
+    });
+
     setLoading(false);
-    if (conflict.length > 0) {
-      setConflicts(conflict);
+
+    // Show conflict dialog
+    if (redundantCorrections.length > 0) {
+      setConflicts(redundantCorrections);
       setOpenOverwriteDialog(true);
     }
   }
@@ -117,7 +155,10 @@ export default function SheetOverview() {
               </Button>
             </Grid>
             <Grid item>
-              <IconButton onClick={updateState} size="small">
+              <IconButton
+                onClick={() => reloadState(dispatch, workspace)}
+                size="small"
+              >
                 <RefreshIcon />
               </IconButton>
             </Grid>
@@ -140,8 +181,12 @@ export default function SheetOverview() {
         <DialogActions>
           <Button
             onClick={() => {
-              createFileStructures(conflicts);
               setOpenOverwriteDialog(false);
+              setLoading(true);
+              conflicts.forEach((c) =>
+                ingestCorrection(c.correction, c.importPath, c.parser)
+              );
+              setLoading(false);
             }}
             color="primary"
             autoFocus

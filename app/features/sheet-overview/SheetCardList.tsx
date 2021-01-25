@@ -6,8 +6,6 @@ import { selectAllSheets } from '../../model/SheetSlice';
 import SheetCard from './SheetCard';
 
 export default function SheetCardList() {
-  // const { sheets, setSheetToCorrect, setSchemaSheet, setTab, reload } = props;
-  // const workspacePath = useSelector((state: any) => state.workspace.path);
   const sheets: Sheet[] = useSelector(selectAllSheets);
 
   if (sheets?.length > 0) {

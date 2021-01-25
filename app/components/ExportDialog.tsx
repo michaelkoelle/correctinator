@@ -16,9 +16,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import {
-  Box,
   Collapse,
-  DialogContentText,
   Grid,
   MenuItem,
   Paper,
@@ -30,8 +28,13 @@ import {
 } from '@material-ui/core';
 import { remote } from 'electron';
 import Path from 'path';
-import { getUniqueSheets, exportCorrections } from '../utils/FileAccess';
-import Status from '../model/Status';
+import { useSelector } from 'react-redux';
+import { exportCorrections } from '../utils/FileAccess';
+import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import ConditionalComment from '../model/ConditionalComment';
+import Uni2WorkParser from '../parser/Uni2WorkParser';
+import Correction from '../model/Correction';
+import Sheet from '../model/Sheet';
 
 const PrimaryTooltip = withStyles((theme: Theme) => ({
   tooltip: {
@@ -95,9 +98,13 @@ const DialogTitle = withStyles(styles)((props: DialogTitleProps) => {
   );
 });
 
-export default function ExportDialog(props: any) {
+export default function ExportDialog(props: {
+  open: boolean;
+  handleClose: () => void;
+  correctionsToExport: Correction[];
+}) {
   const { open, handleClose, correctionsToExport } = props;
-  const [openError, setOpenError] = React.useState(true);
+  const workspace = useSelector(selectWorkspacePath);
   const [openSuccess, setOpenSuccess] = React.useState(false);
   const [exportInProgress, setExportInProgress] = React.useState(false);
   const [value, setValue] = React.useState<number[]>([60, 80, 100]);
@@ -148,24 +155,42 @@ export default function ExportDialog(props: any) {
     setFormat(event.target.value);
   }
 
-  function onChangeSlider(event, newValue) {
+  function onChangeSlider(newValue) {
     setValue(newValue);
   }
 
   function onChoosePath() {
-    const p = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
-      defaultPath: getUniqueSheets(correctionsToExport)
-        .map(
-          (s) =>
-            `${s.course.replace(' ', '-')}-${s.term.replace(
-              ' ',
-              '-'
-            )}-${s.sheet.name.replace(' ', '-')}`
+    let defaultPath = 'exported-corrections.zip';
+    const sheets: Sheet[] = Array.from(
+      correctionsToExport
+        .reduce(
+          (acc, item) =>
+            acc.set(item.submission.sheet.id, item.submission.sheet),
+          new Map()
         )
+        .values()
+    );
+    if (sheets.length > 1) {
+      defaultPath = sheets
+        .map((s) => s.name.replace(' ', '-'))
         .join('-')
-        .replaceAll('/', '-')
-        .replaceAll('\\', '-')
-        .concat('.zip'),
+        .concat('.zip');
+    } else {
+      defaultPath = sheets
+        .map((s) => {
+          const course = s.course.name.replace(' ', '-');
+          const term = s.term.summerterm
+            ? `SS${s.term.year}`
+            : `WS${s.term.year}`;
+          const sheet = s.name.replace(' ', '-');
+          return `${course}-${term}-${sheet}`;
+        })
+        .join('-')
+        .concat('.zip');
+    }
+
+    const p = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
+      defaultPath,
       filters: [{ name: 'Zip', extensions: ['zip'] }],
     });
 
@@ -183,15 +208,27 @@ export default function ExportDialog(props: any) {
   function onExportCorrections() {
     if (correctionsToExport.length > 0) {
       setExportInProgress(true);
-      const condComments = value.map((v, i) => {
-        return { text: comments[i], value: v };
+      const condComments: ConditionalComment[] = value.map((v, i) => {
+        return { text: comments[i], minPercentage: v };
       });
 
       if (path !== undefined) {
         if (conditionalComment) {
-          exportCorrections(correctionsToExport, path, condComments);
+          exportCorrections(
+            path,
+            workspace,
+            new Uni2WorkParser(),
+            correctionsToExport,
+            condComments
+          );
         } else {
-          exportCorrections(correctionsToExport, path);
+          exportCorrections(
+            path,
+            workspace,
+            new Uni2WorkParser(),
+            correctionsToExport,
+            condComments
+          );
         }
       }
       setExportInProgress(false);
