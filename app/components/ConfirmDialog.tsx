@@ -21,6 +21,7 @@ const ConfirmDialog = (props: ConfirmDialogProps) => {
     <Dialog
       open={open}
       onClose={() => setOpen(false)}
+      disableBackdropClick
       aria-labelledby="confirm-dialog"
     >
       <DialogTitle id="confirm-dialog">{title}</DialogTitle>

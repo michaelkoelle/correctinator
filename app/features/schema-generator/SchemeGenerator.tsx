@@ -67,6 +67,7 @@ import TaskEntity from '../../model/TaskEntity';
 import {
   getTopLevelTasks,
   hasTaskEntitiesWithZeroMax,
+  isParentTaskEntity,
 } from '../../utils/TaskUtil';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
@@ -306,6 +307,15 @@ export default function SchemeGenerator() {
     try {
       const newEntities = YAML.parse(text);
       if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
+        const max = Object.entries<TaskEntity>(newEntities.tasks)
+          .map(([, v]) => (isParentTaskEntity(v) ? 0 : v.max))
+          .reduce((acc, v) => acc + v, 0);
+        const suitableSheet = sheets.find(
+          (s) => (!s.tasks || s.tasks.length === 0) && s.maxValue === max
+        );
+        if (suitableSheet) {
+          dispatch(schemaSetSelectedSheet(suitableSheet.id));
+        }
         dispatch(schemaSetEntities(newEntities));
         dispatch(schemaSetClipboard(text));
       }
