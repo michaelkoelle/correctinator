@@ -49,6 +49,7 @@ import {
   schemaSetEntities,
   selectSchemaClipboard,
   schemaSetClipboard,
+  schemaClearSelectedTask,
 } from '../../model/SchemaSlice';
 import { tasksUpsertMany } from '../../model/TaskSlice';
 import { selectAllSheets, sheetsUpsertOne } from '../../model/SheetSlice';
@@ -78,27 +79,6 @@ import { commentsUpsertMany } from '../../model/CommentSlice';
 import CorrectionEntity from '../../model/CorrectionEntity';
 import { ratingsUpsertMany } from '../../model/RatingSlice';
 
-// TODO:
-// entweder eigene datensturkur für schema tasks machen oder tasks in tasks löschen wenn ein task/subtask gelöscht wird
-
-/*
-export default function SchemeGenerator(props: { initialSheet: Sheet }) {
-  const { initialSheet } = props;
-  console.log('RERENDER: SchemaGenerator');
-  const dispatch = useDispatch();
-  const tasks: Task[] = useSelector(selectAllTasks);
-  const schema: Schema = useSelector(selectSchema);
-  const sheets: Sheet[] = useSelector(selectAllSheets);
-  const schemaTasks: Task[] = denormalizeTasks(schema.tasks, tasks);
-
-  const [taskCounter, setTaskCounter] = useState<number>(0);
-  const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
-  const [correctionDialog, setCorrectionDialog] = useState<boolean>(false);
-  const [type, setType] = useState<string>('points');
-  const [schemaString, setSchemaString] = useState(
-    YAML.stringify(schemaTasks) || ''
-    */
-
 function initializeSheet(
   sheetId: string,
   tasks: TaskEntity[],
@@ -110,8 +90,6 @@ function initializeSheet(
     const state = getState();
 
     dispatch(tasksUpsertMany(tasks));
-    // dispatch(commentsUpsertMany(comments));
-    // dispatch(ratingsUpsertMany(ratings));
 
     const sheet = state.sheets.entities[sheetId];
     if (sheet) {
@@ -159,7 +137,6 @@ function initializeSheet(
 
 export default function SchemeGenerator() {
   const dispatch = useDispatch();
-  // const workspace: string = useSelector<string>(selectWorkspacePath);
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
   const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
   const selectedTaskId: string = useSelector(selectSchemaSelectedTaskId);
@@ -192,25 +169,6 @@ export default function SchemeGenerator() {
   const [openConfirmPaste, setOpenConfirmPaste] = useState<boolean>(false);
   const [correctionDialog, setCorrectionDialog] = useState<boolean>(false);
 
-  /*
-  const [schema, setSchema] = useState([]) as any;
-
-  const [selected, setSelected] = useState({}) as any;
-  const [, setOpen] = useState(false) as any;
-  const [openDialog, setOpenDialog] = useState(false) as any;
-  const [, setMessage] = useState('Test Message') as any;
-  const [selectValue, setSelectValue] = useState<string>(
-    sheetToString(schemaSheet) || 'custom'
-  );
-  const [type, setType] = useState('points') as any;
-
-  const [schemaString, setSchemaString] = useState('');
-    const [selectedSheetId, setSelectedSheetId] = useState<string>(
-    initialSheet?.id || 'custom'
-  );
-
-  */
-
   const getDefaultTask = (): RateableTask => {
     return {
       id: uuidv4(),
@@ -240,17 +198,6 @@ export default function SchemeGenerator() {
     };
   };
 
-  /*
-  const getSchemaString = () => {
-    try {
-      return YAML.stringify(schemaTasks);
-    } catch (error) {
-      return '';
-    }
-  };
-
-  useEffect(() => setSchemaString(getSchemaString()), [tasks]);
-*/
   function onSelectSheet(event) {
     const sheetId = event.target.value;
     if (event.target.value !== 'custom') {
@@ -379,6 +326,7 @@ export default function SchemeGenerator() {
   function onDeleteSelected() {
     if (selectedTaskId) {
       dispatch(removeSchemaTaskById(selectedTaskId));
+      dispatch(schemaClearSelectedTask());
     }
   }
 
