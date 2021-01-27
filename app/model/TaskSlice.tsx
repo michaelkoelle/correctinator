@@ -3,15 +3,14 @@ import {
   createEntityAdapter,
   createSelector,
   createSlice,
-  EntityState,
   PayloadAction,
 } from '@reduxjs/toolkit';
 import {
   correctionsImport,
   deleteEntities,
+  initializeSheet,
   selectCorrectionById,
 } from './CorrectionsSlice';
-import { schemaAddTask, schemaRemoveTask } from './SchemaSlice';
 import TaskEntity from './TaskEntity';
 
 const adapter = createEntityAdapter<TaskEntity>();
@@ -58,11 +57,8 @@ const slice = createSlice({
         adapter.upsertMany(state, action.payload.tasks);
       }
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
-    },
-    [schemaAddTask.type]: (state: any, action) => {
-      adapter.upsertOne(state, action.payload);
     },
     /*
     TODO:

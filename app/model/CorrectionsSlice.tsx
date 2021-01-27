@@ -4,15 +4,12 @@ import {
   createEntityAdapter,
   createSelector,
   createSlice,
-  EntityState,
-  PayloadAction,
 } from '@reduxjs/toolkit';
 import { denormalize } from 'normalizr';
 import { selectAllEntities } from '../rootReducer';
 import Correction from './Correction';
 import CorrectionEntity from './CorrectionEntity';
 import { CorrectionSchema } from './NormalizationSchema';
-import Sheet from './Sheet';
 
 export const correctionsImport = createAction<unknown>('correctionsImport');
 export const deleteEntities = createAction<void>('deleteEntities');
@@ -32,19 +29,12 @@ const slice = createSlice({
     correctionsRemoveAll: adapter.removeAll,
     correctionsUpsertOne: adapter.upsertOne,
     correctionsUpsertMany: adapter.upsertMany,
-    correctionsInitializeTasksForSheet: (
-      state,
-      action: PayloadAction<{ tasks: string[]; sheet: string | undefined }>
-    ) => {
-      console.log(state.entities);
-    },
   },
   extraReducers: {
     [correctionsImport.type]: (state, action) => {
-      console.log(action.payload);
       adapter.upsertMany(state, action.payload.corrections);
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
@@ -60,7 +50,6 @@ export const {
   correctionsRemoveAll,
   correctionsUpsertOne,
   correctionsUpsertMany,
-  correctionsInitializeTasksForSheet,
 } = slice.actions;
 
 export const {

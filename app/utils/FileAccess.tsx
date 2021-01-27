@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { OpenDialogReturnValue, remote } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
@@ -10,6 +11,10 @@ import { CorrectionSchema } from '../model/NormalizationSchema';
 import Parser from '../parser/Parser';
 import ConditionalComment from '../model/ConditionalComment';
 import { deleteEntities, correctionsImport } from '../model/CorrectionsSlice';
+import ParentTask from '../model/ParentTask';
+import TaskEntity from '../model/TaskEntity';
+import Task from '../model/Task';
+import ParentTaskEntity from '../model/ParentTaskEntity';
 
 export function createDirectory(dir: string) {
   if (!fs.existsSync(dir)) {

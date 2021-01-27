@@ -40,8 +40,9 @@ import {
   reloadState,
 } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
+import SheetEntity from '../../model/SheetEntity';
 
-export default function SheetCard(props: { sheet: Sheet }) {
+export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
   const workspace = useSelector(selectWorkspacePath);
   const entities = useSelector(selectAllEntities);

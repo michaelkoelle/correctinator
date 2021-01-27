@@ -1,2 +1,2 @@
-type Note = { text: string };
+type Note = { id: string; text: string };
 export default Note;

@@ -1,7 +1,9 @@
+/* eslint-disable import/no-cycle */
+import Task from '../model/Task';
 import ConditionalComment from '../model/ConditionalComment';
 import Correction from '../model/Correction';
 import Rating from '../model/Rating';
-import Task from '../model/Task';
+import { isParentTask } from './TaskUtil';
 
 export function wordWrap(text: string, max: number, depth = 0) {
   const lines = text.split('\n');
@@ -51,11 +53,11 @@ export function getRatingValueForTasks(
   if (ratings.length > 0 && tasks.length > 0) {
     return tasks
       .map((t) =>
-        t.tasks?.length
+        isParentTask(t)
           ? getRatingValueForTasks(t.tasks, ratings)
           : getRatingForTask(t, ratings).value
       )
-      .reduce((acc, v) => acc + v);
+      .reduce((acc, v) => acc + v, 0);
   }
   return 0;
 }
@@ -63,12 +65,12 @@ export function getRatingValueForTasks(
 export function getMaxValueForTasks(tasks: Task[]): number {
   return tasks
     .map((task) => {
-      if (task.tasks?.length) {
+      if (isParentTask(task)) {
         return getMaxValueForTasks(task.tasks);
       }
       return task.max ? task.max : 0;
     })
-    .reduce((acc, v) => acc + v);
+    .reduce((acc, v) => acc + v, 0);
 }
 
 export function serializeTasks(
@@ -81,17 +83,18 @@ export function serializeTasks(
 ) {
   return tasks
     .map((task) => {
-      const subTasks: Task[] = task.tasks !== undefined ? task.tasks : [];
-      const isParentTask = subTasks.length > 0;
-      const rating = isParentTask ? undefined : getRatingForTask(task, ratings);
+      const subTasks: Task[] = isParentTask(task) ? task.tasks : [];
+      const rating = isParentTask(task)
+        ? undefined
+        : getRatingForTask(task, ratings);
       const indent = '\t'.repeat(depth);
       const taskName = task.name;
-      const value = isParentTask
+      const value = isParentTask(task)
         ? getRatingValueForTasks(subTasks, ratings)
         : rating?.value;
-      const max = isParentTask ? getMaxValueForTasks(subTasks) : task.max;
+      const max = isParentTask(task) ? getMaxValueForTasks(subTasks) : task.max;
       const commentOrSubtask =
-        !isParentTask && rating && rating?.comment.text.trim().length > 0
+        !isParentTask(task) && rating && rating?.comment.text.trim().length > 0
           ? `${wordWrap(rating.comment.text, 60, depth + 1)}\n`
           : serializeTasks(
               subTasks,

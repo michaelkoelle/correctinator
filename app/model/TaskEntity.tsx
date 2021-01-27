@@ -1,8 +1,6 @@
-type TaskEntity = {
-  id: string;
-  name: string;
-  step?: number;
-  max?: number;
-  tasks?: string[];
-};
+import ParentTaskEntity from './ParentTaskEntity';
+import RateableTask from './RateableTask';
+
+type TaskEntity = RateableTask | ParentTaskEntity;
+
 export default TaskEntity;

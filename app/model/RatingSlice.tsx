@@ -4,7 +4,11 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import {
+  correctionsImport,
+  deleteEntities,
+  initializeSheet,
+} from './CorrectionsSlice';
 import RatingEntity from './RatingEntity';
 
 const adapter = createEntityAdapter<RatingEntity>({

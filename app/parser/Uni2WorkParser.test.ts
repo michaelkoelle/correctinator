@@ -111,7 +111,7 @@ const correctionTestData2: Correction = {
       id: 'f928b81f-2bba-5635-8633-94fc0bc89b68',
       value: 2,
       comment: {
-        // id: 'f35c6903-6ba8-4f82-8213-5f63afcd0dcb',
+        id: '87f4c40a-9d62-4b7c-872c-bb3e97b37f9d',
         text: '',
         task: {
           id: '45f61c3e-5a31-11eb-b0d6-cf4c183ddd7e',
@@ -131,7 +131,7 @@ const correctionTestData2: Correction = {
       id: 'c0efdf57-9b65-564c-a12b-f6e2907e7cd9',
       value: 1.5,
       comment: {
-        // id: '627ec545-83b2-493c-a10e-6a0dd2515b1e',
+        id: 'fbca3ab5-3882-4d92-b590-9b1fa1136f51',
         text: '',
         task: {
           id: '3de4bec5-5608-44f7-8dad-08022b61a232',
@@ -151,7 +151,7 @@ const correctionTestData2: Correction = {
       id: '50d53aa3-5e3b-5d2f-8239-9c51db727b10',
       value: 5,
       comment: {
-        // id: '40f6a198-49bc-4505-9844-e4203928a4e6',
+        id: 'b5f89b6e-b27c-408a-9b7e-392923f0d55b',
         text: '',
         task: {
           id: '3573ec3a-9ae9-4c52-bcb6-05c7e0ca14962',

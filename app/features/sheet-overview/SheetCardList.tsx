@@ -1,12 +1,12 @@
 import { Box, List, ListItem, Paper, Typography } from '@material-ui/core';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import Sheet from '../../model/Sheet';
+import SheetEntity from '../../model/SheetEntity';
 import { selectAllSheets } from '../../model/SheetSlice';
 import SheetCard from './SheetCard';
 
 export default function SheetCardList() {
-  const sheets: Sheet[] = useSelector(selectAllSheets);
+  const sheets: SheetEntity[] = useSelector(selectAllSheets);
 
   if (sheets?.length > 0) {
     return (

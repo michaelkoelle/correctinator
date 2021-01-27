@@ -5,9 +5,8 @@ import {
   IconButton,
   Grid,
   Paper,
-  Box,
 } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
 import WebIcon from '@material-ui/icons/Web';
@@ -16,30 +15,8 @@ import EditIcon from '@material-ui/icons/Edit';
 import InfoIcon from '@material-ui/icons/Info';
 import { TabPanel, TabContext } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import { normalize } from 'normalizr';
-import { createSelector } from '@reduxjs/toolkit';
-import {
-  getAllSubmissionDirectories,
-  getSubmissionFromAppDataDir,
-  getUniqueSheets,
-  isSubmissionFromSheet,
-  saveSubmissions,
-} from '../utils/FileAccess';
 import SheetOverviewPage from '../containers/SheetOverviewPage';
-import OverviewPage from '../containers/OverviewPage';
 import SchemeGeneratorPage from '../containers/SchemeGeneratorPage';
-import CorrectionViewPage from '../containers/CorrectionViewPage';
-import {
-  correctionsAddOne,
-  correctionsImport,
-  selectAllCorrections,
-  selectCorrectionById,
-} from '../model/CorrectionsSlice';
-import { CorrectionsSchema } from '../model/NormalizationSchema';
-import Correction from '../model/Correction';
-import Task from '../model/TaskEntity';
-import Uni2WorkParser from '../parser/Uni2WorkParser';
-import Parser from '../parser/Parser';
 import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
 
 const useStyle = makeStyles({
@@ -301,18 +278,7 @@ export default function Navigation(): JSX.Element {
             value="2"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            {/*
-            <SchemeGeneratorPage
-              sheets={sheets}
-              reload={reload}
-              schemaSheet={schemaSheet}
-              setSchemaSheet={setSchemaSheet}
-              submissions={submissions}
-              setSubmissions={setSubmissions}
-              setTab={setTab}
-              setSheetToCorrect={setSheetToCorrect}
-            /> */}
-            3
+            <SchemeGeneratorPage />
           </TabPanel>
           <TabPanel
             value="3"

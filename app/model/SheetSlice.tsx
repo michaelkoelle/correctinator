@@ -1,13 +1,13 @@
 /* eslint-disable import/no-cycle */
+import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import {
-  createEntityAdapter,
-  createSlice,
-  EntityState,
-} from '@reduxjs/toolkit';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
-import Sheet from './Sheet';
+  correctionsImport,
+  deleteEntities,
+  initializeSheet,
+} from './CorrectionsSlice';
+import SheetEntity from './SheetEntity';
 
-const adapter = createEntityAdapter<Sheet>({
+const adapter = createEntityAdapter<SheetEntity>({
   sortComparer: (a, b) => a.name.localeCompare(b.name),
 });
 
@@ -29,7 +29,7 @@ const slice = createSlice({
     [correctionsImport.type]: (state, action) => {
       adapter.upsertMany(state, action.payload.sheets);
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },

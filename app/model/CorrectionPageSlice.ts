@@ -13,6 +13,7 @@ const correctionPageSlice = createSlice({
       state.index = action.payload;
     },
     correctionPageSetSheetId(state, action: PayloadAction<string>) {
+      state.index = 0;
       state.sheetId = action.payload;
     },
   },

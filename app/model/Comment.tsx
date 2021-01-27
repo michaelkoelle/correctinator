@@ -1,4 +1,4 @@
-import Task from './TaskEntity';
+import Task from './Task';
 
-type Comment = { text: string; task: Task };
+type Comment = { id: string; text: string; task: Task };
 export default Comment;

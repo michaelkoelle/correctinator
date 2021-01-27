@@ -1,23 +1,30 @@
 /* eslint-disable jest/no-export */
-import { denormalize } from 'normalizr';
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import Schema from '../../model/Schema';
-import { selectSchema } from '../../model/SchemaSlice';
-import Sheet from '../../model/Sheet';
-import { selectAllSheets } from '../../model/SheetSlice';
-import Task from '../../model/TaskEntity';
-import { selectAllTasks } from '../../model/TaskSlice';
-import { denormalizeTasks } from '../../utils/FileAccess';
-import TaskScheme from './TaskScheme';
+import React from 'react';
+import CommentEntity from '../../model/CommentEntity';
+import Rating from '../../model/Rating';
+import RatingEntity from '../../model/RatingEntity';
+import Task from '../../model/Task';
+import { getTopLevelTasks, isParentTask } from '../../utils/TaskUtil';
+import SchemaParentTask from './SchemaParentTask';
+import SchemaRateableTask from './SchemaRateableTask';
 
-export default function TaskSchemeList(props: any) {
+type TaskSchemeListProps = {
+  tasks: Task[];
+  ratings: Rating[];
+  ratingEntities: RatingEntity[];
+  comments: CommentEntity[];
+  type: string;
+};
+
+export default function TaskSchemeList(props: TaskSchemeListProps) {
+  const { tasks, ratings, ratingEntities, comments, type } = props;
+  const tasksToRender: JSX.Element[] = [];
+  /*
   const tasks: Task[] = useSelector(selectAllTasks);
   const schema: Schema = useSelector(selectSchema);
   const schemaTasks: Task[] = denormalizeTasks(schema.tasks, tasks);
-  const tasksToRender: any[] = [];
 
-  /*
+
   function updateTask(tasksArray: any, task: any) {
     for (let i = 0; i < tasksArray.length; i += 1) {
       if (tasksArray[i].id === task.id) {
@@ -37,28 +44,40 @@ export default function TaskSchemeList(props: any) {
   */
 
   function generateTemplates(t: Task[], depth = 0) {
-    t?.forEach((task: Task | undefined) => {
-      if (task !== undefined) {
-        tasksToRender?.push(
-          <TaskScheme
-            task={task}
-            // setTask={setTask}
+    t.forEach((task: Task) => {
+      if (isParentTask(task)) {
+        tasksToRender.push(
+          <SchemaParentTask
             key={task.id}
-            // selected={selectedTask.id === task.id}
-            // setSelected={setSelected}
+            task={task}
+            ratings={ratings}
             depth={depth}
-            // type={type}
+            type={type}
           />
         );
-
         if (task.tasks.length > 0) {
           generateTemplates(task.tasks as Task[], depth + 1);
+        }
+      } else {
+        const rating = ratingEntities.find((r) => r.task === task.id);
+        const comment = comments.find((c) => c.task === task.id);
+        if (rating && comment) {
+          tasksToRender.push(
+            <SchemaRateableTask
+              key={task.id}
+              task={task}
+              rating={rating}
+              comment={comment}
+              depth={depth}
+              type={type}
+            />
+          );
         }
       }
     });
   }
 
-  generateTemplates(schemaTasks);
+  generateTemplates(getTopLevelTasks(tasks));
 
   return <div>{tasksToRender}</div>;
 }

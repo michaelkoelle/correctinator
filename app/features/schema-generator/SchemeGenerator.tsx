@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-no-duplicate-props */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import AceEditor from 'react-ace';
 import YAML from 'yaml';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,9 +18,6 @@ import {
   Grid,
   IconButton,
   InputLabel,
-  List,
-  ListItem,
-  ListItemText,
   MenuItem,
   Paper,
   Select,
@@ -33,36 +30,52 @@ import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import { clipboard, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
-import TaskSchemeList from './TaskSchemeList';
+import { denormalize } from 'normalizr';
 import {
-  denormalizeTasks,
-  getSubmissionsOfSheet,
-  hasTasksWithZeroMax,
-  isSubmissionFromSheet,
-  saveSubmissions,
-  sumParam,
-} from '../../utils/FileAccess';
-import {
-  schemaAddTask,
-  schemaRemoveAllTasks,
-  schemaRemoveTask,
+  schemaClearSelectedSheet,
+  schemaReset,
   schemaSetSelectedSheet,
-  selectSchema,
+  selectSchemaSelectedSheetId,
+  removeSchemaTaskById,
+  schemaUpsertTask,
+  schemaUpsertComment,
+  schemaUpsertRating,
+  selectSchemaSelectedTaskId,
+  schemaAddSubtask,
+  selectSchemaTasks,
+  selectSchemaComments,
+  selectSchemaRatings,
+  selectSchemaEntities,
+  schemaSetEntities,
+  selectSchemaClipboard,
+  schemaSetClipboard,
 } from '../../model/SchemaSlice';
+import { tasksUpsertMany } from '../../model/TaskSlice';
+import { selectAllSheets, sheetsUpsertOne } from '../../model/SheetSlice';
+import RateableTask from '../../model/RateableTask';
+import CommentEntity from '../../model/CommentEntity';
+import RatingEntity from '../../model/RatingEntity';
+import { setTabIndex } from '../../model/HomeSlice';
+import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
+import SheetEntity from '../../model/SheetEntity';
 import {
-  selectAllTasks,
-  selectTaskEntities,
-  tasksAddOne,
-  tasksAddOneSubtask,
-  tasksRemoveOne,
-  tasksUpdateMany,
-  tasksUpdateOne,
-} from '../../model/TaskSlice';
-import Task from '../../model/TaskEntity';
-import { selectAllSheets } from '../../model/SheetSlice';
-import Sheet from '../../model/Sheet';
-import { correctionsInitializeTasksForSheet } from '../../model/CorrectionsSlice';
-import Schema from '../../model/Schema';
+  getMaxValueForTasks,
+  getRatingValueForTasks,
+} from '../../utils/Formatter';
+import { RatingsSchema, TasksSchema } from '../../model/NormalizationSchema';
+import TaskEntity from '../../model/TaskEntity';
+import {
+  getTopLevelTasks,
+  hasTaskEntitiesWithZeroMax,
+} from '../../utils/TaskUtil';
+import Rating from '../../model/Rating';
+import Task from '../../model/Task';
+import TaskSchemeList from './TaskSchemeList';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { correctionsUpsertMany } from '../../model/CorrectionsSlice';
+import { commentsUpsertMany } from '../../model/CommentSlice';
+import CorrectionEntity from '../../model/CorrectionEntity';
+import { ratingsUpsertMany } from '../../model/RatingSlice';
 
 // TODO:
 // entweder eigene datensturkur für schema tasks machen oder tasks in tasks löschen wenn ein task/subtask gelöscht wird
@@ -85,19 +98,102 @@ export default function SchemeGenerator(props: { initialSheet: Sheet }) {
     YAML.stringify(schemaTasks) || ''
     */
 
-export default function SchemeGenerator(props: any) {
-  const {
-    sheets,
-    submissions,
-    reload,
-    setTab,
-    setSheetToCorrect,
-    schemaSheet,
-    setSchemaSheet,
-  } = props;
-  const workspacePath = useSelector((state: any) => state.workspace.path);
+function initializeSheet(
+  sheetId: string,
+  tasks: TaskEntity[],
+  ratings: RatingEntity[],
+  comments: CommentEntity[],
+  topLevelTaskIds: string[]
+) {
+  return (dispatch, getState) => {
+    const state = getState();
+
+    dispatch(tasksUpsertMany(tasks));
+    // dispatch(commentsUpsertMany(comments));
+    // dispatch(ratingsUpsertMany(ratings));
+
+    const sheet = state.sheets.entities[sheetId];
+    if (sheet) {
+      const temp = { ...sheet };
+      temp.tasks = topLevelTaskIds;
+      dispatch(sheetsUpsertOne(temp));
+    }
+
+    const correctionsOfSheet = Object.entries<CorrectionEntity>(
+      state.corrections.entities
+    )
+      .map(([, v]) => v)
+      .filter(
+        (c) => state.submissions.entities[c.submission].sheet === sheetId
+      );
+
+    const allComments: CommentEntity[] = [];
+    const allRatings: RatingEntity[] = [];
+
+    const allCorrections: CorrectionEntity[] = [];
+    correctionsOfSheet.forEach((c) => {
+      const ratingsForCorrection: RatingEntity[] = [];
+      ratings.forEach((r) => {
+        const newComment = comments.find((comment) => comment.id === r.comment);
+        const tempRating = { ...r };
+        if (newComment) {
+          const tempComment = { ...newComment };
+          tempComment.id = uuidv4();
+          allComments.push(tempComment);
+          tempRating.comment = tempComment.id;
+        }
+        tempRating.id = uuidv4();
+        ratingsForCorrection.push(tempRating);
+        allRatings.push(tempRating);
+      });
+      const tempCorrection = { ...c };
+      tempCorrection.ratings = ratingsForCorrection.map((r) => r.id);
+      allCorrections.push(tempCorrection);
+    });
+    dispatch(commentsUpsertMany(allComments));
+    dispatch(ratingsUpsertMany(allRatings));
+    dispatch(correctionsUpsertMany(allCorrections));
+  };
+}
+
+export default function SchemeGenerator() {
+  const dispatch = useDispatch();
+  // const workspace: string = useSelector<string>(selectWorkspacePath);
+  const sheets: SheetEntity[] = useSelector(selectAllSheets);
+  const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
+  const selectedTaskId: string = useSelector(selectSchemaSelectedTaskId);
+  const tasksEntity: TaskEntity[] = useSelector(selectSchemaTasks);
+  const ratingsEntity: RatingEntity[] = useSelector(selectSchemaRatings);
+  const commentsEntity: CommentEntity[] = useSelector(selectSchemaComments);
+  const clipboardOld = useSelector(selectSchemaClipboard);
+  const entities = useSelector(selectSchemaEntities);
+  const selectedSheet: SheetEntity | undefined = sheets.find(
+    (s) => s.id === selectedSheetId
+  );
+  const tasks: Task[] = denormalize(
+    tasksEntity.map((t) => t.id),
+    TasksSchema,
+    entities
+  );
+  const ratings: Rating[] = denormalize(
+    ratingsEntity.map((t) => t.id),
+    RatingsSchema,
+    entities
+  );
+  const [taskCounter, setTaskCounter] = useState<number>(0);
+  const [type, setType] = useState('points');
+  const maxValueTasks: number = tasks ? getMaxValueForTasks(tasks) : 0;
+  const maxValue: number = selectedSheet?.maxValue || maxValueTasks;
+  const [skipCheck, setSkipCheck] = useState<boolean>(false);
+
+  // Dialogs
+  const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
+  const [openConfirmPaste, setOpenConfirmPaste] = useState<boolean>(false);
+  const [correctionDialog, setCorrectionDialog] = useState<boolean>(false);
+
+  /*
   const [schema, setSchema] = useState([]) as any;
-  const [taskCounter, setTaskCounter] = useState(0) as any;
+
   const [selected, setSelected] = useState({}) as any;
   const [, setOpen] = useState(false) as any;
   const [openDialog, setOpenDialog] = useState(false) as any;
@@ -106,25 +202,44 @@ export default function SchemeGenerator(props: any) {
     sheetToString(schemaSheet) || 'custom'
   );
   const [type, setType] = useState('points') as any;
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+
   const [schemaString, setSchemaString] = useState('');
-  const [openStartCorrectionDialog, setOpenStartCorrectionDialog] = useState(
-    false
-  );
-
-  const defaultTask: Task = {
-    id: uuidv4(),
-    name: `Task ${taskCounter + 1}`,
-    max: 0,
-    value: 0,
-    step: 0.5,
-    tasks: [],
-  };
-
-  const [selectedSheetId, setSelectedSheetId] = useState<string>(
+    const [selectedSheetId, setSelectedSheetId] = useState<string>(
     initialSheet?.id || 'custom'
   );
 
+  */
+
+  const getDefaultTask = (): RateableTask => {
+    return {
+      id: uuidv4(),
+      name: `Task ${taskCounter + 1}`,
+      max: 0,
+      step: 0.5,
+    };
+  };
+
+  const getDefaultComment = (task: TaskEntity): CommentEntity => {
+    return {
+      id: uuidv4(),
+      task: task.id,
+      text: '',
+    };
+  };
+
+  const getDefaultRating = (
+    task: TaskEntity,
+    comment: CommentEntity
+  ): RatingEntity => {
+    return {
+      id: uuidv4(),
+      task: task.id,
+      value: 0,
+      comment: comment.id,
+    };
+  };
+
+  /*
   const getSchemaString = () => {
     try {
       return YAML.stringify(schemaTasks);
@@ -134,17 +249,18 @@ export default function SchemeGenerator(props: any) {
   };
 
   useEffect(() => setSchemaString(getSchemaString()), [tasks]);
-
+*/
   function onSelectSheet(event) {
-    setSelectedSheetId(event.target.value);
-    const s = sheets.find((sheet) => sheet.id === event.target.value);
-    if (event.target.value !== 'custom' && s !== undefined) {
-      dispatch(schemaSetSelectedSheet(s));
+    const sheetId = event.target.value;
+    if (event.target.value !== 'custom') {
+      dispatch(schemaSetSelectedSheet(sheetId));
+    } else {
+      dispatch(schemaClearSelectedSheet());
     }
   }
 
-  function onTypeChange(event) {
-    setType(event.target.value);
+  function onTypeChange(event: ChangeEvent<{ value: unknown }>) {
+    setType(event.target.value as string);
   }
 
   function onOverwriteSchema() {
@@ -160,83 +276,138 @@ export default function SchemeGenerator(props: any) {
   }
 
   function onStartCorrection() {
-    if (selectedSheetId !== '' && selectedSheetId !== undefined) {
-      // TODO:
-      // setSheetToCorrect(schemaSheet);
-      // setTab(3);
+    if (selectedSheetId !== undefined) {
+      dispatch(correctionPageSetSheetId(selectedSheetId));
+      dispatch(setTabIndex(3));
     }
   }
 
   function onAssignSchema() {
     setOpenConfirmDialog(false);
     dispatch(
-      correctionsInitializeTasksForSheet({
-        tasks: schema.tasks,
-        sheet: selectedSheetId,
-      })
+      initializeSheet(
+        selectedSheetId,
+        tasksEntity,
+        ratingsEntity,
+        commentsEntity,
+        getTopLevelTasks(tasks).map((t) => t.id)
+      )
     );
     setCorrectionDialog(true);
   }
 
   function onCopyToClipboard() {
-    clipboard.writeText(YAML.stringify(schema));
+    setSkipCheck(true);
+    clipboard.writeText(YAML.stringify(entities));
   }
 
-  function addTask(task: Task) {
-    dispatch(schemaAddTask(task));
-    // setSchemaString(YAML.stringify(schemaTasks));
+  function onPasteFromClipboard() {
+    const text = clipboard.readText();
+    try {
+      const newEntities = YAML.parse(text);
+      if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
+        dispatch(schemaSetEntities(newEntities));
+        dispatch(schemaSetClipboard(text));
+      }
+    } catch (error) {
+      console.log('YAML Parse Error');
+    }
+  }
+
+  function checkClipboard() {
+    const text = clipboard.readText();
+
+    if (text.trim() === YAML.stringify(entities).trim()) {
+      dispatch(schemaSetClipboard(text));
+    }
+
+    if (
+      text.trim().length === 0 ||
+      text === clipboardOld ||
+      text.trim() === YAML.stringify(entities).trim()
+    ) {
+      return;
+    }
+    try {
+      const newEntities = YAML.parse(text);
+      if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
+        dispatch(schemaSetClipboard(text));
+        if (!skipCheck) {
+          setOpenConfirmPaste(true);
+        } else {
+          setSkipCheck(false);
+        }
+      }
+    } catch (error) {
+      console.log('YAML Parse Error');
+    }
+  }
+
+  function clearClipborad() {
+    const text = clipboard.readText();
+    dispatch(schemaSetClipboard(text));
+  }
+
+  function addDefaultTask() {
+    const dTask = getDefaultTask();
+    const dComment = getDefaultComment(dTask);
+    const dRating = getDefaultRating(dTask, dComment);
+    dispatch(schemaUpsertTask(dTask));
+    dispatch(schemaUpsertComment(dComment));
+    dispatch(schemaUpsertRating(dRating));
   }
 
   function onAddTask() {
-    try {
-      addTask({ ...defaultTask });
-      setTaskCounter(taskCounter + 1);
-      console.log('Added task');
-    } catch (error) {
-      console.error(error);
-    }
+    addDefaultTask();
+    setTaskCounter(taskCounter + 1);
   }
 
   function clearAllTasks() {
-    dispatch(schemaRemoveAllTasks());
-    setSchemaString('');
-    console.log('All tasks cleared!');
+    dispatch(schemaReset());
   }
 
   function onDeleteSelected() {
-    if (schema.selectedTask) {
-      dispatch(schemaRemoveTask({ id: schema.selectedTask }));
+    if (selectedTaskId) {
+      dispatch(removeSchemaTaskById(selectedTaskId));
     }
-    // setSchemaString(YAML.stringify([...schema, task]));
   }
 
   function onAddSubTask() {
-    dispatch(
-      tasksAddOneSubtask({
-        id: schema.selectedTask,
-        subTask: { ...defaultTask },
-      })
-    );
-    // setSchemaString(YAML.stringify(schemaTasks));
+    if (selectedTaskId) {
+      const dTask = getDefaultTask();
+      const dComment = getDefaultComment(dTask);
+      const dRating = getDefaultRating(dTask, dComment);
+      dispatch(
+        schemaAddSubtask({
+          parentId: selectedTaskId,
+          task: dTask,
+        })
+      );
+      dispatch(schemaUpsertComment(dComment));
+      dispatch(schemaUpsertRating(dRating));
+      setTaskCounter(taskCounter + 1);
+    }
   }
 
   function onChange(newValue: any) {
     if (newValue !== null) {
       try {
-        const parsedTasks: any[] = YAML.parse(newValue);
-        dispatch(
-          tasksUpdateMany(
-            parsedTasks.map((t) => {
-              return { id: t.id, changes: t };
-            })
-          )
-        );
+        const newEntities = YAML.parse(newValue);
+        if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
+          dispatch(schemaSetEntities(newEntities));
+        }
       } catch (error) {
         console.log('YAML Parse Error');
       }
-      setSchemaString(newValue);
     }
   }
+
+  useEffect(() => {
+    const id = setInterval(() => checkClipboard(), 1000);
+    return () => {
+      clearInterval(id);
+    };
+  }, [clipboardOld, skipCheck, entities]);
 
   return (
     <Grid
@@ -264,14 +435,14 @@ export default function SchemeGenerator(props: any) {
             <Button
               type="button"
               onClick={onAddSubTask}
-              disabled={schema.selectedTask === undefined}
+              disabled={selectedTaskId === undefined}
             >
               Add subtask
             </Button>
             <Button
               type="button"
               onClick={onDeleteSelected}
-              disabled={schema.selectedTask === undefined}
+              disabled={selectedTaskId === undefined}
             >
               Delete selected task
             </Button>
@@ -332,10 +503,10 @@ export default function SchemeGenerator(props: any) {
                       <Select
                         labelId="sheet-select-label"
                         label="Schema for"
-                        value={selectedSheetId}
+                        value={selectedSheetId || 'custom schema'}
                         onChange={onSelectSheet}
                       >
-                        <MenuItem value="custom">Custom schema</MenuItem>
+                        <MenuItem value="custom schema">Custom schema</MenuItem>
                         {sheets.map((s) => {
                           return (
                             <MenuItem key={s.id} value={s.id}>
@@ -360,7 +531,7 @@ export default function SchemeGenerator(props: any) {
                         min: 0,
                         step: 0.5,
                       }}
-                      value={sumParam(schemaTasks, 'value')}
+                      value={getRatingValueForTasks(tasks, ratings)}
                     />
                   </Grid>
                   <Grid item>
@@ -377,23 +548,16 @@ export default function SchemeGenerator(props: any) {
                         min: 0,
                         step: 0.5,
                       }}
-                      value={
-                        schema.selectedSheet?.grading?.max ||
-                        sumParam(schemaTasks, 'max')
-                      }
+                      value={maxValue}
                       error={
-                        (schema.selectedSheet &&
-                          (sumParam(schemaTasks, 'max') !==
-                            schema.selectedSheet?.grading?.max ||
-                            hasTasksWithZeroMax(
-                              denormalizeTasks(schema.tasks, tasks)
-                            ) ||
-                            sumParam(schemaTasks, 'max') <= 0)) ||
-                        (!schema.selectedSheet &&
-                          (hasTasksWithZeroMax(
-                            denormalizeTasks(schema.tasks, tasks)
-                          ) ||
-                            sumParam(schemaTasks, 'max') <= 0))
+                        (selectedSheet &&
+                          (getMaxValueForTasks(tasks) !==
+                            selectedSheet?.maxValue ||
+                            hasTaskEntitiesWithZeroMax(tasksEntity) ||
+                            getMaxValueForTasks(tasks) <= 0)) ||
+                        (!selectedSheet &&
+                          (hasTaskEntitiesWithZeroMax(tasksEntity) ||
+                            getMaxValueForTasks(tasks) <= 0))
                       }
                     />
                   </Grid>
@@ -402,36 +566,33 @@ export default function SchemeGenerator(props: any) {
                       variant="outlined"
                       label="Type"
                       size="small"
-                      value={schema.selectedSheet?.grading?.type || type}
+                      value={selectedSheet?.valueType || type}
                       onChange={onTypeChange}
                       InputProps={{
-                        readOnly: schema.selectedSheet === undefined,
+                        readOnly: selectedSheet === undefined,
                       }}
                       style={{ width: '110px' }}
                     />
                   </Grid>
-                  {schema.selectedSheet && (
+                  {selectedSheet && (
                     <Grid item>
                       <Button
                         onClick={
-                          getSubmissionsOfSheet(
-                            schemaSheet,
-                            workspacePath
-                          ).filter((s) => s?.tasks?.length > 0).length > 0
+                          selectedSheet &&
+                          selectedSheet.tasks &&
+                          selectedSheet.tasks.length > 0
                             ? onOverwriteSchema
                             : onAssignSchema
                         }
                         disabled={
-                          sumParam(schemaTasks, 'max') !==
-                            schema.selectedSheet?.grading?.max ||
-                          hasTasksWithZeroMax(schemaTasks) ||
-                          sumParam(schemaTasks, 'max') <= 0
+                          maxValueTasks !== selectedSheet?.maxValue ||
+                          hasTaskEntitiesWithZeroMax(tasksEntity) ||
+                          maxValueTasks <= 0
                         }
                       >
-                        {getSubmissionsOfSheet(
-                          schemaSheet,
-                          workspacePath
-                        ).filter((s) => s?.tasks?.length > 0).length > 0
+                        {selectedSheet &&
+                        selectedSheet.tasks &&
+                        selectedSheet.tasks.length > 0
                           ? 'Overwrite'
                           : 'Assign'}
                       </Button>
@@ -443,8 +604,8 @@ export default function SchemeGenerator(props: any) {
                         <IconButton
                           onClick={onCopyToClipboard}
                           disabled={
-                            hasTasksWithZeroMax(schemaTasks) ||
-                            sumParam(schemaTasks, 'max') <= 0
+                            hasTaskEntitiesWithZeroMax(tasksEntity) ||
+                            maxValueTasks <= 0
                           }
                           size="small"
                         >
@@ -455,10 +616,8 @@ export default function SchemeGenerator(props: any) {
                   </Grid>
                 </Grid>
 
-                {schema.selectedSheet &&
-                  schema.selectedSheet?.grading?.max -
-                    sumParam(schemaTasks, 'max') !==
-                    0 && (
+                {selectedSheet &&
+                  selectedSheet?.maxValue - maxValueTasks !== 0 && (
                     <Grid
                       item
                       container
@@ -466,7 +625,7 @@ export default function SchemeGenerator(props: any) {
                       justify="center"
                       alignItems="center"
                       style={{
-                        paddingBottom: hasTasksWithZeroMax(schemaTasks)
+                        paddingBottom: hasTaskEntitiesWithZeroMax(tasksEntity)
                           ? '0px'
                           : '8px',
                       }}
@@ -474,12 +633,9 @@ export default function SchemeGenerator(props: any) {
                       <Grid item>
                         <Typography color="error">
                           {`${Math.abs(
-                            schema.selectedSheet?.grading?.max -
-                              sumParam(schemaTasks, 'max')
-                          )} ${schema.selectedSheet?.grading?.type || type} ${
-                            schema.selectedSheet?.grading?.max -
-                              sumParam(schemaTasks, 'max') <
-                            0
+                            selectedSheet?.maxValue - maxValueTasks
+                          )} ${selectedSheet?.valueType || type} ${
+                            selectedSheet?.maxValue - maxValueTasks < 0
                               ? 'too much'
                               : 'remaining'
                           }`}
@@ -487,7 +643,7 @@ export default function SchemeGenerator(props: any) {
                       </Grid>
                     </Grid>
                   )}
-                {hasTasksWithZeroMax(schemaTasks) && (
+                {hasTaskEntitiesWithZeroMax(tasksEntity) && (
                   <Grid
                     item
                     container
@@ -496,10 +652,8 @@ export default function SchemeGenerator(props: any) {
                     alignItems="center"
                     style={{
                       paddingTop:
-                        schema.selectedSheet &&
-                        schema.selectedSheet?.grading?.max -
-                          sumParam(schemaTasks, 'max') !==
-                          0
+                        selectedSheet &&
+                        selectedSheet?.maxValue - maxValueTasks !== 0
                           ? '0px'
                           : '8px',
                     }}
@@ -507,7 +661,7 @@ export default function SchemeGenerator(props: any) {
                     <Grid item>
                       <Typography color="error">
                         {`Some of the tasks have zero max ${
-                          schema.selectedSheet?.grading?.type || type
+                          selectedSheet?.valueType || type
                         }`}
                       </Typography>
                     </Grid>
@@ -528,9 +682,11 @@ export default function SchemeGenerator(props: any) {
               }}
             >
               <TaskSchemeList
-                schemaTasks={schemaTasks}
-                selectedTask={schema.selectedTask}
-                type={schema.selectedSheet?.grading?.type || type}
+                tasks={tasks}
+                ratings={ratings}
+                ratingEntities={ratingsEntity}
+                comments={commentsEntity}
+                type={selectedSheet ? selectedSheet.type : type}
               />
             </Paper>
           </Grid>
@@ -553,7 +709,7 @@ export default function SchemeGenerator(props: any) {
               width="100%"
               height="100%"
               maxLines={Infinity}
-              value={schemaString}
+              value={entities.tasks === {} ? '' : YAML.stringify(entities)}
               onChange={onChange}
               name="editor"
               editorProps={{ $blockScrolling: true }}
@@ -567,7 +723,7 @@ export default function SchemeGenerator(props: any) {
         <DialogTitle>Are you sure?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to assign this schema to the sheet "${schema.selectedSheet?.name}"?
+            {`Are you sure you want to assign this schema to the sheet "${selectedSheet?.name}"?
             All progress will be lost!`}
           </DialogContentText>
         </DialogContent>
@@ -584,7 +740,7 @@ export default function SchemeGenerator(props: any) {
         <DialogTitle>Start correcting?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you want to start correcting the sheet "${schema.selectedSheet?.name}" now?`}
+            {`Are you want to start correcting the sheet "${selectedSheet?.name}" now?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -596,6 +752,14 @@ export default function SchemeGenerator(props: any) {
           </Button>
         </DialogActions>
       </Dialog>
+      <ConfirmDialog
+        title="Paste from Clipboard?"
+        text="Do you want to paste the correction schema from you clipboard?"
+        open={openConfirmPaste}
+        setOpen={setOpenConfirmPaste}
+        onConfirm={onPasteFromClipboard}
+        onReject={clearClipborad}
+      />
     </Grid>
   );
 }

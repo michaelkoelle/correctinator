@@ -1,21 +1,16 @@
-type BaseTask = {
-  id: string;
-  name: string;
-};
-
-export type ParentTask = BaseTask & {
-  tasks: Task[];
-};
-
-export type RateableTask = BaseTask & {
-  step: number;
-  max: number;
-};
-
+/* eslint-disable import/no-cycle */
+import ParentTask from './ParentTask';
+import RateableTask from './RateableTask';
+/*
 export type SingleChoiceTask = RateableTask & {
   options: string[];
-  answer: number;
+  answers: number[];
 };
+
+type Answer = {
+  text: string;
+  value: number;
+}
 
 export type MultipleChoiceTask = RateableTask & {
   options: string[];
@@ -30,10 +25,8 @@ export type ChecklistItem = {
 export type ChecklistTask = RateableTask & {
   checklist: ChecklistItem[];
 };
+*/
 
-export type Task =
-  | ParentTask
-  | RateableTask
-  | SingleChoiceTask
-  | MultipleChoiceTask
-  | ChecklistTask;
+type Task = ParentTask | RateableTask;
+
+export default Task;

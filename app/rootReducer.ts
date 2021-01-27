@@ -1,9 +1,9 @@
+/* eslint-disable import/no-cycle */
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import { History } from 'history';
 import { createSelector } from '@reduxjs/toolkit';
 import workspaceReducer from './features/workspace/workspaceSlice';
-// eslint-disable-next-line import/no-cycle
 import termsReducer from './model/TermSlice';
 import schoolsReducer from './model/SchoolSlice';
 import coursesReducer from './model/CourseSlice';

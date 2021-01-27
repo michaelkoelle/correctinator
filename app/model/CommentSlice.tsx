@@ -1,17 +1,9 @@
 /* eslint-disable import/no-cycle */
-import {
-  createEntityAdapter,
-  createSlice,
-  EntityState,
-} from '@reduxjs/toolkit';
-import Comment from './Comment';
+import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import CommentEntity from './CommentEntity';
 import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 
-const adapter = createEntityAdapter<CommentEntity>({
-  selectId: (sel) => sel.text,
-  sortComparer: (a, b) => a.text.localeCompare(b.text),
-});
+const adapter = createEntityAdapter<CommentEntity>();
 
 const slice = createSlice({
   name: 'comments',
@@ -33,7 +25,7 @@ const slice = createSlice({
         adapter.upsertMany(state, action.payload.comments);
       }
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
