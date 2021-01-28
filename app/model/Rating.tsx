@@ -1,7 +1,7 @@
 import Comment from './Comment';
-import Task from './Task';
+import RateableTask from './RateableTask';
 
-type BaseRating = { id: string; comment: Comment; task: Task };
+type BaseRating = { id: string; comment: Comment; task: RateableTask };
 
 export type ValueRating = BaseRating & {
   value: number;

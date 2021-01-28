@@ -1,48 +1,94 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Grid,
   List,
   ListItem,
   ListItemText,
 } from '@material-ui/core';
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import SplitPane from 'react-split-pane';
 import CorrectionView from '../features/correction/CorrectionView';
 import MediaViewer from '../features/correction/MediaViewer';
-import { getSubmissionsOfSheet } from '../utils/FileAccess';
+import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import {
+  correctionPageSetSheetId,
+  correctionPageSetTimeStart,
+  selectCorrectionPageIndex,
+  selectCorrectionPageSheetId,
+  selectCorrectionPageTimeStart,
+} from '../model/CorrectionPageSlice';
+import { correctionsUpdateOne } from '../model/CorrectionsSlice';
+import {
+  selectAllSheetsDenormalized,
+  selectCorrectionsBySheetId,
+} from '../model/Selectors';
+
+import Sheet from '../model/Sheet';
+import { getFilesForCorrectionFromWorkspace } from '../utils/FileAccess';
+import { serializeTerm } from '../utils/Formatter';
 import './SplitPane.css';
 
-export default function CorrectionViewPage(props: any) {
+export default function CorrectionViewPage() {
+  const dispatch = useDispatch();
+  const index = useSelector(selectCorrectionPageIndex);
+  const sheetId = useSelector(selectCorrectionPageSheetId);
+  const workspace = useSelector(selectWorkspacePath);
+  const sheets: Sheet[] = useSelector(selectAllSheetsDenormalized);
+  const corrections = useSelector(selectCorrectionsBySheetId(sheetId));
+  const timeStart: Date | undefined = useSelector(
+    selectCorrectionPageTimeStart
+  );
+
+  // Dialogs
   const [openDialog, setOpenDialog] = useState(false);
-  const workspacePath = useSelector((state: any) => state.workspace.path);
-  const {
-    corrections,
-    setCorrections,
-    sheets,
-    setSheetToCorrect,
-    index,
-    setIndex,
-  } = props;
+
+  // Effects
+  useEffect(() => {
+    const start = new Date();
+    dispatch(correctionPageSetTimeStart(start.toISOString()));
+    return () => {
+      const end = new Date();
+      const diff = end.getTime() - start.getTime();
+      if (corrections && corrections[index]) {
+        dispatch(
+          correctionsUpdateOne({
+            id: corrections[index].id,
+            changes: {
+              timeElapsed: corrections[index].timeElapsed
+                ? corrections[index].timeElapsed + diff
+                : diff,
+            },
+          })
+        );
+      }
+    };
+  }, [index]);
 
   function handleCloseDialog() {
     setOpenDialog(false);
   }
 
-  function missingSchemas(sheet) {
-    return (
-      getSubmissionsOfSheet(sheet, workspacePath).filter(
-        (s) => s?.tasks === undefined || s?.tasks?.length === 0
-      ).length > 0
-    );
+  function isInitialized(sheet: Sheet) {
+    return sheet.tasks && sheet.tasks.length > 0;
   }
 
-  if (corrections === undefined || corrections.length <= 0) {
+  function onSelectSheet(id: string) {
+    dispatch(correctionPageSetSheetId(id));
+    setOpenDialog(false);
+  }
+
+  function getFilesForCorrection() {
+    if (corrections[index]) {
+      return getFilesForCorrectionFromWorkspace(corrections[index], workspace);
+    }
+    return [];
+  }
+
+  if (sheetId === undefined) {
     if (openDialog !== true) {
       setOpenDialog(true);
     }
@@ -62,32 +108,33 @@ export default function CorrectionViewPage(props: any) {
         allowResize
       >
         <div style={{ height: '100%', margin: '0 10px 0 0' }}>
-          <CorrectionView {...props} />
+          <CorrectionView
+            corrections={corrections}
+            index={index}
+            timeStart={timeStart}
+          />
         </div>
         <div style={{ height: '100%', margin: '0 5px 0 0' }}>
-          <MediaViewer files={corrections[index]?.files} />
+          <MediaViewer files={getFilesForCorrection()} />
         </div>
       </SplitPane>
-      {sheets.filter((s) => !missingSchemas(s)).length > 0 ? (
+      {sheets.filter((s) => isInitialized(s)).length > 0 ? (
         <Dialog onClose={handleCloseDialog} open={openDialog}>
           <DialogTitle>Choose sheet to correct</DialogTitle>
           <List>
             {sheets
-              .filter((s) => !missingSchemas(s))
+              .filter((s) => isInitialized(s))
               .map((sheet) => (
                 <ListItem
                   button
-                  onClick={() => {
-                    setSheetToCorrect(sheet);
-                    setOpenDialog(false);
-                  }}
-                  key={
-                    sheet.term + sheet.school + sheet.course + sheet.sheet.name
-                  }
+                  onClick={() => onSelectSheet(sheet.id)}
+                  key={sheet.id}
                 >
                   <ListItemText
-                    primary={sheet.sheet.name}
-                    secondary={`${sheet.course} - ${sheet.term} - ${sheet.rated_by}`}
+                    primary={sheet.name}
+                    secondary={`${sheet.course.name} - ${serializeTerm(
+                      sheet.term
+                    )}`}
                   />
                 </ListItem>
               ))}

@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import SheetOverviewPage from '../containers/SheetOverviewPage';
 import SchemeGeneratorPage from '../containers/SchemeGeneratorPage';
 import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
+import CorrectionViewPage from '../containers/CorrectionViewPage';
 
 const useStyle = makeStyles({
   indicator: {
@@ -284,21 +285,7 @@ export default function Navigation(): JSX.Element {
             value="3"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            {/*
-            <CorrectionViewPage
-              corrections={submissions.filter((s: any) =>
-                isSubmissionFromSheet(s, sheetToCorrect)
-              )}
-              setCorrections={setCorrections}
-              sheets={sheets}
-              sheetToCorrect={sheetToCorrect}
-              setSheetToCorrect={setSheetToCorrect}
-              index={index}
-              setIndex={setIndex}
-              setCorrection={setCorrection}
-              timeStart={timeStart}
-              /> */}
-            4
+            <CorrectionViewPage />
           </TabPanel>
         </Grid>
       </TabContext>

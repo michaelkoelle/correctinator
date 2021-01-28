@@ -1,19 +1,35 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Paper, Box, TextField, Typography } from '@material-ui/core';
+import { TextField } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import Comment from '../../model/Comment';
+import CommentEntity from '../../model/CommentEntity';
+import { commentsUpdateOne, selectAllComments } from '../../model/CommentSlice';
 
-function TaskCommentInput(props: any) {
-  const { comment, acOptions, handleChange, onChangeComment } = props;
+type TaskCommentInputProps = {
+  comment: Comment;
+};
 
-  console.log('render comment');
+function TaskCommentInput(props: TaskCommentInputProps) {
+  const { comment } = props;
+  const dispatch = useDispatch();
+  const comments: CommentEntity[] = useSelector(selectAllComments);
+
+  function onChangeComment(e) {
+    dispatch(
+      commentsUpdateOne({ id: comment.id, changes: { text: e.target.value } })
+    );
+  }
 
   return (
     <Autocomplete
       id="combo-box-demo"
-      options={acOptions}
+      options={comments
+        .filter((c) => c.task === comment.task.id)
+        .map((c) => c.id)}
       freeSolo
-      value={comment}
+      value={comment.text}
       onChange={onChangeComment}
       renderInput={(params) => (
         <TextField
@@ -22,8 +38,7 @@ function TaskCommentInput(props: any) {
           label="Comment"
           multiline
           name="comment"
-          // value={task.comment}
-          onChange={handleChange}
+          onChange={onChangeComment}
           variant="outlined"
           size="small"
           fullWidth
@@ -33,4 +48,4 @@ function TaskCommentInput(props: any) {
   );
 }
 
-export default React.memo(TaskCommentInput);
+export default TaskCommentInput;

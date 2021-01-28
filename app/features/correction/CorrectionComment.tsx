@@ -1,18 +1,36 @@
-import { Paper, Box, TextField } from '@material-ui/core';
+import { Paper, TextField } from '@material-ui/core';
 import React from 'react';
-import TaskCorrectionList from './TaskCorrectionList';
+import { useDispatch } from 'react-redux';
+import { v4 as uuidv4 } from 'uuid';
+import Correction from '../../model/Correction';
+import { upsertCorrection } from '../../model/CorrectionsSlice';
 
-export default function CorrectionComment(props: any) {
-  const { correction, setCorrection } = props;
+type CorrectionCommentProps = {
+  correction: Correction | undefined;
+};
+
+export default function CorrectionComment(props: CorrectionCommentProps) {
+  const { correction } = props;
+
+  const dispatch = useDispatch();
 
   function onChangeComment(event) {
-    const temp = { ...correction };
-    temp.comment = event.target.value;
-    setCorrection(temp);
+    if (correction) {
+      const temp: Correction = { ...correction };
+      if (temp.annotation) {
+        temp.annotation.text = event.target.value;
+      } else {
+        temp.annotation = {
+          id: uuidv4(),
+          text: event.target.value,
+        };
+      }
+      dispatch(upsertCorrection(temp));
+    }
   }
 
   const commentValue =
-    correction?.comment === undefined ? '' : correction?.comment;
+    correction && correction.annotation ? correction?.annotation.text : '';
 
   return (
     <Paper style={{ padding: '15px' }}>

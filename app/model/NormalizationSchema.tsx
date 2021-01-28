@@ -23,6 +23,8 @@ export const SheetSchema = new schema.Entity('sheets', {
   tasks: TasksSchema,
 });
 
+export const SheetsSchema = new schema.Array(SheetSchema);
+
 export const RatingSchema = new schema.Entity('ratings', {
   comment: CommentSchema,
   task: TaskSchema,

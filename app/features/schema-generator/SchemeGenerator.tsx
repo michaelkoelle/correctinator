@@ -62,6 +62,7 @@ import SheetEntity from '../../model/SheetEntity';
 import {
   getMaxValueForTasks,
   getRatingValueForTasks,
+  getTotalValueOfRatings,
 } from '../../utils/Formatter';
 import { RatingsSchema, TasksSchema } from '../../model/NormalizationSchema';
 import TaskEntity from '../../model/TaskEntity';
@@ -160,7 +161,9 @@ export default function SchemeGenerator() {
   );
   const [taskCounter, setTaskCounter] = useState<number>(0);
   const [type, setType] = useState('points');
-  const maxValueTasks: number = tasks ? getMaxValueForTasks(tasks) : 0;
+  const maxValueTasks: number = tasks
+    ? getMaxValueForTasks(getTopLevelTasks(tasks))
+    : 0;
   const maxValue: number = selectedSheet?.maxValue || maxValueTasks;
   const [skipCheck, setSkipCheck] = useState<boolean>(false);
 
@@ -335,12 +338,7 @@ export default function SchemeGenerator() {
       const dTask = getDefaultTask();
       const dComment = getDefaultComment(dTask);
       const dRating = getDefaultRating(dTask, dComment);
-      dispatch(
-        schemaAddSubtask({
-          parentId: selectedTaskId,
-          task: dTask,
-        })
-      );
+      dispatch(schemaAddSubtask(selectedTaskId, dTask));
       dispatch(schemaUpsertComment(dComment));
       dispatch(schemaUpsertRating(dRating));
       setTaskCounter(taskCounter + 1);
@@ -489,7 +487,7 @@ export default function SchemeGenerator() {
                         min: 0,
                         step: 0.5,
                       }}
-                      value={getRatingValueForTasks(tasks, ratings)}
+                      value={getTotalValueOfRatings(ratings)}
                     />
                   </Grid>
                   <Grid item>
@@ -509,13 +507,12 @@ export default function SchemeGenerator() {
                       value={maxValue}
                       error={
                         (selectedSheet &&
-                          (getMaxValueForTasks(tasks) !==
-                            selectedSheet?.maxValue ||
+                          (maxValue !== selectedSheet?.maxValue ||
                             hasTaskEntitiesWithZeroMax(tasksEntity) ||
-                            getMaxValueForTasks(tasks) <= 0)) ||
+                            maxValue <= 0)) ||
                         (!selectedSheet &&
                           (hasTaskEntitiesWithZeroMax(tasksEntity) ||
-                            getMaxValueForTasks(tasks) <= 0))
+                            maxValue <= 0))
                       }
                     />
                   </Grid>

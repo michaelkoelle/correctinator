@@ -6,7 +6,9 @@ import LensIcon from '@material-ui/icons/Lens';
 import Tooltip from '@material-ui/core/Tooltip';
 import Status from '../model/Status';
 
-function StatusIcon(props: { status: Status }): JSX.Element {
+type StatusIconProps = { status: Status };
+
+function StatusIcon(props: StatusIconProps): JSX.Element {
   const { status } = props;
 
   switch (status) {

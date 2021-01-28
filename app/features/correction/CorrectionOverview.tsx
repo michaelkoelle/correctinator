@@ -1,8 +1,6 @@
 import {
   Box,
-  Button,
   Collapse,
-  Container,
   Grid,
   IconButton,
   Paper,
@@ -11,49 +9,63 @@ import {
   Typography,
 } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
-import CancelIcon from '@material-ui/icons/Cancel';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import BookmarkIcon from '@material-ui/icons/Bookmark';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import StatusIcon from '../../components/StatusIcon';
 import Status from '../../model/Status';
+import { upsertCorrection } from '../../model/CorrectionsSlice';
+import Correction from '../../model/Correction';
+import { getTotalValueOfRatings, serializeTerm } from '../../utils/Formatter';
 
-export default function CorrectionOverview(props: any) {
+type CorrectionOverviewProps = {
+  correction: Correction | undefined;
+};
+
+export default function CorrectionOverview(props: CorrectionOverviewProps) {
+  const { correction } = props;
+  const dispatch = useDispatch();
+  const value: number =
+    correction && correction.ratings
+      ? getTotalValueOfRatings(correction.ratings)
+      : 0;
+
+  // Dialogs
   const [expanded, setExpanded] = React.useState(false);
-  const { correction, setCorrection } = props;
 
   const handleClick = () => {
     setExpanded(!expanded);
   };
 
   function onToggleMarked() {
-    const temp = { ...correction };
-    switch (temp.status) {
-      case Status.Todo:
-        temp.status = Status.Marked;
-        temp.rating_done = false;
-        setExpanded(true);
-        break;
-      case Status.Marked:
-        temp.status = Status.Todo;
-        temp.rating_done = false;
-        setExpanded(false);
-        break;
-      case Status.Done:
-        temp.status = Status.Marked;
-        temp.rating_done = false;
-        setExpanded(true);
-        break;
-      default:
+    if (correction) {
+      const temp = { ...correction };
+      switch (temp.status) {
+        case Status.Todo:
+          temp.status = Status.Marked;
+          setExpanded(true);
+          break;
+        case Status.Marked:
+          temp.status = Status.Todo;
+          setExpanded(false);
+          break;
+        case Status.Done:
+          temp.status = Status.Marked;
+          setExpanded(true);
+          break;
+        default:
+      }
+      dispatch(upsertCorrection(temp));
     }
-    setCorrection(temp);
   }
 
   function onChangeNote(event) {
-    const temp = { ...correction };
-    temp.note = event.target.value;
-    setCorrection(temp);
+    if (correction) {
+      const temp = { ...correction };
+      temp.note = event.target.value;
+      dispatch(upsertCorrection(temp));
+    }
   }
 
   const noteValue = correction?.note === undefined ? '' : correction?.note;
@@ -68,20 +80,20 @@ export default function CorrectionOverview(props: any) {
         style={{ padding: '0px 15px' }}
       >
         <Grid item style={{ padding: '4px' }}>
-          <StatusIcon status={correction?.status} />
+          <StatusIcon status={correction ? correction?.status : -1} />
         </Grid>
         <Grid item style={{ padding: '4px' }}>
           <Typography variant="h6" display="inline">
             <Box fontWeight="bold" display="inline" marginRight="10px">
               ID:
             </Box>
-            <Box display="inline">{correction?.submission}</Box>
+            <Box display="inline">{correction?.submission.name}</Box>
           </Typography>
         </Grid>
         <Grid item style={{ padding: '4px' }}>
           <div style={{ display: 'inline-flex' }}>
             <div style={{ width: '3em', textAlign: 'right' }}>
-              <Typography variant="h6">{correction?.points}</Typography>
+              <Typography variant="h6">{value}</Typography>
             </div>
             <Typography
               variant="h6"
@@ -90,10 +102,10 @@ export default function CorrectionOverview(props: any) {
               /
             </Typography>
             <Typography variant="h6">
-              {correction?.sheet?.grading?.max}
+              {correction?.submission.sheet?.maxValue}
             </Typography>
             <Typography variant="h6" style={{ marginLeft: '0.5em' }}>
-              {correction?.sheet?.grading?.type}
+              {correction?.submission.sheet?.valueType}
             </Typography>
           </div>
         </Grid>
@@ -138,26 +150,30 @@ export default function CorrectionOverview(props: any) {
                 </Grid>
                 <Grid item>
                   <Typography variant="body1">
-                    {`${correction?.school}`}
+                    {`${correction?.submission.sheet.school.name}`}
                   </Typography>
                   <Typography variant="body1">
-                    {`${correction?.course} ${correction?.term}`}
-                  </Typography>
-                </Grid>
-                <Grid item>
-                  <Typography variant="body1">
-                    {`${correction?.sheet?.name}`}
-                  </Typography>
-                  <Typography variant="body1">
-                    {`Type: ${correction?.sheet?.type}`}
+                    {`${correction?.submission.sheet.course.name} ${
+                      correction?.submission.sheet.term
+                        ? serializeTerm(correction?.submission.sheet.term)
+                        : ''
+                    }`}
                   </Typography>
                 </Grid>
                 <Grid item>
                   <Typography variant="body1">
-                    {`Rated by: ${correction?.rated_by}`}
+                    {`${correction?.submission.sheet.name}`}
                   </Typography>
                   <Typography variant="body1">
-                    {`Rated at: ${correction?.rated_at}`}
+                    {`Type: ${correction?.submission.sheet.type}`}
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <Typography variant="body1">
+                    {`Rated by: ${correction?.corrector.name}`}
+                  </Typography>
+                  <Typography variant="body1">
+                    {`Rated at: ${correction?.location.name}`}
                   </Typography>
                 </Grid>
               </Grid>

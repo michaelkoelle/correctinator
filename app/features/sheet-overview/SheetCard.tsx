@@ -30,9 +30,7 @@ import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
 import { setTabIndex } from '../../model/HomeSlice';
 import Status from '../../model/Status';
-import { selectCorrectionsBySheetId } from '../../model/CorrectionsSlice';
 import { SheetSchema } from '../../model/NormalizationSchema';
-import { selectAllEntities } from '../../rootReducer';
 import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
 import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
 import {
@@ -41,6 +39,10 @@ import {
 } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import SheetEntity from '../../model/SheetEntity';
+import {
+  selectAllEntities,
+  selectCorrectionsBySheetId,
+} from '../../model/Selectors';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();

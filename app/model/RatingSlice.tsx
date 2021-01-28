@@ -3,12 +3,9 @@ import {
   createEntityAdapter,
   createSlice,
   EntityState,
+  PayloadAction,
 } from '@reduxjs/toolkit';
-import {
-  correctionsImport,
-  deleteEntities,
-  initializeSheet,
-} from './CorrectionsSlice';
+import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 import RatingEntity from './RatingEntity';
 
 const adapter = createEntityAdapter<RatingEntity>({

@@ -1,16 +1,9 @@
 /* eslint-disable import/no-cycle */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import path from 'path';
-import ErrorIcon from '@material-ui/icons/Error';
-import {
-  CircularProgress,
-  Container,
-  Grid,
-  Typography,
-} from '@material-ui/core';
+import { CircularProgress, Typography } from '@material-ui/core';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 

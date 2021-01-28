@@ -1,16 +1,10 @@
 /* eslint-disable import/no-cycle */
 import {
   createEntityAdapter,
-  createSelector,
   createSlice,
   PayloadAction,
 } from '@reduxjs/toolkit';
-import {
-  correctionsImport,
-  deleteEntities,
-  initializeSheet,
-  selectCorrectionById,
-} from './CorrectionsSlice';
+import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 import TaskEntity from './TaskEntity';
 
 const adapter = createEntityAdapter<TaskEntity>();
@@ -89,13 +83,6 @@ const slice = createSlice({
     */
   },
 });
-
-export const getTasksFromCorrectionId = (id) =>
-  createSelector(
-    (state: any) => selectCorrectionById(state, id),
-    (state: any) => state.tasks.entities,
-    (c: any, tasks: any) => c?.tasks.map((i: number) => tasks[i])
-  );
 
 export const {
   tasksAddOne,

@@ -4,6 +4,7 @@ import ConditionalComment from '../model/ConditionalComment';
 import Correction from '../model/Correction';
 import Rating from '../model/Rating';
 import { isParentTask } from './TaskUtil';
+import Term from '../model/Term';
 
 export function wordWrap(text: string, max: number, depth = 0) {
   const lines = text.split('\n');
@@ -71,6 +72,10 @@ export function getMaxValueForTasks(tasks: Task[]): number {
       return task.max ? task.max : 0;
     })
     .reduce((acc, v) => acc + v, 0);
+}
+
+export function getTotalValueOfRatings(ratings: Rating[]) {
+  return ratings.map((r) => r.value).reduce((acc, v) => acc + v, 0);
 }
 
 export function serializeTasks(
@@ -146,4 +151,8 @@ export function serializeCorrection(
     conditionalComment.length > 0 ? `\n${conditionalComment}\n` : '';
 
   return serializedTasks + serializedAnnotation + serializedConditionalComment;
+}
+
+export function serializeTerm(term: Term) {
+  return term.summerterm ? `SS ${term.year}` : `WS ${term.year}`;
 }

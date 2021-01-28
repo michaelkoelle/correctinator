@@ -1,87 +1,22 @@
 /* eslint-disable import/no-cycle */
 /* eslint-disable react/jsx-no-duplicate-props */
-import {
-  Box,
-  Card,
-  Collapse,
-  Grid,
-  IconButton,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@material-ui/core';
-import {
-  CheckCircleOutline,
-  ExpandLess,
-  ExpandMore,
-  HighlightOff,
-} from '@material-ui/icons';
-import { Autocomplete } from '@material-ui/lab';
-import React, { useCallback, useMemo } from 'react';
-import TaskCorrectionList from './TaskCorrectionList';
-import { sumParam } from '../../utils/FileAccess';
-import TaskCorrectionRating from './TaskCorrectionRating';
-import TaskCorrectionParent from './TaskCorrectionParent';
+import React from 'react';
+import RateableTaskView from './RateableTaskView';
+import Task from '../../model/Task';
+import Rating from '../../model/Rating';
+import { isParentTask } from '../../utils/TaskUtil';
+import ParentTaskView from './ParentTaskView';
 
-function TaskCorrection(props: any) {
-  const { type, task, acOptionsArray, setTask, setTasks } = props;
+type TaskCorrectionProps = {
+  task: Task;
+  ratings: Rating[];
+  type: string;
+};
+
+function TaskCorrection(props: TaskCorrectionProps) {
+  const { type, task, ratings } = props;
 
   /*
-  const getCommentsForTask = useCallback(
-    (tsk, subs, comments: string[] = []): string[] => {
-      subs?.forEach((t) => {
-        if (t?.id === tsk?.id && t?.comment?.trim().length > 0) {
-          comments.push(t.comment);
-        } else if (t?.tasks?.length > 0) {
-          getCommentsForTask(tsk, t?.tasks, comments);
-        }
-      });
-      return [...new Set(comments)];
-    },
-    []
-  );
-  */
-  function getCommentsForTask(tsk, tsks: any[], comments: string[] = []) {
-    tsks?.forEach((t) => {
-      if (t?.id === tsk?.id && t?.comment?.trim().length > 0) {
-        comments.push(t.comment);
-      } else if (t?.tasks?.length > 0) {
-        getCommentsForTask(tsk, t?.tasks, comments);
-      }
-    });
-    return comments;
-  }
-
-  const onChangeComment = useCallback(
-    (_event, value) => {
-      const temp = { ...task };
-      temp.comment = value;
-      setTask([temp]);
-    },
-    [setTask, task]
-  );
-
-  const handleChange = useCallback(
-    (e) => {
-      const temp = { ...task };
-      const { name, value } = e.target;
-      temp[name] = value;
-
-      // Make sure that value <= max
-      if (name === 'max' || name === 'value') {
-        temp.value = Math.min(temp.value, temp.max);
-      }
-
-      setTask([temp]);
-    },
-    [setTask, task]
-  );
-
-  const acOptions = useMemo(() => acOptionsArray[task.id], [
-    acOptionsArray,
-    task.id,
-  ]);
-
   function setFullPoints(t) {
     const temp = { ...t };
     temp.comment = '';
@@ -115,29 +50,17 @@ function TaskCorrection(props: any) {
       }
     });
   }
-
-  if (task.tasks.length > 0) {
+*/
+  if (isParentTask(task)) {
+    return <ParentTaskView task={task} type={type} ratings={ratings} />;
+  }
+  const rating = ratings.find((r) => r.task.id === task.id);
+  if (rating) {
     return (
-      <TaskCorrectionParent
-        task={task}
-        setTask={setTask}
-        setTaskParent={setTask}
-        type={type}
-        acOptionsArray={acOptionsArray}
-        setTasks={setTasks}
-      />
+      <RateableTaskView key={task.id} task={task} type={type} rating={rating} />
     );
   }
-
-  return (
-    <TaskCorrectionRating
-      task={task}
-      acOptions={acOptions}
-      handleChange={handleChange}
-      onChangeComment={onChangeComment}
-      type={type}
-    />
-  );
+  return <></>;
 }
 
-export default React.memo(TaskCorrection);
+export default TaskCorrection;

@@ -13,7 +13,7 @@ type Correction = {
   ratings?: Rating[];
   corrector: Corrector;
   status: Status;
-  location?: Location;
+  location: Location;
   note?: Note;
   annotation?: Annotation;
   timeElapsed?: number;

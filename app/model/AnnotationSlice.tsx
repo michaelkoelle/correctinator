@@ -7,10 +7,7 @@ import {
 import Annotation from './Annotation';
 import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 
-const adapter = createEntityAdapter<Annotation>({
-  selectId: (sel) => sel.text,
-  sortComparer: (a, b) => a.text.localeCompare(b.text),
-});
+const adapter = createEntityAdapter<Annotation>();
 
 const slice = createSlice({
   name: 'annotations',

@@ -2,10 +2,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { isParentTaskEntity } from '../utils/TaskUtil';
 import CommentEntity from './CommentEntity';
+
 import ParentTaskEntity from './ParentTaskEntity';
 import RateableTask from './RateableTask';
 import RatingEntity from './RatingEntity';
+import Task from './Task';
 import TaskEntity from './TaskEntity';
+import { tasksUpsertMany } from './TaskSlice';
 
 export interface SchemaState {
   selectedTaskId: string | undefined;
@@ -113,6 +116,7 @@ const slice = createSlice({
       state.ratings = {};
       state.selectedTaskId = undefined;
     },
+    /*
     schemaAddSubtask: (
       state,
       action: PayloadAction<{ parentId: string; task: TaskEntity }>
@@ -137,6 +141,7 @@ const slice = createSlice({
       }
       state.tasks = Object.fromEntries(tasks);
     },
+    */
   },
 });
 
@@ -152,7 +157,6 @@ export const {
   schemaClearSelectedTask,
   schemaSetSelectedSheet,
   schemaClearSelectedSheet,
-  schemaAddSubtask,
   schemaUpdateTask,
   schemaSetTasks,
   schemaSetEntities,
@@ -192,6 +196,60 @@ export const selectRatingEntityByTaskId = (id: string) => {
 };
 
 export default slice.reducer;
+
+export function schemaAddSubtask(parentId: string, task: TaskEntity) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const tasks = new Map<string, TaskEntity>(
+      Object.entries(state.schema.tasks)
+    );
+    const parent = tasks.get(parentId);
+    if (parent) {
+      if (isParentTaskEntity(parent)) {
+        // Add subtask to children
+        const temp = { ...parent };
+        temp.tasks = [...temp.tasks, task.id];
+        dispatch(schemaUpsertTask(temp));
+        // tasks.set(parent.id, parent);
+      } else {
+        // Convert Rateable Task to Parent Task
+        const temp: ParentTaskEntity = {
+          id: parent.id,
+          name: parent.name,
+          tasks: [task.id],
+        };
+        dispatch(schemaUpsertTask(temp));
+        // tasks.set(parent.id, temp);
+
+        // Remove now unused rating and comment
+        const ratings = Array.from(
+          new Map<string, RatingEntity>(
+            Object.entries(state.schema.ratings)
+          ).values()
+        );
+
+        const pRating = ratings.find((r) => r.task === parentId);
+        if (pRating) {
+          dispatch(schemaRemoveRating(pRating.id));
+        }
+
+        const comments = Array.from(
+          new Map<string, CommentEntity>(
+            Object.entries(state.schema.comments)
+          ).values()
+        );
+
+        const pComment = comments.find((r) => r.task === parentId);
+        if (pComment) {
+          dispatch(schemaRemoveComment(pComment.id));
+        }
+      }
+      dispatch(schemaUpsertTask(task));
+      // tasks.set(task.id, task);
+    }
+    // tasks.forEach((v) => dispatch(schemaUpsertTask(v)));
+  };
+}
 
 export function removeSchemaTaskById(id: string) {
   return (dispatch, getState) => {

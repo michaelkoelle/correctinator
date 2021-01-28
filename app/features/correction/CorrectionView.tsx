@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -12,31 +11,36 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FindInPageIcon from '@material-ui/icons/FindInPage';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
+import { useDispatch } from 'react-redux';
 import ExportDialog from '../../components/ExportDialog';
 import TimeAverage from '../../components/TimeAverage';
-import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import TimeRemaining from '../../components/TimeRemaining';
 import Status from '../../model/Status';
-import { saveSubmissions, sumParam } from '../../utils/FileAccess';
-import CorrectionComment from './CorrectionComment';
 import CorrectionOverview from './CorrectionOverview';
+import Correction from '../../model/Correction';
+import { upsertCorrection } from '../../model/CorrectionsSlice';
+import { correctionPageSetIndex } from '../../model/CorrectionPageSlice';
+import CorrectionComment from './CorrectionComment';
 import TaskView from './TaskView';
+import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 
-export default function CorrectionView(props: any) {
-  const {
-    corrections = [],
-    setCorrections,
-    index,
-    setIndex,
-    setCorrection,
-    timeStart,
-  } = props;
+type CorrectionViewProps = {
+  corrections: Correction[];
+  index: number;
+  timeStart: Date | undefined;
+};
+
+export default function CorrectionView(props: CorrectionViewProps) {
+  const { corrections = [], index, timeStart } = props;
+
+  const dispatch = useDispatch();
+  // Dialogs
   const [open, setOpen] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
 
@@ -53,39 +57,28 @@ export default function CorrectionView(props: any) {
     setOpenExportDialog(false);
   }
 
-  const setTasks = useCallback(
-    (tasks: any) => {
-      const temps = [...corrections];
-      temps[index].tasks = tasks;
-      temps[index].points = sumParam(tasks, 'value');
-      setCorrections(temps);
-    },
-    [corrections, index, setCorrections]
-  );
-
   function setStatusDone() {
     // Rating done
-    const temps = [...corrections];
-    if (temps[index].status !== Status.Marked) {
-      temps[index].rating_done = true;
-      temps[index].status = Status.Done;
+    const correction = corrections[index];
+    if (correction.status !== Status.Marked) {
+      correction.status = Status.Done;
+      dispatch(upsertCorrection(correction));
     }
-    setCorrections(temps);
   }
 
   function goToNextOpen() {
     // try to find open correction with higher index
     const nextOpenHigherIndex = corrections?.findIndex(
-      (c, i) => i > index && !c?.rating_done
+      (c, i) => i > index && c?.status !== Status.Done
     );
 
     if (nextOpenHigherIndex >= 0) {
-      setIndex(nextOpenHigherIndex);
+      dispatch(correctionPageSetIndex(nextOpenHigherIndex));
     } else {
       // try to find open correction with lower index
-      const nextOpen = corrections?.findIndex((c) => !c?.rating_done);
+      const nextOpen = corrections?.findIndex((c) => c?.status !== Status.Done);
       if (nextOpen >= 0) {
-        setIndex(nextOpen);
+        dispatch(correctionPageSetIndex(nextOpen));
       }
     }
   }
@@ -94,9 +87,9 @@ export default function CorrectionView(props: any) {
     setStatusDone();
 
     if (index + 1 < corrections.length) {
-      setIndex(index + 1);
+      dispatch(correctionPageSetIndex(index + 1));
     } else if (
-      corrections.filter((s) => s.rating_done === false).length === 0
+      corrections.filter((c) => c?.status !== Status.Done).length === 0
     ) {
       // Prompt to export and create zip
       setOpen(true);
@@ -107,7 +100,7 @@ export default function CorrectionView(props: any) {
 
   function onPrevious() {
     if (index > 0) {
-      setIndex(index - 1);
+      dispatch(correctionPageSetIndex(index - 1));
     }
   }
 
@@ -117,11 +110,11 @@ export default function CorrectionView(props: any) {
   }
 
   function onFirst() {
-    setIndex(0);
+    dispatch(correctionPageSetIndex(0));
   }
 
   function onLast() {
-    setIndex(corrections.length - 1);
+    dispatch(correctionPageSetIndex(corrections.length - 1));
   }
 
   return (
@@ -153,7 +146,7 @@ export default function CorrectionView(props: any) {
             </Grid>
             <Grid item>
               <Typography variant="body1">
-                {corrections[index]?.sheet?.name}
+                {corrections[index]?.submission.sheet.name}
               </Typography>
             </Grid>
           </Grid>
@@ -190,18 +183,18 @@ export default function CorrectionView(props: any) {
         </Grid>
 
         <Grid item xs={12}>
-          <CorrectionOverview
-            correction={corrections[index]}
-            setCorrection={setCorrection}
-          />
+          <CorrectionOverview correction={corrections[index]} />
         </Grid>
         <Grid item xs={12} />
       </Grid>
       <TaskView
-        corrections={corrections}
-        correction={corrections[index]}
-        tasks={corrections[index]?.tasks}
-        setTasks={setTasks}
+        tasks={
+          corrections ? corrections[index]?.submission?.sheet?.tasks : undefined
+        }
+        ratings={corrections ? corrections[index]?.ratings : undefined}
+        type={
+          corrections ? corrections[index]?.submission?.sheet?.valueType : ''
+        }
       />
       <Grid
         container
@@ -210,10 +203,7 @@ export default function CorrectionView(props: any) {
         style={{ marginTop: '16px' }}
       >
         <Grid item xs={12}>
-          <CorrectionComment
-            correction={corrections[index]}
-            setCorrection={setCorrection}
-          />
+          <CorrectionComment correction={corrections[index]} />
         </Grid>
       </Grid>
       <Grid
@@ -248,8 +238,9 @@ export default function CorrectionView(props: any) {
               <IconButton
                 onClick={onFindNextOpen}
                 disabled={
-                  corrections.find((c, i) => i !== index && !c.rating_done) ===
-                  undefined
+                  corrections.find(
+                    (c, i) => i !== index && c?.status !== Status.Done
+                  ) === undefined
                 }
               >
                 <FindInPageIcon />
@@ -263,8 +254,9 @@ export default function CorrectionView(props: any) {
               <Button
                 color={
                   index + 1 === corrections.length &&
-                  corrections.find((c, i) => i !== index && !c.rating_done) ===
-                    undefined
+                  corrections.find(
+                    (c, i) => i !== index && c?.status !== Status.Done
+                  ) === undefined
                     ? 'secondary'
                     : 'primary'
                 }
@@ -272,8 +264,9 @@ export default function CorrectionView(props: any) {
                 variant="contained"
               >
                 {index + 1 === corrections.length &&
-                corrections.find((c, i) => i !== index && !c.rating_done) ===
-                  undefined ? (
+                corrections.find(
+                  (c, i) => i !== index && c?.status !== Status.Done
+                ) === undefined ? (
                   'Finish'
                 ) : (
                   <>

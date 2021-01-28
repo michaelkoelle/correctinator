@@ -7,10 +7,7 @@ import {
 import Note from './Note';
 import { correctionsImport, deleteEntities } from './CorrectionsSlice';
 
-const adapter = createEntityAdapter<Note>({
-  selectId: (sel) => sel.text,
-  sortComparer: (a, b) => a.text.localeCompare(b.text),
-});
+const adapter = createEntityAdapter<Note>();
 
 const slice = createSlice({
   name: 'notes',

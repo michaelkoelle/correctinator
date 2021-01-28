@@ -43,9 +43,7 @@ type Conflict = {
 };
 
 export default function SheetOverview() {
-  // const { sheets, reload, setSchemaSheet, setSheetToCorrect, setTab } = props;
   const dispatch = useDispatch();
-  // const sheets = useSelector(selectAllSheets);
   const workspace = useSelector(selectWorkspacePath);
   const [loading, setLoading] = useState<boolean>(false);
   const [openOverwriteDialog, setOpenOverwriteDialog] = useState<boolean>(

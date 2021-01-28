@@ -6,7 +6,7 @@ type CorrectionEntity = {
   corrector: string;
   ratings?: string[];
   status: Status;
-  location?: string;
+  location: string;
   note?: string;
   annotation?: string;
   timeElapsed?: number;

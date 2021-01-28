@@ -69,3 +69,15 @@ export function removeTaskIds(tasks: Task[], res: any = []) {
   });
   return res;
 }
+
+export function flatMapTask(pt: ParentTask, list: Task[] = []) {
+  list.push(pt);
+  pt.tasks.forEach((t) => {
+    if (isParentTask(t)) {
+      flatMapTask(t, list);
+    } else {
+      list.push(t);
+    }
+  });
+  return list;
+}

@@ -2,14 +2,12 @@
 import {
   createAction,
   createEntityAdapter,
-  createSelector,
   createSlice,
 } from '@reduxjs/toolkit';
-import { denormalize } from 'normalizr';
-import { selectAllEntities } from '../rootReducer';
+import { normalize } from 'normalizr';
 import Correction from './Correction';
 import CorrectionEntity from './CorrectionEntity';
-import { CorrectionSchema } from './NormalizationSchema';
+import { CorrectionsSchema } from './NormalizationSchema';
 
 export const correctionsImport = createAction<unknown>('correctionsImport');
 export const deleteEntities = createAction<void>('deleteEntities');
@@ -60,18 +58,12 @@ export const {
   selectTotal: selectTotalCorrections,
 } = adapter.getSelectors((state: any) => state.corrections);
 
-export const selectCorrectionsBySheetId = (sheetId: string) => {
-  return createSelector(selectAllCorrections, selectAllEntities, (c, e) =>
-    c
-      .map((corr: CorrectionEntity) => {
-        return denormalize(corr, CorrectionSchema, e);
-      })
-      .filter((corr: Correction) => {
-        return corr.submission && corr.submission.sheet
-          ? corr.submission.sheet.id === sheetId
-          : false;
-      })
-  );
-};
+export function upsertCorrection(correction: Correction) {
+  return (dispatch, getState) => {
+    dispatch(
+      correctionsImport(normalize([correction], CorrectionsSchema).entities)
+    );
+  };
+}
 
 export default slice.reducer;
