@@ -17,7 +17,7 @@ const correctionPageSlice = createSlice({
     correctionPageSetIndex(state, action: PayloadAction<number>) {
       state.index = action.payload;
     },
-    correctionPageSetSheetId(state, action: PayloadAction<string>) {
+    correctionPageSetSheetId(state, action: PayloadAction<string | undefined>) {
       state.index = 0;
       state.sheetId = action.payload;
     },

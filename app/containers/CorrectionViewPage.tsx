@@ -13,7 +13,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import SplitPane from 'react-split-pane';
 import CorrectionView from '../features/correction/CorrectionView';
 import MediaViewer from '../features/correction/MediaViewer';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import {
   correctionPageSetSheetId,
   correctionPageSetTimeStart,
@@ -28,7 +27,6 @@ import {
 } from '../model/Selectors';
 
 import Sheet from '../model/Sheet';
-import { getFilesForCorrectionFromWorkspace } from '../utils/FileAccess';
 import { serializeTerm } from '../utils/Formatter';
 import './SplitPane.css';
 
@@ -36,7 +34,6 @@ export default function CorrectionViewPage() {
   const dispatch = useDispatch();
   const index = useSelector(selectCorrectionPageIndex);
   const sheetId = useSelector(selectCorrectionPageSheetId);
-  const workspace = useSelector(selectWorkspacePath);
   const sheets: Sheet[] = useSelector(selectAllSheetsDenormalized);
   const corrections = useSelector(selectCorrectionsBySheetId(sheetId));
   const timeStart: Date | undefined = useSelector(
@@ -82,6 +79,11 @@ export default function CorrectionViewPage() {
   }
 
   if (sheetId === undefined) {
+    if (openDialog !== true) {
+      setOpenDialog(true);
+    }
+  } else if (!sheets.map((s) => s.id).includes(sheetId)) {
+    dispatch(correctionPageSetSheetId(undefined));
     if (openDialog !== true) {
       setOpenDialog(true);
     }

@@ -21,7 +21,6 @@ import {
 } from '@material-ui/core';
 import React from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
