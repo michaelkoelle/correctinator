@@ -58,7 +58,10 @@ export function getAllFilesInDirectory(
     const path = Path.normalize(`${dir}/${file}`);
     if (fs.statSync(path).isDirectory() && !path.includes('MACOSX')) {
       getAllFilesInDirectory(path, files_);
-    } else if (!fs.statSync(path).isDirectory()) {
+    } else if (
+      !fs.statSync(path).isDirectory() &&
+      !/(^|\/)\.[^\\/\\.]/g.test(path)
+    ) {
       files_.push(path);
     }
   });
@@ -72,7 +75,6 @@ export function copySubmissionFiles(
 ) {
   const filesDir: string = Path.join(dir, 'files');
   createDirectory(filesDir);
-
   files.forEach((file, i) => {
     const { base, ext } = Path.parse(file);
     if (name) {
