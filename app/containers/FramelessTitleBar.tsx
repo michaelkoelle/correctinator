@@ -45,9 +45,23 @@ export default function FramelessTitleBar(props: any) {
     setOpen(false);
   }
 
+  /*
   remote.globalShortcut.register('CommandOrControl+S', () => {
     dispatch(saveAllCorrections());
   });
+*/
+  useEffect(() => {
+    const acceleratorListener = (event) => {
+      // Save
+      if (event.metaKey && event.key === 's') {
+        dispatch(saveAllCorrections());
+      }
+    };
+    window.addEventListener('keydown', acceleratorListener, true);
+    return () => {
+      window.removeEventListener('keydown', acceleratorListener, true);
+    };
+  }, []);
 
   // add window listeners for currentWindow
   useEffect(() => {
