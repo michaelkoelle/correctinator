@@ -2,7 +2,11 @@ import { createSelector, EntityId } from '@reduxjs/toolkit';
 import { denormalize } from 'normalizr';
 import Correction from './Correction';
 import CorrectionEntity from './CorrectionEntity';
-import { selectAllCorrections, selectCorrectionById } from './CorrectionsSlice';
+import {
+  selectAllCorrections,
+  selectCorrectionById,
+  selectCorrectionIds,
+} from './CorrectionsSlice';
 import {
   CorrectionSchema,
   CorrectionsSchema,
@@ -108,7 +112,7 @@ export const selectCorrectionsBySheetId = (sheetId: string | undefined) => {
 };
 
 export const selectAllCorrectionsDenormalized = createSelector(
-  selectAllCorrections,
+  selectCorrectionIds,
   selectAllEntities,
   (c, e) => denormalize(c, CorrectionsSchema, e)
 );

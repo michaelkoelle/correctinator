@@ -1,4 +1,9 @@
-import { configureStore, getDefaultMiddleware, Action } from '@reduxjs/toolkit';
+import {
+  configureStore,
+  getDefaultMiddleware,
+  Action,
+  MiddlewareAPI,
+} from '@reduxjs/toolkit';
 import { createHashHistory } from 'history';
 import { routerMiddleware } from 'connected-react-router';
 import { createLogger } from 'redux-logger';
@@ -16,6 +21,8 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import createRootReducer from './rootReducer';
+import { reportChange } from './model/SaveSlice';
+import { saveAllCorrections } from './utils/FileAccess';
 
 const persistConfig = {
   key: 'root',
@@ -37,6 +44,18 @@ const defMiddleware = (mid) =>
   });
 
 const middleware = [...defMiddleware(getDefaultMiddleware), router];
+
+const changeMiddleware = (store: MiddlewareAPI) => (next) => (action) => {
+  if (action.type !== 'save/reportChange') {
+    if (!store.getState().save.unsavedChanges) {
+      store.dispatch(reportChange());
+    }
+  }
+
+  return next(action);
+};
+
+middleware.push(changeMiddleware);
 
 const excludeLoggerEnvs = ['test', 'production'];
 const shouldIncludeLogger = !excludeLoggerEnvs.includes(

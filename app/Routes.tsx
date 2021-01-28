@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { remote } from 'electron';
+import { app, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import routes from './constants/routes.json';
 import App from './containers/App';
@@ -13,18 +13,9 @@ import CorrectionViewPage from './containers/CorrectionViewPage';
 import SheetOverviewPage from './containers/SheetOverviewPage';
 import NewHomePage from './containers/NewHomePage';
 import FramelessTitleBar from './containers/FramelessTitleBar';
-import { reloadState } from './utils/FileAccess';
+import { reloadState, saveAllCorrections } from './utils/FileAccess';
 import { selectWorkspacePath } from './features/workspace/workspaceSlice';
 
-// Lazily load routes and code split with webpack
-/* const LazyCounterPage = React.lazy(() => import('./containers/CounterPage'));
-
-const CounterPage = (props: Record<string, any>) => (
-  <React.Suspense fallback={<h1>Loading...</h1>}>
-    <LazyCounterPage {...props} />
-  </React.Suspense>
-);
-*/
 export default function Routes() {
   const dispatch = useDispatch();
   const workspace = useSelector(selectWorkspacePath);
@@ -40,6 +31,10 @@ export default function Routes() {
   remote.nativeTheme.on('updated', () =>
     setShouldUseDarkColors(remote.nativeTheme.shouldUseDarkColors)
   );
+
+  remote.app.on('before-quit', () => {
+    dispatch(saveAllCorrections());
+  });
 
   const theme = React.useMemo(
     () =>

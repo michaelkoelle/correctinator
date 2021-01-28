@@ -11,13 +11,13 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import React from 'react';
+import React, { useEffect } from 'react';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FindInPageIcon from '@material-ui/icons/FindInPage';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import ExportDialog from '../../components/ExportDialog';
 import TimeAverage from '../../components/TimeAverage';
 import TimeRemaining from '../../components/TimeRemaining';
@@ -29,6 +29,8 @@ import { correctionPageSetIndex } from '../../model/CorrectionPageSlice';
 import CorrectionComment from './CorrectionComment';
 import TaskView from './TaskView';
 import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
+import { saveCorrectionToWorkspace } from '../../utils/FileAccess';
+import { selectWorkspacePath } from '../workspace/workspaceSlice';
 
 type CorrectionViewProps = {
   corrections: Correction[];
@@ -40,9 +42,19 @@ export default function CorrectionView(props: CorrectionViewProps) {
   const { corrections = [], index, timeStart } = props;
 
   const dispatch = useDispatch();
+  const workspace = useSelector(selectWorkspacePath);
+  const corr = corrections[index];
   // Dialogs
   const [open, setOpen] = React.useState(false);
   const [openExportDialog, setOpenExportDialog] = React.useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (corr) {
+        saveCorrectionToWorkspace(corr, workspace);
+      }
+    };
+  }, [corr, workspace]);
 
   function onExport() {
     setOpen(false);

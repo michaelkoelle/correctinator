@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { MenuItem, remote, shell } from 'electron';
+import { remote, shell } from 'electron';
 import fse from 'fs-extra';
 import TitleBar from 'frameless-titlebar';
 import 'setimmediate';
 import * as Path from 'path';
-import { UnfoldLess } from '@material-ui/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Dialog,
@@ -15,19 +14,21 @@ import {
   Button,
 } from '@material-ui/core';
 import ReleaseNotes from '../components/ReleaseNotes';
-import { openDirectory } from '../utils/FileAccess';
-import { workspaceSetPath } from '../features/workspace/workspaceSlice';
-import { resolveLoader } from '../../configs/webpack.config.eslint';
+import { openDirectory, saveAllCorrections } from '../utils/FileAccess';
+import {
+  selectWorkspacePath,
+  workspaceSetPath,
+} from '../features/workspace/workspaceSlice';
+import { selectUnsavedChanges } from '../model/SaveSlice';
 
 const { version } = require('../package.json');
 
 const currentWindow = remote.getCurrentWindow();
 
 export default function FramelessTitleBar(props: any) {
-  // manage window state, default to currentWindow maximized state
-  // const { reload } = props;
   const dispatch = useDispatch();
-  const workspacePath = useSelector((state: any) => state.workspace.path);
+  const workspace: string = useSelector(selectWorkspacePath);
+  const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
   const [oldPath, setOldPath] = useState<string>();
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
   const [openMoveFilesDialog, setOpenMoveFilesDialog] = useState<boolean>(
@@ -43,6 +44,10 @@ export default function FramelessTitleBar(props: any) {
   function onCloseReleaseNotes() {
     setOpen(false);
   }
+
+  remote.globalShortcut.register('CommandOrControl+S', () => {
+    dispatch(saveAllCorrections());
+  });
 
   // add window listeners for currentWindow
   useEffect(() => {
@@ -74,14 +79,21 @@ export default function FramelessTitleBar(props: any) {
           label: 'Change Workspace Directory',
           click: async () => {
             const dir: string = await openDirectory();
-            setOldPath(workspacePath);
+            setOldPath(workspace);
             dispatch(workspaceSetPath(dir));
             setOpenMoveFilesDialog(true);
           },
         },
         {
+          label: 'Save',
+          accelerator: 'CommandOrControl+S',
+          click: () => {
+            dispatch(saveAllCorrections());
+          },
+        },
+        {
           label: 'Exit',
-          accelerator: 'Ctrl+W',
+          accelerator: 'CmdOrCtrl+W',
           click: () => {
             currentWindow.close();
           },
@@ -239,7 +251,7 @@ export default function FramelessTitleBar(props: any) {
             },
           },
         }}
-        title={`correctinator v${version}`}
+        title={`correctinator v${version}${unsavedChanges ? ' •' : ''}`}
         onClose={() => currentWindow.close()}
         onMinimize={() => currentWindow.minimize()}
         onMaximize={handleMaximize}
@@ -277,7 +289,7 @@ export default function FramelessTitleBar(props: any) {
                 const filesToCopy: string[] = fse.readdirSync(oldPath);
                 filesToCopy?.forEach((file) => {
                   const from = Path.join(oldPath, file);
-                  const to = Path.join(workspacePath, Path.parse(file).base);
+                  const to = Path.join(workspace, Path.parse(file).base);
                   console.log(`${from} --> ${to}`);
                   fse.moveSync(from, to);
                 });

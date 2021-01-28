@@ -16,21 +16,34 @@ function TaskCommentInput(props: TaskCommentInputProps) {
   const dispatch = useDispatch();
   const comments: CommentEntity[] = useSelector(selectAllComments);
 
+  const options: string[] = [
+    ...new Set(
+      comments
+        .filter(
+          (c) =>
+            c.text !== '' && c.task === ((comment.task as unknown) as string)
+        )
+        .map((c) => c.text)
+    ),
+  ];
+
   function onChangeComment(e) {
     dispatch(
       commentsUpdateOne({ id: comment.id, changes: { text: e.target.value } })
     );
   }
 
+  function onChangeAutocomplete(event, value, reason) {
+    dispatch(commentsUpdateOne({ id: comment.id, changes: { text: value } }));
+  }
+
   return (
     <Autocomplete
       id="combo-box-demo"
-      options={comments
-        .filter((c) => c.task === comment.task.id)
-        .map((c) => c.id)}
+      options={options}
       freeSolo
+      onChange={onChangeAutocomplete}
       value={comment.text}
-      onChange={onChangeComment}
       renderInput={(params) => (
         <TextField
           {...params}
@@ -41,6 +54,7 @@ function TaskCommentInput(props: TaskCommentInputProps) {
           onChange={onChangeComment}
           variant="outlined"
           size="small"
+          // value={comment.text}
           fullWidth
         />
       )}

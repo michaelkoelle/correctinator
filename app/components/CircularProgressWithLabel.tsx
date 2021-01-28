@@ -12,7 +12,7 @@ export default function CircularProgressWithLabel(
 ) {
   return (
     <Box position="relative" display="inline-flex">
-      <CircularProgress variant="static" {...props} />
+      <CircularProgress variant="determinate" {...props} />
       <Box
         top={0}
         left={0}

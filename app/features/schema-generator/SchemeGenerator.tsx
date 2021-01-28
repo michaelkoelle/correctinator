@@ -3,8 +3,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import AceEditor from 'react-ace';
-import YAML from 'yaml';
 import { v4 as uuidv4 } from 'uuid';
+import YAML from 'yaml';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import {
   Button,
@@ -79,6 +79,7 @@ import { correctionsUpsertMany } from '../../model/CorrectionsSlice';
 import { commentsUpsertMany } from '../../model/CommentSlice';
 import CorrectionEntity from '../../model/CorrectionEntity';
 import { ratingsUpsertMany } from '../../model/RatingSlice';
+import { saveAllCorrections } from '../../utils/FileAccess';
 
 function initializeSheet(
   sheetId: string,
@@ -133,6 +134,7 @@ function initializeSheet(
     dispatch(commentsUpsertMany(allComments));
     dispatch(ratingsUpsertMany(allRatings));
     dispatch(correctionsUpsertMany(allCorrections));
+    dispatch(saveAllCorrections());
   };
 }
 
@@ -664,7 +666,7 @@ export default function SchemeGenerator() {
               width="100%"
               height="100%"
               maxLines={Infinity}
-              value={entities.tasks === {} ? '' : YAML.stringify(entities)}
+              value={entities ? YAML.stringify(entities) : ''}
               onChange={onChange}
               name="editor"
               editorProps={{ $blockScrolling: true }}

@@ -16,41 +16,6 @@ type TaskCorrectionProps = {
 function TaskCorrection(props: TaskCorrectionProps) {
   const { type, task, ratings } = props;
 
-  /*
-  function setFullPoints(t) {
-    const temp = { ...t };
-    temp.comment = '';
-    temp.value = temp.max;
-    setTask([temp]);
-  }
-
-  function setSolutionMissing(t) {
-    const temp = { ...t };
-    temp.comment = 'Lösung fehlt';
-    temp.value = 0.0;
-    setTask([temp]);
-  }
-
-  function setFullPointsAllTasks(t) {
-    t?.tasks?.forEach((tsk) => {
-      if (tsk?.tasks?.length > 0) {
-        setFullPointsAllTasks(tsk);
-      } else {
-        setFullPoints(tsk);
-      }
-    });
-  }
-
-  function setSolutionMissingAllTasks(t) {
-    t?.tasks?.forEach((tsk) => {
-      if (tsk?.tasks?.length > 0) {
-        setSolutionMissingAllTasks(tsk);
-      } else {
-        setSolutionMissing(tsk);
-      }
-    });
-  }
-*/
   if (isParentTask(task)) {
     return <ParentTaskView task={task} type={type} ratings={ratings} />;
   }

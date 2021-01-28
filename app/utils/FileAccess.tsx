@@ -11,10 +11,9 @@ import { CorrectionSchema } from '../model/NormalizationSchema';
 import Parser from '../parser/Parser';
 import ConditionalComment from '../model/ConditionalComment';
 import { deleteEntities, correctionsImport } from '../model/CorrectionsSlice';
-import ParentTask from '../model/ParentTask';
-import TaskEntity from '../model/TaskEntity';
-import Task from '../model/Task';
-import ParentTaskEntity from '../model/ParentTaskEntity';
+import { selectAllCorrectionsDenormalized } from '../model/Selectors';
+import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import { reportSaved } from '../model/SaveSlice';
 
 export function createDirectory(dir: string) {
   if (!fs.existsSync(dir)) {
@@ -185,4 +184,14 @@ export function reloadState(dispatch, workspace: string) {
       const entities = JSON.parse(fs.readFileSync(file, 'utf8'));
       dispatch(correctionsImport(entities));
     });
+}
+
+export function saveAllCorrections() {
+  return (dispatch, getState) => {
+    const state = getState();
+    const corrections: Correction[] = selectAllCorrectionsDenormalized(state);
+    const workspace: string = selectWorkspacePath(state);
+    corrections.forEach((c) => saveCorrectionToWorkspace(c, workspace));
+    dispatch(reportSaved());
+  };
 }
