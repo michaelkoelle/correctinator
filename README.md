@@ -32,7 +32,7 @@ With this function, conditional comments can be added to the correction dependin
 
 ## Light/Dark Mode
 
-You can decide for yourself if you wanna come over to the dark side or keep getting blinded by the light (theme).
+You can decide for yourself, if you wanna come over to the dark side or keep getting blinded by the light (theme).
 
 ![alt text](https://i.imgur.com/hQwRSTT.png 'Example schema')
 
