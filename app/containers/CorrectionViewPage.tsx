@@ -81,13 +81,6 @@ export default function CorrectionViewPage() {
     setOpenDialog(false);
   }
 
-  function getFilesForCorrection() {
-    if (corrections[index]) {
-      return getFilesForCorrectionFromWorkspace(corrections[index], workspace);
-    }
-    return [];
-  }
-
   if (sheetId === undefined) {
     if (openDialog !== true) {
       setOpenDialog(true);
@@ -115,7 +108,7 @@ export default function CorrectionViewPage() {
           />
         </div>
         <div style={{ height: '100%', margin: '0 5px 0 0' }}>
-          <MediaViewer files={getFilesForCorrection()} />
+          <MediaViewer submissionName={corrections[index]?.submission?.name} />
         </div>
       </SplitPane>
       {sheets.filter((s) => isInitialized(s)).length > 0 ? (

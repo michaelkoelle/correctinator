@@ -22,16 +22,25 @@ import { shell } from 'electron';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import mime from 'mime-types';
 import fs from 'fs';
+import { useSelector } from 'react-redux';
 import PDFViewer from './PDFViewer';
 import clamp from '../../utils/MathUtil';
 import ImageViewer from './ImageViewer';
 import TextViewer from './TextViewer';
+import { getFilesForCorrectionFromWorkspace } from '../../utils/FileAccess';
+import { selectWorkspacePath } from '../workspace/workspaceSlice';
 
-export default function MediaViewer(props: any) {
+type MediaViewerProps = {
+  submissionName: string;
+};
+
+export default function MediaViewer(props: MediaViewerProps) {
+  const [files, setFiles] = useState<string[]>([]);
   const [fileIndex, setFileIndex] = useState(0);
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
-  const { files = [] } = props;
+  const workspace = useSelector(selectWorkspacePath);
+  const { submissionName } = props;
 
   const ZOOMSTEP = 20 / 100;
   const ZOOMMIN = 40 / 100;
@@ -76,27 +85,32 @@ export default function MediaViewer(props: any) {
     setFileIndex(Math.abs((fileIndex + (files.length - 1)) % files.length));
   }
 
-  function handleScrollEvent(event: WheelEvent) {
-    if (event.ctrlKey) {
-      if (event.deltaY > 0) {
-        onZoomOut();
-      } else {
-        onZoomIn();
+  useEffect(() => {
+    function handleScrollEvent(event: WheelEvent) {
+      if (event.ctrlKey) {
+        if (event.deltaY > 0) {
+          onZoomOut();
+        } else {
+          onZoomIn();
+        }
       }
     }
-  }
 
-  useEffect(() => {
     window.addEventListener('wheel', handleScrollEvent);
     return () => {
       window.removeEventListener('wheel', handleScrollEvent);
     };
-  }, [handleScrollEvent]);
+  }, []);
 
   useEffect(() => {
+    if (submissionName) {
+      setFiles(getFilesForCorrectionFromWorkspace(submissionName, workspace));
+    } else {
+      setFiles([]);
+    }
     resetScaleAndRotation();
     setFileIndex(0);
-  }, [files]);
+  }, [submissionName, workspace]);
 
   if (files.length === 0 || !fs.existsSync(files[fileIndex])) {
     return (

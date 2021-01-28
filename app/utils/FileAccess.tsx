@@ -87,14 +87,10 @@ export function copySubmissionFiles(
 }
 
 export function getFilesForCorrectionFromWorkspace(
-  correction: Correction,
+  submissionName: string,
   workspace: string
 ): string[] {
-  const filesDir: string = Path.join(
-    workspace,
-    correction.submission.name,
-    'files'
-  );
+  const filesDir: string = Path.join(workspace, submissionName, 'files');
   return getAllFilesInDirectory(filesDir);
 }
 
@@ -125,11 +121,13 @@ export function exportCorrections(
       name: Path.join(c.submission.name, parser.getConfigFileName(c)),
     });
 
-    getFilesForCorrectionFromWorkspace(c, workspace).forEach((file) => {
-      archive.append(fs.createReadStream(file), {
-        name: `/${c.submission.name}/files/${Path.parse(file).base}`,
-      });
-    });
+    getFilesForCorrectionFromWorkspace(c.submission.name, workspace).forEach(
+      (file) => {
+        archive.append(fs.createReadStream(file), {
+          name: `/${c.submission.name}/files/${Path.parse(file).base}`,
+        });
+      }
+    );
   });
 
   archive.finalize();
