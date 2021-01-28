@@ -1,6 +1,6 @@
 name: Test
 
-on: [pull_request]
+on: [push, pull_request]
 
 jobs:
   release:
@@ -32,6 +32,7 @@ jobs:
         run: |
           yarn package-ci
           yarn lint
+          yarn test
 
       - if: matrix.os == 'ubuntu-latest'
         run: |
