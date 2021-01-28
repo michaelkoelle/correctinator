@@ -1,0 +1,27 @@
+{
+  "name": "correctinator",
+  "productName": "correctinator",
+  "version": "1.0.0",
+  "description": "Ein Korrekturprogramm mit Media Viewer für Uni2Work Bewertungsdateien.",
+  "main": "./main.prod.js",
+  "author": {
+    "name": "Michael Kölle",
+    "email": "koelle.michael@gmail.com"
+  },
+  "scripts": {
+    "electron-rebuild": "node -r ../internals/scripts/BabelRegister.js ../internals/scripts/ElectronRebuild.js",
+    "postinstall": "yarn electron-rebuild"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "electron-updater": "^4.3.4"
+  },
+  "devDependencies": {
+    "@types/archiver": "^3.1.1",
+    "@types/deep-equal": "^1.0.1",
+    "@types/mui-datatables": "^3.4.1",
+    "@types/react-pdf": "^4.0.6",
+    "@types/react-virtualized": "^9.21.10",
+    "@types/setimmediate": "^1.0.2"
+  }
+}

@@ -1,0 +1,19 @@
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ */
+@import '~@fortawesome/fontawesome-free/css/all.css';
+@import 'containers/SplitPane.css';
+body {
+  position: relative;
+  color: black;
+  background-color: white;
+  font-family: Arial, Helvetica, Helvetica Neue, serif;
+  height: calc(100vh);
+  overflow: hidden;
+  margin: 0;
+}
+
+#root {
+  height: 100%;
+}
