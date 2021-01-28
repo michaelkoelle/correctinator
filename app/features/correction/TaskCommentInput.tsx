@@ -21,7 +21,9 @@ function TaskCommentInput(props: TaskCommentInputProps) {
       comments
         .filter(
           (c) =>
-            c.text !== '' && c.task === ((comment.task as unknown) as string)
+            c &&
+            c.text !== '' &&
+            c.task === ((comment.task as unknown) as string)
         )
         .map((c) => c.text)
     ),
@@ -34,7 +36,12 @@ function TaskCommentInput(props: TaskCommentInputProps) {
   }
 
   function onChangeAutocomplete(event, value, reason) {
-    dispatch(commentsUpdateOne({ id: comment.id, changes: { text: value } }));
+    dispatch(
+      commentsUpdateOne({
+        id: comment.id,
+        changes: { text: value || '' },
+      })
+    );
   }
 
   return (
@@ -54,7 +61,6 @@ function TaskCommentInput(props: TaskCommentInputProps) {
           onChange={onChangeComment}
           variant="outlined"
           size="small"
-          // value={comment.text}
           fullWidth
         />
       )}
