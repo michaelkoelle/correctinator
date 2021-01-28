@@ -155,7 +155,7 @@ export default function ExportDialog(props: {
     setFormat(event.target.value);
   }
 
-  function onChangeSlider(newValue) {
+  function onChangeSlider(event, newValue) {
     setValue(newValue);
   }
 
