@@ -68,7 +68,7 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
   }
 
   function onChangeNote(event) {
-    if (correction && event.target.value) {
+    if (correction && event.target.value !== undefined) {
       const temp = { ...correction };
       if (temp.note) {
         temp.note.text = event.target.value;
