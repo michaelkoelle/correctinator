@@ -121,7 +121,7 @@ export default function Navigation(): JSX.Element {
           style={{
             marginLeft: '16px',
             marginRight: '4px',
-            marginBottom: '4px',
+            // marginBottom: '4px',
           }}
         >
           <TabPanel
