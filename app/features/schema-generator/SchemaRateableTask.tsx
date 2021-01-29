@@ -52,7 +52,13 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
 
   function onChangeMax(e: ChangeEvent<{ value: unknown }>) {
     const temp = { ...task };
-    temp.max = Math.max(rating.value, e.target.value as number);
+    const temp1 = { ...rating };
+    const newMax: number = e.target.value as number;
+    if (temp1.value > newMax) {
+      temp1.value = newMax;
+      dispatch(schemaUpsertRating(temp1));
+    }
+    temp.max = Math.max(temp1.value, newMax);
     dispatch(schemaUpsertTask(temp));
   }
 
