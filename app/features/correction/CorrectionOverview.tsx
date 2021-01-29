@@ -37,7 +37,12 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
 
   useEffect(() => {
     setExpanded(
-      !!(correction && correction.note && correction.note.text !== '')
+      !!(
+        correction &&
+        correction.note &&
+        correction.note.text !== '' &&
+        correction.status === Status.Marked
+      )
     );
   }, [index]);
 
