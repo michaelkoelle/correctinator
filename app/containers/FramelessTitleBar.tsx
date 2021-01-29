@@ -53,7 +53,7 @@ export default function FramelessTitleBar(props: any) {
   useEffect(() => {
     const acceleratorListener = (event) => {
       // Save
-      if (event.metaKey && event.key === 's') {
+      if ((event.metaKey || event.ctrlKey) && event.key === 's') {
         dispatch(saveAllCorrections());
       }
     };
