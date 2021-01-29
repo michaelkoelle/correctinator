@@ -4,7 +4,7 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import AceEditor from 'react-ace';
 import { v4 as uuidv4 } from 'uuid';
-import YAML from 'yaml';
+import * as YAML from 'yaml';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import {
   Button,

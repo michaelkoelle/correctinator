@@ -9,15 +9,17 @@ import {
   Typography,
 } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import { v4 as uuidv4 } from 'uuid';
 import BookmarkIcon from '@material-ui/icons/Bookmark';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
-import React from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import StatusIcon from '../../components/StatusIcon';
 import Status from '../../model/Status';
 import { upsertCorrection } from '../../model/CorrectionsSlice';
 import Correction from '../../model/Correction';
 import { getTotalValueOfRatings, serializeTerm } from '../../utils/Formatter';
+import { selectCorrectionPageIndex } from '../../model/CorrectionPageSlice';
 
 type CorrectionOverviewProps = {
   correction: Correction | undefined;
@@ -30,9 +32,19 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
     correction && correction.ratings
       ? getTotalValueOfRatings(correction.ratings)
       : 0;
+  const index = useSelector(selectCorrectionPageIndex);
+  const [expanded, setExpanded] = useState(false);
 
-  // Dialogs
-  const [expanded, setExpanded] = React.useState(false);
+  useEffect(() => {
+    setExpanded(
+      !!(
+        correction &&
+        correction.note &&
+        correction.note.text !== '' &&
+        correction.status === Status.Marked
+      )
+    );
+  }, [index]);
 
   const handleClick = () => {
     setExpanded(!expanded);
@@ -61,14 +73,19 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
   }
 
   function onChangeNote(event) {
-    if (correction) {
+    if (correction && event.target.value !== undefined) {
       const temp = { ...correction };
-      temp.note = event.target.value;
+      if (temp.note) {
+        temp.note.text = event.target.value;
+      } else {
+        temp.note = { id: uuidv4(), text: event.target.value };
+      }
+
       dispatch(upsertCorrection(temp));
     }
   }
 
-  const noteValue = correction?.note === undefined ? '' : correction?.note;
+  const noteValue = correction?.note === undefined ? '' : correction?.note.text;
 
   return (
     <Paper>

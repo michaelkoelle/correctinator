@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import YAML from 'yaml';
+import * as YAML from 'yaml';
 import Parser from './Parser';
 import UUID from '../utils/UUID';
 import Term from '../model/Term';

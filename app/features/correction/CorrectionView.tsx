@@ -223,7 +223,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
         spacing={3}
         justify="flex-end"
         alignItems="center"
-        style={{ paddingTop: '10px' }}
+        style={{ paddingTop: '10px', marginBottom: '-18px' }}
       >
         <Grid item>
           <Tooltip title="To first correction">

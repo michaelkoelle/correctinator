@@ -15,10 +15,12 @@ import NewHomePage from './containers/NewHomePage';
 import FramelessTitleBar from './containers/FramelessTitleBar';
 import { reloadState, saveAllCorrections } from './utils/FileAccess';
 import { selectWorkspacePath } from './features/workspace/workspaceSlice';
+import { selectUnsavedChanges } from './model/SaveSlice';
 
 export default function Routes() {
   const dispatch = useDispatch();
   const workspace = useSelector(selectWorkspacePath);
+  const unsavedChanges = useSelector(selectUnsavedChanges);
 
   useEffect(() => {
     reloadState(dispatch, workspace);
@@ -32,7 +34,7 @@ export default function Routes() {
     setShouldUseDarkColors(remote.nativeTheme.shouldUseDarkColors)
   );
 
-  remote.app.on('before-quit', () => {
+  remote.getCurrentWindow().on('close', () => {
     dispatch(saveAllCorrections());
   });
 

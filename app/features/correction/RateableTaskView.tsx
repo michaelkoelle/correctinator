@@ -28,10 +28,11 @@ function RateableTaskView(props: RateableTaskViewProps) {
   const dispatch = useDispatch();
 
   function onChangeValue(e) {
+    const newValue = parseFloat(e.target.value);
     dispatch(
       ratingsUpdateOne({
         id: rating.id,
-        changes: { value: parseFloat(e.target.value) },
+        changes: { value: Math.min(newValue, task.max) },
       })
     );
   }
