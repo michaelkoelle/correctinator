@@ -22,11 +22,11 @@ import {
 import storage from 'redux-persist/lib/storage';
 import createRootReducer from './rootReducer';
 import { reportChange } from './model/SaveSlice';
-import { saveAllCorrections } from './utils/FileAccess';
 
 const persistConfig = {
   key: 'root',
-  whitelist: ['workspace'],
+  // whitelist: ['workspace'],
+  blacklist: ['schema'],
   storage,
 };
 

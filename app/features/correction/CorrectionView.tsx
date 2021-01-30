@@ -24,7 +24,7 @@ import TimeRemaining from '../../components/TimeRemaining';
 import Status from '../../model/Status';
 import CorrectionOverview from './CorrectionOverview';
 import Correction from '../../model/Correction';
-import { upsertCorrection } from '../../model/CorrectionsSlice';
+import { correctionsUpdateOne } from '../../model/CorrectionsSlice';
 import { correctionPageSetIndex } from '../../model/CorrectionPageSlice';
 import CorrectionComment from './CorrectionComment';
 import TaskView from './TaskView';
@@ -74,7 +74,14 @@ export default function CorrectionView(props: CorrectionViewProps) {
     const correction = corrections[index];
     if (correction.status !== Status.Marked) {
       correction.status = Status.Done;
-      dispatch(upsertCorrection(correction));
+      dispatch(
+        correctionsUpdateOne({
+          id: correction.id,
+          changes: {
+            status: Status.Done,
+          },
+        })
+      );
     }
   }
 

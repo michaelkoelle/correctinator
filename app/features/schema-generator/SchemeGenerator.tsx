@@ -643,7 +643,7 @@ export default function SchemeGenerator() {
                 ratings={ratings}
                 ratingEntities={ratingsEntity}
                 comments={commentsEntity}
-                type={selectedSheet ? selectedSheet.type : type}
+                type={selectedSheet ? selectedSheet.valueType : type}
               />
             </Paper>
           </Grid>

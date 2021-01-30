@@ -16,10 +16,11 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import StatusIcon from '../../components/StatusIcon';
 import Status from '../../model/Status';
-import { upsertCorrection } from '../../model/CorrectionsSlice';
+import { correctionsUpdateOne } from '../../model/CorrectionsSlice';
 import Correction from '../../model/Correction';
 import { getTotalValueOfRatings, serializeTerm } from '../../utils/Formatter';
 import { selectCorrectionPageIndex } from '../../model/CorrectionPageSlice';
+import { notesUpdateOne, notesUpsertOne } from '../../model/NoteSlice';
 
 type CorrectionOverviewProps = {
   correction: Correction | undefined;
@@ -52,36 +53,52 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
 
   function onToggleMarked() {
     if (correction) {
-      const temp = { ...correction };
-      switch (temp.status) {
+      let status = Status.Todo;
+      switch (correction.status) {
         case Status.Todo:
-          temp.status = Status.Marked;
+          status = Status.Marked;
           setExpanded(true);
           break;
         case Status.Marked:
-          temp.status = Status.Todo;
+          status = Status.Todo;
           setExpanded(false);
           break;
         case Status.Done:
-          temp.status = Status.Marked;
+          status = Status.Marked;
           setExpanded(true);
           break;
         default:
+          status = Status.Todo;
       }
-      dispatch(upsertCorrection(temp));
+      dispatch(
+        correctionsUpdateOne({ id: correction.id, changes: { status } })
+      );
     }
   }
 
   function onChangeNote(event) {
     if (correction && event.target.value !== undefined) {
-      const temp = { ...correction };
-      if (temp.note) {
-        temp.note.text = event.target.value;
+      if (correction.note) {
+        dispatch(
+          notesUpdateOne({
+            id: correction.note.id,
+            changes: {
+              text: event.target.value,
+            },
+          })
+        );
       } else {
-        temp.note = { id: uuidv4(), text: event.target.value };
+        const note = { id: uuidv4(), text: event.target.value };
+        dispatch(notesUpsertOne(note));
+        dispatch(
+          correctionsUpdateOne({
+            id: correction.id,
+            changes: {
+              note: note.id,
+            },
+          })
+        );
       }
-
-      dispatch(upsertCorrection(temp));
     }
   }
 

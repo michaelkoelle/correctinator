@@ -1,7 +1,7 @@
 name: Build/Release
 
 on:
-  pull_request:
+  push:
     branches:
       - master
     # Sequence of patterns matched against refs/tags
