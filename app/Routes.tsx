@@ -19,12 +19,27 @@ import { selectUnsavedChanges } from './model/SaveSlice';
 
 export default function Routes() {
   const dispatch = useDispatch();
-  const workspace = useSelector(selectWorkspacePath);
+  // const workspace = useSelector(selectWorkspacePath);
   const unsavedChanges = useSelector(selectUnsavedChanges);
 
+  /*
   useEffect(() => {
     reloadState(dispatch, workspace);
   }, [dispatch, workspace]);
+ */
+
+  useEffect(() => {
+    const beforeQuit = (e) => {
+      if (unsavedChanges) {
+        // e.returnValue = false;
+        dispatch(saveAllCorrections());
+      }
+    };
+    window.addEventListener('beforeunload', beforeQuit, true);
+    return () => {
+      window.removeEventListener('beforeunload', beforeQuit, true);
+    };
+  }, [dispatch, unsavedChanges]);
 
   const [shouldUseDarkColors, setShouldUseDarkColors] = useState(
     remote.nativeTheme.shouldUseDarkColors
@@ -34,9 +49,12 @@ export default function Routes() {
     setShouldUseDarkColors(remote.nativeTheme.shouldUseDarkColors)
   );
 
+  /*
   remote.getCurrentWindow().on('close', () => {
+    console.log('close');
     dispatch(saveAllCorrections());
   });
+*/
 
   const theme = React.useMemo(
     () =>
