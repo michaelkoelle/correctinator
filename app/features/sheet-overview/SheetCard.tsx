@@ -35,6 +35,7 @@ import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
 import {
   deleteCorrectionFromWorkspace,
   reloadState,
+  saveAllCorrections,
 } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import SheetEntity from '../../model/SheetEntity';
@@ -93,6 +94,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
 
   function onDeleteSheet() {
     onCloseConfirmDialog();
+    dispatch(saveAllCorrections());
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
     reloadState(dispatch, workspace);
   }
