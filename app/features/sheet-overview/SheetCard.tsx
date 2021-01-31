@@ -96,7 +96,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     onCloseConfirmDialog();
     dispatch(saveAllCorrections());
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
-    reloadState(dispatch, workspace);
+    dispatch(reloadState(workspace));
   }
 
   function msToTime(s) {

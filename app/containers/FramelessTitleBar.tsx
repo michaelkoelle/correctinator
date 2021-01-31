@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { remote, shell } from 'electron';
 import fse from 'fs-extra';
 import TitleBar from 'frameless-titlebar';
 import 'setimmediate';
@@ -13,13 +12,21 @@ import {
   DialogActions,
   Button,
 } from '@material-ui/core';
+import { remote, shell } from 'electron';
 import ReleaseNotes from '../components/ReleaseNotes';
-import { openDirectory, saveAllCorrections } from '../utils/FileAccess';
+import {
+  deleteEverythingInDir,
+  exportWorkspace,
+  openDirectory,
+  reloadState,
+  saveAllCorrections,
+} from '../utils/FileAccess';
 import {
   selectWorkspacePath,
   workspaceSetPath,
 } from '../features/workspace/workspaceSlice';
 import { selectUnsavedChanges } from '../model/SaveSlice';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const { version } = require('../package.json');
 
@@ -29,9 +36,12 @@ export default function FramelessTitleBar(props: any) {
   const dispatch = useDispatch();
   const workspace: string = useSelector(selectWorkspacePath);
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
-  const [oldPath, setOldPath] = useState<string>();
+  const [oldPath, setOldPath] = useState<string>(workspace);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
   const [openMoveFilesDialog, setOpenMoveFilesDialog] = useState<boolean>(
+    false
+  );
+  const [openResetConfirmDialog, setOpenResetConfirmDialog] = useState<boolean>(
     false
   );
   const [versionInfo, setVersionInfo] = useState({
@@ -90,13 +100,53 @@ export default function FramelessTitleBar(props: any) {
       label: 'File',
       submenu: [
         {
-          label: 'Change Workspace Directory',
-          click: async () => {
-            const dir: string = await openDirectory();
-            setOldPath(workspace);
-            dispatch(workspaceSetPath(dir));
-            setOpenMoveFilesDialog(true);
-          },
+          label: 'Workspace',
+          submenu: [
+            {
+              label: 'Open/Change directory',
+              click: async () => {
+                const dir: string = await openDirectory();
+                setOldPath(workspace);
+                dispatch(saveAllCorrections());
+                const filesToCopy: string[] = fse.readdirSync(workspace);
+                dispatch(workspaceSetPath(dir));
+                if (filesToCopy.length > 0) {
+                  setOpenMoveFilesDialog(true);
+                }
+                dispatch(reloadState(dir));
+              },
+            },
+            {
+              label: 'Export workspace',
+              click: () => {
+                const defaultPath = 'workspace.zip';
+                const p = remote.dialog.showSaveDialogSync(
+                  remote.getCurrentWindow(),
+                  {
+                    defaultPath,
+                    filters: [{ name: 'Zip', extensions: ['zip'] }],
+                  }
+                );
+                if (p) {
+                  exportWorkspace(p, workspace);
+                }
+              },
+            },
+            {
+              label: `Show Directory in ${
+                process.platform !== 'darwin' ? 'File Explorer' : 'Finder'
+              }`,
+              click: async () => {
+                shell.openPath(workspace);
+              },
+            },
+            {
+              label: 'Reset Workspace',
+              click: async () => {
+                setOpenResetConfirmDialog(true);
+              },
+            },
+          ],
         },
         {
           label: 'Save',
@@ -307,8 +357,8 @@ export default function FramelessTitleBar(props: any) {
                   console.log(`${from} --> ${to}`);
                   fse.moveSync(from, to);
                 });
+                dispatch(reloadState(workspace));
               }
-              // reload();
               setOpenMoveFilesDialog(false);
             }}
             color="primary"
@@ -326,6 +376,20 @@ export default function FramelessTitleBar(props: any) {
           </Button>
         </DialogActions>
       </Dialog>
+      <ConfirmDialog
+        title="Are you sure?"
+        text="Do you really want to reset the workspace, all corrections will be deleted. Make sure you export them first."
+        onConfirm={() => {
+          deleteEverythingInDir(workspace);
+          dispatch(reloadState(workspace));
+          setOpenResetConfirmDialog(false);
+        }}
+        onReject={() => {
+          setOpenResetConfirmDialog(false);
+        }}
+        open={openResetConfirmDialog}
+        setOpen={setOpenResetConfirmDialog}
+      />
     </div>
   );
 }

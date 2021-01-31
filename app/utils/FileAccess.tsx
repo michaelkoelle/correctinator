@@ -163,10 +163,14 @@ export function saveCorrectionToWorkspace(
     correction.submission.name
   );
   const { entities } = normalize(correction, CorrectionSchema);
-  fs.writeFileSync(
-    Path.join(correctionDir, 'config.json'),
-    JSON.stringify(entities)
-  );
+  try {
+    fs.writeFileSync(
+      Path.join(correctionDir, 'config.json'),
+      JSON.stringify(entities)
+    );
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 export function existsInWorkspace(name: string, workspace: string): boolean {
@@ -174,6 +178,7 @@ export function existsInWorkspace(name: string, workspace: string): boolean {
   return fs.existsSync(appPath);
 }
 
+/*
 export function reloadState(dispatch, workspace: string) {
   // Delete old entities
   dispatch(deleteEntities());
@@ -185,6 +190,20 @@ export function reloadState(dispatch, workspace: string) {
       dispatch(correctionsImport(entities));
     });
 }
+*/
+export function reloadState(workspace: string) {
+  return (dispatch, getState) => {
+    // Delete old entities
+    dispatch(deleteEntities());
+    // Load new entities
+    getAllFilesInDirectory(workspace)
+      .filter((file) => Path.parse(file).base === 'config.json')
+      .forEach((file) => {
+        const entities = JSON.parse(fs.readFileSync(file, 'utf8'));
+        dispatch(correctionsImport(entities));
+      });
+  };
+}
 
 export function saveAllCorrections() {
   return (dispatch, getState) => {
@@ -194,4 +213,33 @@ export function saveAllCorrections() {
     corrections.forEach((c) => saveCorrectionToWorkspace(c, workspace));
     dispatch(reportSaved());
   };
+}
+
+export function exportWorkspace(zipPath: string, workspace: string) {
+  const output = fs.createWriteStream(zipPath);
+  const archive = archiver('zip', {
+    zlib: { level: 9 }, // compression level.
+  });
+  archive.pipe(output);
+
+  archive.on('error', (err) => {
+    throw err;
+  });
+
+  const paths: string[] = getAllFilesInDirectory(workspace);
+  paths.forEach((file) => {
+    archive.append(fs.createReadStream(file), {
+      name: Path.relative(workspace, file),
+    });
+  });
+
+  archive.finalize();
+}
+
+export function deleteEverythingInDir(dir: string) {
+  if (fs.existsSync(dir)) {
+    fs.readdirSync(dir).forEach((file) => {
+      deleteFolderRecursive(Path.join(dir, file));
+    });
+  }
 }
