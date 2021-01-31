@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { app, remote } from 'electron';
+import { remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import routes from './constants/routes.json';
 import App from './containers/App';
@@ -13,8 +13,7 @@ import CorrectionViewPage from './containers/CorrectionViewPage';
 import SheetOverviewPage from './containers/SheetOverviewPage';
 import NewHomePage from './containers/NewHomePage';
 import FramelessTitleBar from './containers/FramelessTitleBar';
-import { reloadState, saveAllCorrections } from './utils/FileAccess';
-import { selectWorkspacePath } from './features/workspace/workspaceSlice';
+import { saveAllCorrections } from './utils/FileAccess';
 import { selectUnsavedChanges } from './model/SaveSlice';
 
 export default function Routes() {

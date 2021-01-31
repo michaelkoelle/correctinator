@@ -154,7 +154,7 @@ export default function SheetOverview() {
             </Grid>
             <Grid item>
               <IconButton
-                onClick={() => reloadState(dispatch, workspace)}
+                onClick={() => dispatch(reloadState(workspace))}
                 size="small"
               >
                 <RefreshIcon />
