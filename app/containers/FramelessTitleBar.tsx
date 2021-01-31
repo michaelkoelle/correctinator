@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { remote, shell } from 'electron';
 import fse from 'fs-extra';
 import TitleBar from 'frameless-titlebar';
 import 'setimmediate';
@@ -13,6 +12,7 @@ import {
   DialogActions,
   Button,
 } from '@material-ui/core';
+import { remote, shell } from 'electron';
 import ReleaseNotes from '../components/ReleaseNotes';
 import {
   deleteEverythingInDir,
@@ -137,7 +137,7 @@ export default function FramelessTitleBar(props: any) {
                 process.platform !== 'darwin' ? 'File Explorer' : 'Finder'
               }`,
               click: async () => {
-                shell.openItem(workspace);
+                shell.openPath(workspace);
               },
             },
             {
