@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  ButtonGroup,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -17,6 +18,8 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import { normalize } from 'normalizr';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import AdmZip from 'adm-zip';
+import { dialog, remote } from 'electron';
 import Correction from '../../model/Correction';
 import {
   correctionsImport,
@@ -42,6 +45,11 @@ type Conflict = {
   parser: Parser;
 };
 
+type Conflict1 = {
+  conflicts: Conflict[];
+  zipPath: string;
+};
+
 export default function SheetOverview() {
   const dispatch = useDispatch();
   const workspace = useSelector(selectWorkspacePath);
@@ -49,7 +57,11 @@ export default function SheetOverview() {
   const [openOverwriteDialog, setOpenOverwriteDialog] = useState<boolean>(
     false
   );
+  const [openOverwriteDialog1, setOpenOverwriteDialog1] = useState<boolean>(
+    false
+  );
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
+  const [conflicts1, setConflicts1] = useState<Conflict1>();
 
   function ingestCorrection(
     correction: Correction,
@@ -68,6 +80,45 @@ export default function SheetOverview() {
       (file) => !file.match(parser.configFilePattern)
     );
     copySubmissionFiles(correctionDir, files, submissionName);
+
+    // Save config file
+    const { entities } = normalize(correction, CorrectionSchema);
+    fs.writeFileSync(
+      Path.join(correctionDir, 'config.json'),
+      JSON.stringify(entities)
+    );
+
+    // Update state
+    dispatch(correctionsImport(entities));
+  }
+
+  function ingestCorrection1(
+    correction: Correction,
+    path: string,
+    parser: Parser,
+    zip: any
+  ) {
+    const submissionName = correction.submission.name;
+    const correctionDir = Path.join(workspace, submissionName);
+
+    // Create correction directory in workspace
+    createDirectory(correctionDir);
+    const zipEntries = zip.getEntries();
+    const files: string[] = zipEntries
+      .filter(
+        (entry) =>
+          !entry.isDirectory &&
+          !entry.entryName.match(parser.configFilePattern) &&
+          entry.entryName.includes(Path.dirname(path))
+      )
+      .map((entry) => entry.entryName);
+    files.forEach((file, i) => {
+      const filesDir: string = Path.join(correctionDir, 'files');
+      createDirectory(filesDir);
+      const { ext } = Path.parse(file);
+      const fileName = `${submissionName}-${i + 1}${ext}`;
+      zip.extractEntryTo(file, filesDir, false, true, fileName);
+    });
 
     // Save config file
     const { entities } = normalize(correction, CorrectionSchema);
@@ -118,6 +169,53 @@ export default function SheetOverview() {
     }
   }
 
+  async function onImportSubmissions1() {
+    const parser: Parser = new Uni2WorkParser();
+
+    const dialogReturnValue = await remote.dialog.showOpenDialog({
+      filters: [{ name: 'Zip', extensions: ['zip'] }],
+      properties: ['openFile'],
+    });
+
+    const path = dialogReturnValue.filePaths[0];
+    if (path) {
+      const zip = new AdmZip(path);
+
+      const zipEntryDesc = zip.getEntries();
+      const configFiles = zipEntryDesc.filter(
+        (entry) =>
+          !entry.isDirectory && entry.entryName.match(parser.configFilePattern)
+      );
+
+      const redundantCorrections: Conflict[] = [];
+
+      configFiles.forEach((zipEntry) => {
+        const content = zipEntry.getData().toString('utf8');
+        const correction: Correction = parser.deserialize(content);
+
+        // Were the submissions already imported?
+        if (existsInWorkspace(correction.submission.name, workspace)) {
+          redundantCorrections.push({
+            correction,
+            importPath: zipEntry.entryName,
+            parser,
+          });
+          return;
+        }
+
+        ingestCorrection1(correction, zipEntry.entryName, parser, zip);
+      });
+
+      setLoading(false);
+
+      // Show conflict dialog
+      if (redundantCorrections.length > 0) {
+        setConflicts1({ conflicts: redundantCorrections, zipPath: path });
+        setOpenOverwriteDialog1(true);
+      }
+    }
+  }
+
   return (
     <div
       style={{
@@ -148,9 +246,14 @@ export default function SheetOverview() {
             spacing={4}
           >
             <Grid item>
-              <Button color="primary" onClick={onImportSubmissions}>
-                Import submissions
-              </Button>
+              <ButtonGroup variant="text">
+                <Button color="primary" onClick={onImportSubmissions}>
+                  Import submissions
+                </Button>
+                <Button color="primary" onClick={onImportSubmissions1}>
+                  (zip)
+                </Button>
+              </ButtonGroup>
             </Grid>
             <Grid item>
               <IconButton
@@ -185,6 +288,7 @@ export default function SheetOverview() {
                 ingestCorrection(c.correction, c.importPath, c.parser)
               );
               setLoading(false);
+              dispatch(reloadState(workspace));
             }}
             color="primary"
             autoFocus
@@ -194,6 +298,45 @@ export default function SheetOverview() {
           <Button
             onClick={() => {
               setOpenOverwriteDialog(false);
+            }}
+            color="primary"
+          >
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={openOverwriteDialog1}
+        onClose={() => setOpenOverwriteDialog1(false)}
+      >
+        <DialogTitle>
+          {`${conflicts1?.conflicts.length} duplicate submissions found!`}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {`Are you sure you want to overwrite ${conflicts1?.conflicts.length} submissions? This will erase the correction progress of the submissions. This cannot be undone!`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOpenOverwriteDialog1(false);
+              setLoading(true);
+              const zip = new AdmZip(conflicts1?.zipPath);
+              conflicts1?.conflicts.forEach((c) =>
+                ingestCorrection1(c.correction, c.importPath, c.parser, zip)
+              );
+              setLoading(false);
+              dispatch(reloadState(workspace));
+            }}
+            color="primary"
+            autoFocus
+          >
+            Yes
+          </Button>
+          <Button
+            onClick={() => {
+              setOpenOverwriteDialog1(false);
             }}
             color="primary"
           >
