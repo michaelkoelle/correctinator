@@ -3,8 +3,7 @@ import ParentTask from './ParentTask';
 import RateableTask from './RateableTask';
 /*
 export type SingleChoiceTask = RateableTask & {
-  options: string[];
-  answers: number[];
+  answer: Answer;
 };
 
 type Answer = {
@@ -13,8 +12,7 @@ type Answer = {
 }
 
 export type MultipleChoiceTask = RateableTask & {
-  options: string[];
-  answer: number[];
+  answers: Answer[];
 };
 
 export type ChecklistItem = {
