@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import * as YAML from 'yaml';
-import Parser from './Parser';
+import Parser, { ParserType } from './Parser';
 import UUID from '../utils/UUID';
 import Term from '../model/Term';
 import Correction from '../model/Correction';
@@ -163,5 +163,9 @@ export default class Uni2WorkParser implements Parser {
 
   getConfigFileName(correction: Correction): string {
     return `bewertung_${correction.submission.name}.txt`;
+  }
+
+  getType(): ParserType {
+    return ParserType.Uni2Work;
   }
 }
