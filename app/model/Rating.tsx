@@ -1,7 +1,12 @@
 import Comment from './Comment';
 import RateableTask from './RateableTask';
+import SingleChoiceTask from './SingleChoiceTask';
 
-type BaseRating = { id: string; comment: Comment; task: RateableTask };
+type BaseRating = {
+  id: string;
+  comment: Comment;
+  task: RateableTask | SingleChoiceTask;
+};
 
 export type ValueRating = BaseRating & {
   value: number;

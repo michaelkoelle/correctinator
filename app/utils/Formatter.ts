@@ -3,7 +3,7 @@ import Task from '../model/Task';
 import ConditionalComment from '../model/ConditionalComment';
 import Correction from '../model/Correction';
 import Rating from '../model/Rating';
-import { isParentTask } from './TaskUtil';
+import { isParentTask, isRateableTask, isSingleChoiceTask } from './TaskUtil';
 import Term from '../model/Term';
 
 export function wordWrap(text: string, max: number, depth = 0) {
@@ -69,7 +69,13 @@ export function getMaxValueForTasks(tasks: Task[]): number {
       if (isParentTask(task)) {
         return getMaxValueForTasks(task.tasks);
       }
-      return task.max ? task.max : 0;
+      if (isRateableTask(task)) {
+        return task.max;
+      }
+      if (isSingleChoiceTask(task)) {
+        return task.answer.value;
+      }
+      return 0;
     })
     .reduce((acc, v) => acc + v, 0);
 }
@@ -83,11 +89,23 @@ export function serializeTasks(
   ratings: Rating[],
   type: string,
   depth = 0,
-  delimiter = ':',
   maxChars = 60
 ) {
+  const getComment = (task: Task, rating: Rating) => {
+    if (isRateableTask(task) && rating?.comment.text.trim().length > 0) {
+      return `${wordWrap(rating.comment.text, 60, depth + 1)}\n`;
+    }
+    if (isSingleChoiceTask(task) && rating.value === 0) {
+      const solution = `${task.name}${task.delimiter ? task.delimiter : ':'} ${
+        task.answer.text
+      }`;
+      return `${wordWrap(solution, 60, depth + 1)}\n`;
+    }
+    return '';
+  };
   return tasks
     .map((task) => {
+      const delimiter = task.delimiter ? task.delimiter : ':';
       const subTasks: Task[] = isParentTask(task) ? task.tasks : [];
       const rating = isParentTask(task)
         ? undefined
@@ -97,18 +115,11 @@ export function serializeTasks(
       const value = isParentTask(task)
         ? getRatingValueForTasks(subTasks, ratings)
         : rating?.value;
-      const max = isParentTask(task) ? getMaxValueForTasks(subTasks) : task.max;
+      const max = getMaxValueForTasks([task]);
       const commentOrSubtask =
-        !isParentTask(task) && rating && rating?.comment.text.trim().length > 0
-          ? `${wordWrap(rating.comment.text, 60, depth + 1)}\n`
-          : serializeTasks(
-              subTasks,
-              ratings,
-              type,
-              depth + 1,
-              delimiter,
-              maxChars
-            );
+        !isParentTask(task) && rating
+          ? getComment(task, rating)
+          : serializeTasks(subTasks, ratings, type, depth + 1, maxChars);
       return `${indent}${taskName}${delimiter} ${value}/${max} ${type}\n${commentOrSubtask}`;
     })
     .join('');

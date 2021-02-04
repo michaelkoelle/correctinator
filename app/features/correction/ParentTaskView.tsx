@@ -24,7 +24,11 @@ import {
   getMaxValueForTasks,
   getRatingValueForTasks,
 } from '../../utils/Formatter';
-import { flatMapTask } from '../../utils/TaskUtil';
+import {
+  flatMapTask,
+  isRateableTask,
+  isSingleChoiceTask,
+} from '../../utils/TaskUtil';
 import TaskCorrectionList from './TaskListView';
 
 type ParentTaskViewProps = {
@@ -50,18 +54,27 @@ function ParentTaskView(props: ParentTaskViewProps) {
     ratings
       .filter((r) => tasks.map((t) => t.id).includes(r.task.id))
       .forEach((r) => {
-        dispatch(
-          ratingsUpdateOne({
-            id: r.id,
-            changes: { value: r.task.max },
-          })
-        );
-        dispatch(
-          commentsUpdateOne({
-            id: r.comment.id,
-            changes: { text: '' },
-          })
-        );
+        if (isRateableTask(r.task)) {
+          dispatch(
+            ratingsUpdateOne({
+              id: r.id,
+              changes: { value: r.task.max },
+            })
+          );
+          dispatch(
+            commentsUpdateOne({
+              id: r.comment.id,
+              changes: { text: '' },
+            })
+          );
+        } else if (isSingleChoiceTask(r.task)) {
+          dispatch(
+            ratingsUpdateOne({
+              id: r.id,
+              changes: { value: r.task.answer.value },
+            })
+          );
+        }
       });
   }
 
@@ -100,7 +113,9 @@ function ParentTaskView(props: ParentTaskViewProps) {
       >
         <Grid container spacing={2} alignItems="center" justify="space-between">
           <Grid item>
-            <Typography>{task.name}</Typography>
+            <Typography>
+              {`${task.name}${task.delimiter ? task.delimiter : ':'}`}
+            </Typography>
           </Grid>
           <Grid item>
             <Grid

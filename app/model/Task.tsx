@@ -1,16 +1,8 @@
 /* eslint-disable import/no-cycle */
 import ParentTask from './ParentTask';
 import RateableTask from './RateableTask';
+import SingleChoiceTask from './SingleChoiceTask';
 /*
-export type SingleChoiceTask = RateableTask & {
-  answer: Answer;
-};
-
-type Answer = {
-  text: string;
-  value: number;
-}
-
 export type MultipleChoiceTask = RateableTask & {
   answers: Answer[];
 };
@@ -25,6 +17,6 @@ export type ChecklistTask = RateableTask & {
 };
 */
 
-type Task = ParentTask | RateableTask;
+type Task = ParentTask | RateableTask | SingleChoiceTask;
 
 export default Task;

@@ -61,15 +61,16 @@ import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
 import SheetEntity from '../../model/SheetEntity';
 import {
   getMaxValueForTasks,
-  getRatingValueForTasks,
   getTotalValueOfRatings,
 } from '../../utils/Formatter';
 import { RatingsSchema, TasksSchema } from '../../model/NormalizationSchema';
 import TaskEntity from '../../model/TaskEntity';
 import {
   getTopLevelTasks,
-  hasTaskEntitiesWithZeroMax,
+  hasTasksWithZeroMax,
   isParentTaskEntity,
+  isRateableTask,
+  isSingleChoiceTask,
 } from '../../utils/TaskUtil';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
@@ -80,6 +81,7 @@ import { commentsUpsertMany } from '../../model/CommentSlice';
 import CorrectionEntity from '../../model/CorrectionEntity';
 import { ratingsUpsertMany } from '../../model/RatingSlice';
 import { saveAllCorrections } from '../../utils/FileAccess';
+import SingleChoiceTask from '../../model/SingleChoiceTask';
 
 function initializeSheet(
   sheetId: string,
@@ -163,6 +165,7 @@ export default function SchemeGenerator() {
   );
   const [taskCounter, setTaskCounter] = useState<number>(0);
   const [type, setType] = useState('points');
+  const [taskType, setTaskType] = useState(0);
   const maxValueTasks: number = tasks
     ? getMaxValueForTasks(getTopLevelTasks(tasks))
     : 0;
@@ -180,6 +183,19 @@ export default function SchemeGenerator() {
       name: `Task ${taskCounter + 1}`,
       max: 0,
       step: 0.5,
+      delimiter: ':',
+    };
+  };
+
+  const getDefaultSingleChoiceTask = (): SingleChoiceTask => {
+    return {
+      id: uuidv4(),
+      name: `Task ${taskCounter + 1}`,
+      answer: {
+        text: 'text',
+        value: 0,
+      },
+      delimiter: ')',
     };
   };
 
@@ -260,7 +276,18 @@ export default function SchemeGenerator() {
       const newEntities = YAML.parse(text);
       if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
         const max = Object.entries<TaskEntity>(newEntities.tasks)
-          .map(([, v]) => (isParentTaskEntity(v) ? 0 : v.max))
+          .map(([, v]) => {
+            if (isParentTaskEntity(v)) {
+              return 0;
+            }
+            if (isRateableTask(v)) {
+              return (v as RateableTask).max;
+            }
+            if (isSingleChoiceTask(v)) {
+              return (v as SingleChoiceTask).answer.value;
+            }
+            return 0;
+          })
           .reduce((acc, v) => acc + v, 0);
         const suitableSheet = sheets.find(
           (s) => (!s.tasks || s.tasks.length === 0) && s.maxValue === max
@@ -319,8 +346,23 @@ export default function SchemeGenerator() {
     dispatch(schemaUpsertRating(dRating));
   }
 
+  function addDefaultSingleChoiceTask() {
+    const dTask = getDefaultSingleChoiceTask();
+    const dComment = getDefaultComment(dTask);
+    const dRating = getDefaultRating(dTask, dComment);
+    dispatch(schemaUpsertTask(dTask));
+    dispatch(schemaUpsertComment(dComment));
+    dispatch(schemaUpsertRating(dRating));
+  }
+
   function onAddTask() {
-    addDefaultTask();
+    switch (taskType) {
+      case 1:
+        addDefaultSingleChoiceTask();
+        break;
+      default:
+        addDefaultTask();
+    }
     setTaskCounter(taskCounter + 1);
   }
 
@@ -337,7 +379,15 @@ export default function SchemeGenerator() {
 
   function onAddSubTask() {
     if (selectedTaskId) {
-      const dTask = getDefaultTask();
+      let dTask: Task;
+      switch (taskType) {
+        case 1:
+          dTask = getDefaultSingleChoiceTask();
+          break;
+        default:
+          dTask = getDefaultTask();
+      }
+
       const dComment = getDefaultComment(dTask);
       const dRating = getDefaultRating(dTask, dComment);
       dispatch(schemaAddSubtask(selectedTaskId, dTask));
@@ -384,6 +434,22 @@ export default function SchemeGenerator() {
       >
         <Grid item style={{ margin: '0px 16px' }}>
           <Typography variant="h3">Schema Generator</Typography>
+        </Grid>
+        <Grid>
+          <FormControl size="small" variant="outlined">
+            <InputLabel id="sheet-select-label">Task Type</InputLabel>
+            <Select
+              labelId="task-type-select-label"
+              id="task-type-select"
+              variant="outlined"
+              value={taskType}
+              onChange={(e) => setTaskType(e.target.value as number)}
+              label="Task Type"
+            >
+              <MenuItem value={0}>Simple Task</MenuItem>
+              <MenuItem value={1}>Single Choice Task</MenuItem>
+            </Select>
+          </FormControl>
         </Grid>
         <Grid item style={{ margin: '0px 16px' }}>
           <ButtonGroup size="small">
@@ -510,11 +576,10 @@ export default function SchemeGenerator() {
                       error={
                         (selectedSheet &&
                           (maxValue !== selectedSheet?.maxValue ||
-                            hasTaskEntitiesWithZeroMax(tasksEntity) ||
+                            hasTasksWithZeroMax(tasksEntity) ||
                             maxValue <= 0)) ||
                         (!selectedSheet &&
-                          (hasTaskEntitiesWithZeroMax(tasksEntity) ||
-                            maxValue <= 0))
+                          (hasTasksWithZeroMax(tasksEntity) || maxValue <= 0))
                       }
                     />
                   </Grid>
@@ -543,7 +608,7 @@ export default function SchemeGenerator() {
                         }
                         disabled={
                           maxValueTasks !== selectedSheet?.maxValue ||
-                          hasTaskEntitiesWithZeroMax(tasksEntity) ||
+                          hasTasksWithZeroMax(tasksEntity) ||
                           maxValueTasks <= 0
                         }
                       >
@@ -561,7 +626,7 @@ export default function SchemeGenerator() {
                         <IconButton
                           onClick={onCopyToClipboard}
                           disabled={
-                            hasTaskEntitiesWithZeroMax(tasksEntity) ||
+                            hasTasksWithZeroMax(tasksEntity) ||
                             maxValueTasks <= 0
                           }
                           size="small"
@@ -582,7 +647,7 @@ export default function SchemeGenerator() {
                       justify="center"
                       alignItems="center"
                       style={{
-                        paddingBottom: hasTaskEntitiesWithZeroMax(tasksEntity)
+                        paddingBottom: hasTasksWithZeroMax(tasksEntity)
                           ? '0px'
                           : '8px',
                       }}
@@ -600,7 +665,7 @@ export default function SchemeGenerator() {
                       </Grid>
                     </Grid>
                   )}
-                {hasTaskEntitiesWithZeroMax(tasksEntity) && (
+                {hasTasksWithZeroMax(tasksEntity) && (
                   <Grid
                     item
                     container

@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import styles from './TaskScheme.css';
 import {
   schemaSetSelectedTask,
-  schemaUpdateTask,
   selectSchemaSelectedTaskId,
 } from '../../model/SchemaSlice';
 import ParentTask from '../../model/ParentTask';
@@ -15,6 +14,7 @@ import {
   getRatingValueForTasks,
 } from '../../utils/Formatter';
 import { hasTasksWithZeroMax } from '../../utils/TaskUtil';
+import TaskNameInput from './TaskNameInput';
 
 type SchemaParentTaskProps = {
   task: ParentTask;
@@ -39,17 +39,6 @@ export default function SchemaParentTask(props: SchemaParentTaskProps) {
   const INDENT_SIZE = 25;
   const marginLeft = `${depth * INDENT_SIZE}pt`;
 
-  function onChangeName(e: ChangeEvent<{ value: unknown }>) {
-    dispatch(
-      schemaUpdateTask({
-        id: task.id,
-        changes: {
-          name: e.target.value as string,
-        },
-      })
-    );
-  }
-
   function onSelection() {
     if (!selected) {
       dispatch(schemaSetSelectedTask(task.id));
@@ -64,17 +53,7 @@ export default function SchemaParentTask(props: SchemaParentTaskProps) {
       onClick={onSelection}
       onKeyDown={onSelection}
     >
-      <TextField
-        id="outlined-number"
-        label="Task name"
-        multiline
-        name="name"
-        value={task.name}
-        onChange={onChangeName}
-        className={styles.fields}
-        variant="outlined"
-        size="small"
-      />
+      <TaskNameInput task={task} />
       <TextField
         label="Inital"
         id="value"

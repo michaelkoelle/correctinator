@@ -15,6 +15,7 @@ import {
 import RateableTask from '../../model/RateableTask';
 import RatingEntity from '../../model/RatingEntity';
 import CommentEntity from '../../model/CommentEntity';
+import TaskNameInput from './TaskNameInput';
 
 type SchemaRateableTaskProps = {
   task: RateableTask;
@@ -37,12 +38,6 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
   const marginLeft = `${depth * INDENT_SIZE}pt`;
 
   const [expanded, setExpanded] = React.useState(false);
-
-  function onChangeName(e: ChangeEvent<{ value: unknown }>) {
-    const temp = { ...task };
-    temp.name = e.target.value as string;
-    dispatch(schemaUpsertTask(temp));
-  }
 
   function onChangeValue(e: ChangeEvent<{ value: unknown }>) {
     const temp = { ...rating };
@@ -95,17 +90,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
       // className={styles.card}
       className={[styles.card, selected ? styles.selected : ''].join(' ')}
     >
-      <TextField
-        id="outlined-number"
-        label="Task name"
-        multiline
-        name="name"
-        value={task.name}
-        onChange={onChangeName}
-        className={styles.fields}
-        variant="outlined"
-        size="small"
-      />
+      <TaskNameInput task={task} />
       <TextField
         label="Inital"
         id="value"
@@ -165,20 +150,6 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
           onChange={onChangeStep}
           variant="outlined"
           size="small"
-        />
-        <TextField
-          id="tasktype"
-          label="Type"
-          type="text"
-          name="type"
-          className={styles.fields}
-          // style={{ width: '5em' }}
-          value={type}
-          variant="outlined"
-          size="small"
-          InputProps={{
-            readOnly: true,
-          }}
         />
         <TextField
           id="comment"
