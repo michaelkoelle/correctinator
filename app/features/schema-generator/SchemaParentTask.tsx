@@ -1,12 +1,7 @@
-import React, { ChangeEvent } from 'react';
+import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import { Card, InputAdornment } from '@material-ui/core';
-import { useDispatch, useSelector } from 'react-redux';
+import { InputAdornment } from '@material-ui/core';
 import styles from './TaskScheme.css';
-import {
-  schemaSetSelectedTask,
-  selectSchemaSelectedTaskId,
-} from '../../model/SchemaSlice';
 import ParentTask from '../../model/ParentTask';
 import Rating from '../../model/Rating';
 import {
@@ -15,6 +10,7 @@ import {
 } from '../../utils/Formatter';
 import { hasTasksWithZeroMax } from '../../utils/TaskUtil';
 import TaskNameInput from './TaskNameInput';
+import SchemaTaskCard from './SchemaTaskCard';
 
 type SchemaParentTaskProps = {
   task: ParentTask;
@@ -25,34 +21,11 @@ type SchemaParentTaskProps = {
 
 export default function SchemaParentTask(props: SchemaParentTaskProps) {
   const { task, ratings, depth, type } = props;
-
-  const dispatch = useDispatch();
-  const selectedTaskId: string | undefined = useSelector(
-    selectSchemaSelectedTaskId
-  );
-  const selected: boolean =
-    selectedTaskId !== undefined && selectedTaskId === task.id;
-
   const sumValue = getRatingValueForTasks(task.tasks, ratings);
   const sumMax = getMaxValueForTasks(task.tasks);
 
-  const INDENT_SIZE = 25;
-  const marginLeft = `${depth * INDENT_SIZE}pt`;
-
-  function onSelection() {
-    if (!selected) {
-      dispatch(schemaSetSelectedTask(task.id));
-    }
-  }
-
   return (
-    <Card
-      style={{ marginLeft }}
-      raised={selected}
-      className={styles.card}
-      onClick={onSelection}
-      onKeyDown={onSelection}
-    >
+    <SchemaTaskCard depth={depth} task={task}>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"
@@ -85,6 +58,6 @@ export default function SchemaParentTask(props: SchemaParentTaskProps) {
         variant="outlined"
         error={hasTasksWithZeroMax(task.tasks)}
       />
-    </Card>
+    </SchemaTaskCard>
   );
 }

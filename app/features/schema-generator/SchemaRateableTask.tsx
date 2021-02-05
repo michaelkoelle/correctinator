@@ -1,11 +1,23 @@
 /* eslint-disable react/jsx-no-duplicate-props */
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import TextField from '@material-ui/core/TextField';
-import { Card, Collapse, IconButton, InputAdornment } from '@material-ui/core';
+import {
+  Card,
+  Collapse,
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+} from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import CancelIcon from '@material-ui/icons/Cancel';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from './TaskScheme.css';
 import {
+  convertTask,
   schemaSetSelectedTask,
   schemaUpsertComment,
   schemaUpsertRating,
@@ -16,6 +28,10 @@ import RateableTask from '../../model/RateableTask';
 import RatingEntity from '../../model/RatingEntity';
 import CommentEntity from '../../model/CommentEntity';
 import TaskNameInput from './TaskNameInput';
+import SchemaTaskCard from './SchemaTaskCard';
+import TaskType from '../../model/TaskType';
+import { getTaskType } from '../../utils/TaskUtil';
+import SelectTaskType from './SelectTaskType';
 
 type SchemaRateableTaskProps = {
   task: RateableTask;
@@ -28,14 +44,6 @@ type SchemaRateableTaskProps = {
 export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
   const { task, rating, comment, depth, type } = props;
   const dispatch = useDispatch();
-  const selectedTaskId: string | undefined = useSelector(
-    selectSchemaSelectedTaskId
-  );
-  const selected: boolean =
-    selectedTaskId !== undefined && selectedTaskId === task.id;
-
-  const INDENT_SIZE = 25;
-  const marginLeft = `${depth * INDENT_SIZE}pt`;
 
   const [expanded, setExpanded] = React.useState(false);
 
@@ -69,27 +77,12 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
     dispatch(schemaUpsertComment(temp));
   }
 
-  function onSelection() {
-    if (!selected) {
-      dispatch(schemaSetSelectedTask(task.id));
-    }
-  }
-
   function handleExpandClick() {
     setExpanded(!expanded);
   }
 
   return (
-    <Card
-      raised={selected}
-      variant="outlined"
-      // variant={selected ? 'elevation' : undefined}
-      style={{ marginLeft }}
-      onClick={onSelection}
-      onKeyDown={onSelection}
-      // className={styles.card}
-      className={[styles.card, selected ? styles.selected : ''].join(' ')}
-    >
+    <SchemaTaskCard depth={depth} task={task}>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"
@@ -151,6 +144,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
           variant="outlined"
           size="small"
         />
+        <SelectTaskType task={task} />
         <TextField
           id="comment"
           label="Comment"
@@ -163,6 +157,6 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
           size="small"
         />
       </Collapse>
-    </Card>
+    </SchemaTaskCard>
   );
 }

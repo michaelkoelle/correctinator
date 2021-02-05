@@ -1,12 +1,25 @@
 /* eslint-disable import/no-cycle */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { v4 as uuidv4 } from 'uuid';
-import { isParentTaskEntity } from '../utils/TaskUtil';
+import {
+  generateComment,
+  generateRating,
+  generateSimpleTask,
+  generateSingleChoiceTask,
+} from '../utils/Generator';
+import {
+  isParentTask,
+  isParentTaskEntity,
+  isSingleChoiceTask,
+} from '../utils/TaskUtil';
 import CommentEntity from './CommentEntity';
 import ParentTaskEntity from './ParentTaskEntity';
 import RateableTask from './RateableTask';
 import RatingEntity from './RatingEntity';
+import SingleChoiceTask from './SingleChoiceTask';
+import Task from './Task';
 import TaskEntity from './TaskEntity';
+import TaskType from './TaskType';
 
 export interface SchemaState {
   selectedTaskId: string | undefined;
@@ -195,6 +208,111 @@ export const selectRatingEntityByTaskId = (id: string) => {
 
 export default slice.reducer;
 
+export function convertToRateableTask(
+  task: TaskEntity,
+  newTask: RateableTask | SingleChoiceTask
+) {
+  return (dispatch, getState) => {
+    const state = getState();
+    if (isParentTaskEntity(task)) {
+      // Create new rating and comment for rateable task
+      const comment = generateComment(newTask);
+      const rating = generateRating(newTask, comment);
+
+      dispatch(schemaUpsertComment(comment));
+      dispatch(schemaUpsertRating(rating));
+    } else {
+      // Set Value of Rating of SC Task to 0
+      const rating = Object.values<RatingEntity>(state.schema.ratings).find(
+        (r) => r.task === task.id
+      );
+      if (rating) {
+        const temp = { ...rating };
+        temp.value = 0;
+        dispatch(schemaUpsertRating(temp));
+      }
+    }
+    // Finally update task
+    dispatch(schemaUpsertTask(newTask));
+  };
+}
+
+export function convertToParentTask(
+  task: TaskEntity,
+  newTask: ParentTaskEntity
+) {
+  return (dispatch, getState) => {
+    const state = getState();
+    // Remove now unused rating and comment
+    const rating = Object.values<RatingEntity>(state.schema.ratings).find(
+      (r) => r.task === task.id
+    );
+    if (rating) {
+      dispatch(schemaRemoveRating(rating.id));
+    }
+
+    const comment = Object.values<CommentEntity>(state.schema.comments).find(
+      (c) => c.task === task.id
+    );
+    if (comment) {
+      dispatch(schemaRemoveComment(comment.id));
+    }
+
+    // Finally update task
+    dispatch(schemaUpsertTask(newTask));
+  };
+}
+
+export function convertTask(
+  task: TaskEntity,
+  type: TaskType,
+  subtask?: TaskEntity
+) {
+  return (dispatch) => {
+    switch (type) {
+      case TaskType.Simple: {
+        const template = generateSimpleTask();
+        const simpleTask: RateableTask = {
+          id: task.id,
+          name: task.name,
+          max: template.max,
+          step: template.step,
+          delimiter: task.delimiter,
+        };
+        dispatch(convertToRateableTask(task, simpleTask));
+        break;
+      }
+      case TaskType.SingleChoice: {
+        const template = generateSingleChoiceTask();
+        const singleChoiceTask: SingleChoiceTask = {
+          id: task.id,
+          name: task.name,
+          answer: {
+            value: template.answer.value,
+            text: template.answer.text,
+          },
+          delimiter: task.delimiter,
+        };
+        dispatch(convertToRateableTask(task, singleChoiceTask));
+        break;
+      }
+      case TaskType.Parent: {
+        // Convert Rateable Task to Parent Task
+        const parentTask: ParentTaskEntity = {
+          id: task.id,
+          name: task.name,
+          tasks: subtask ? [subtask.id] : [],
+          delimiter: task.delimiter,
+        };
+        dispatch(convertToParentTask(task, parentTask));
+        break;
+      }
+      default:
+        throw new Error('Cannot task convert to unknown task type');
+    }
+  };
+}
+
 export function schemaAddSubtask(parentId: string, task: TaskEntity) {
   return (dispatch, getState) => {
     const state = getState();
@@ -211,122 +329,73 @@ export function schemaAddSubtask(parentId: string, task: TaskEntity) {
         // tasks.set(parent.id, parent);
       } else {
         // Convert Rateable Task to Parent Task
-        const temp: ParentTaskEntity = {
-          id: parent.id,
-          name: parent.name,
-          tasks: [task.id],
-          delimiter: parent.delimiter,
-        };
-        dispatch(schemaUpsertTask(temp));
-        // tasks.set(parent.id, temp);
-
-        // Remove now unused rating and comment
-        const ratings = Array.from(
-          new Map<string, RatingEntity>(
-            Object.entries(state.schema.ratings)
-          ).values()
-        );
-
-        const pRating = ratings.find((r) => r.task === parentId);
-        if (pRating) {
-          dispatch(schemaRemoveRating(pRating.id));
-        }
-
-        const comments = Array.from(
-          new Map<string, CommentEntity>(
-            Object.entries(state.schema.comments)
-          ).values()
-        );
-
-        const pComment = comments.find((r) => r.task === parentId);
-        if (pComment) {
-          dispatch(schemaRemoveComment(pComment.id));
-        }
+        dispatch(convertTask(parent, TaskType.Parent, task));
       }
       dispatch(schemaUpsertTask(task));
-      // tasks.set(task.id, task);
     }
-    // tasks.forEach((v) => dispatch(schemaUpsertTask(v)));
+  };
+}
+
+export function schemaAddSimpleSubtask(parentId: string) {
+  return (dispatch) => {
+    const task = generateSimpleTask();
+    const comment = generateComment(task);
+    const rating = generateRating(task, comment);
+    dispatch(schemaUpsertComment(comment));
+    dispatch(schemaUpsertRating(rating));
+    dispatch(schemaAddSubtask(parentId, task));
+  };
+}
+
+export function schemaAddSimpleTask() {
+  return (dispatch) => {
+    const task = generateSimpleTask();
+    const comment = generateComment(task);
+    const rating = generateRating(task, comment);
+    dispatch(schemaUpsertComment(comment));
+    dispatch(schemaUpsertRating(rating));
+    dispatch(schemaUpsertTask(task));
   };
 }
 
 export function removeSchemaTaskById(id: string) {
   return (dispatch, getState) => {
-    const state: SchemaState = getState().schema;
+    let state: SchemaState = getState().schema;
     const tasks = new Map(Object.entries(state.tasks));
     const task: TaskEntity | undefined = tasks.get(id);
+
     if (!task) {
       return;
     }
 
-    if (isParentTaskEntity(task)) {
-      // remove all the child tasks
-      task.tasks.forEach((t) => {
-        dispatch(schemaRemoveTask(t));
-        Object.values(state.comments).forEach((c) => {
-          if (c.task === t) {
-            dispatch(schemaRemoveComment(c.id));
-          }
-        });
-        Object.values(state.ratings).forEach((r) => {
-          if (r.task === t) {
-            dispatch(schemaRemoveRating(r.id));
-          }
-        });
-      });
-    }
     tasks.forEach((t) => {
       if (isParentTaskEntity(t)) {
-        let temp: TaskEntity = { ...t };
+        const temp: TaskEntity = { ...t };
         if (t.tasks.includes(id)) {
           temp.tasks = t.tasks.filter((tId) => tId !== id);
-          // If this was the only subtask, parent task will now be a Rateable Task
+          // If this was the only subtask, convert parent task to simple task
           if (temp.tasks.length <= 0) {
-            const rTask: RateableTask = {
-              id: t.id,
-              name: t.name,
-              max: 0,
-              step: 0.5,
-              delimiter: t.delimiter,
-            };
-            temp = rTask;
-
-            // Create new rating and comment for rateable task
-            const getDefaultComment = (tsk: TaskEntity): CommentEntity => {
-              return {
-                id: uuidv4(),
-                task: tsk.id,
-                text: '',
-              };
-            };
-
-            const getDefaultRating = (
-              tsk: TaskEntity,
-              comment: CommentEntity
-            ): RatingEntity => {
-              return {
-                id: uuidv4(),
-                task: tsk.id,
-                value: 0,
-                comment: comment.id,
-              };
-            };
-
-            const comment = getDefaultComment(temp);
-            const rating = getDefaultRating(temp, comment);
-
-            dispatch(schemaUpsertComment(comment));
-            dispatch(schemaUpsertRating(rating));
+            dispatch(convertTask(temp, TaskType.Simple));
+          } else {
+            // Update parent task
+            dispatch(schemaUpsertTask(temp));
           }
-          // Update parent task
-          dispatch(schemaUpsertTask(temp));
         }
       }
     });
 
+    if (isParentTaskEntity(task)) {
+      // remove all the child tasks
+      task.tasks.forEach((t) => {
+        dispatch(removeSchemaTaskById(t));
+      });
+    }
+
     // Finally remove initial task
-    // dispatch(schemaSetTasks(Object.fromEntries(tasks)));
     dispatch(schemaRemoveTask(id));
+
+    // Get updated state
+    state = getState().schema;
 
     // Remove associated Rating and Comment
     Object.values(state.comments).forEach((c) => {

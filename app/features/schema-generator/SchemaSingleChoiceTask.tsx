@@ -1,24 +1,25 @@
 /* eslint-disable react/jsx-no-duplicate-props */
 import React, { ChangeEvent } from 'react';
 import TextField from '@material-ui/core/TextField';
-import { Card, Checkbox, InputAdornment } from '@material-ui/core';
-import { useDispatch, useSelector } from 'react-redux';
-import styles from './TaskScheme.css';
 import {
-  schemaSetSelectedTask,
-  schemaUpsertRating,
-  schemaUpsertTask,
-  selectSchemaSelectedTaskId,
-} from '../../model/SchemaSlice';
+  Checkbox,
+  Collapse,
+  IconButton,
+  InputAdornment,
+} from '@material-ui/core';
+import { useDispatch } from 'react-redux';
+import { ExpandLess, ExpandMore } from '@material-ui/icons';
+import styles from './TaskScheme.css';
+import { schemaUpsertRating, schemaUpsertTask } from '../../model/SchemaSlice';
 import RatingEntity from '../../model/RatingEntity';
-import CommentEntity from '../../model/CommentEntity';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 import TaskNameInput from './TaskNameInput';
+import SchemaTaskCard from './SchemaTaskCard';
+import SelectTaskType from './SelectTaskType';
 
 type SchemaSingleChoiceTaskProps = {
   task: SingleChoiceTask;
   rating: RatingEntity;
-  comment: CommentEntity;
   depth: number;
   type: string;
 };
@@ -26,16 +27,9 @@ type SchemaSingleChoiceTaskProps = {
 export default function SchemaSingleChoiceTask(
   props: SchemaSingleChoiceTaskProps
 ) {
-  const { task, rating, comment, depth, type } = props;
+  const { task, rating, depth, type } = props;
   const dispatch = useDispatch();
-  const selectedTaskId: string | undefined = useSelector(
-    selectSchemaSelectedTaskId
-  );
-  const selected: boolean =
-    selectedTaskId !== undefined && selectedTaskId === task.id;
-
-  const INDENT_SIZE = 25;
-  const marginLeft = `${depth * INDENT_SIZE}pt`;
+  const [expanded, setExpanded] = React.useState(false);
 
   function onChangeValue(e: ChangeEvent<{ value: unknown }>) {
     const temp = { ...task };
@@ -69,23 +63,8 @@ export default function SchemaSingleChoiceTask(
     dispatch(schemaUpsertRating(temp));
   }
 
-  function onSelection() {
-    if (!selected) {
-      dispatch(schemaSetSelectedTask(task.id));
-    }
-  }
-
   return (
-    <Card
-      raised={selected}
-      variant="outlined"
-      // variant={selected ? 'elevation' : undefined}
-      style={{ marginLeft }}
-      onClick={onSelection}
-      onKeyDown={onSelection}
-      // className={styles.card}
-      className={[styles.card, selected ? styles.selected : ''].join(' ')}
-    >
+    <SchemaTaskCard depth={depth} task={task}>
       <TaskNameInput task={task} />
       <TextField
         label="Value"
@@ -123,6 +102,22 @@ export default function SchemaSingleChoiceTask(
         style={{ marginTop: '4px' }}
         onChange={onChangeChoiceValue}
       />
-    </Card>
+      <IconButton
+        onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        aria-label="show more"
+        className={styles.expand}
+        size="medium"
+      >
+        {expanded ? (
+          <ExpandLess className={styles.expandIcon} />
+        ) : (
+          <ExpandMore className={styles.expandIcon} />
+        )}
+      </IconButton>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <SelectTaskType task={task} />
+      </Collapse>
+    </SchemaTaskCard>
   );
 }

@@ -8,7 +8,6 @@ import * as YAML from 'yaml';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import {
   Button,
-  ButtonGroup,
   Dialog,
   DialogActions,
   DialogContent,
@@ -33,15 +32,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
 import {
   schemaClearSelectedSheet,
-  schemaReset,
   schemaSetSelectedSheet,
   selectSchemaSelectedSheetId,
-  removeSchemaTaskById,
-  schemaUpsertTask,
-  schemaUpsertComment,
-  schemaUpsertRating,
-  selectSchemaSelectedTaskId,
-  schemaAddSubtask,
   selectSchemaTasks,
   selectSchemaComments,
   selectSchemaRatings,
@@ -49,7 +41,6 @@ import {
   schemaSetEntities,
   selectSchemaClipboard,
   schemaSetClipboard,
-  schemaClearSelectedTask,
 } from '../../model/SchemaSlice';
 import { tasksUpsertMany } from '../../model/TaskSlice';
 import { selectAllSheets, sheetsUpsertOne } from '../../model/SheetSlice';
@@ -144,7 +135,6 @@ export default function SchemeGenerator() {
   const dispatch = useDispatch();
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
   const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
-  const selectedTaskId: string = useSelector(selectSchemaSelectedTaskId);
   const tasksEntity: TaskEntity[] = useSelector(selectSchemaTasks);
   const ratingsEntity: RatingEntity[] = useSelector(selectSchemaRatings);
   const commentsEntity: CommentEntity[] = useSelector(selectSchemaComments);
@@ -163,9 +153,7 @@ export default function SchemeGenerator() {
     RatingsSchema,
     entities
   );
-  const [taskCounter, setTaskCounter] = useState<number>(0);
   const [type, setType] = useState('points');
-  const [taskType, setTaskType] = useState(0);
   const maxValueTasks: number = tasks
     ? getMaxValueForTasks(getTopLevelTasks(tasks))
     : 0;
@@ -176,48 +164,6 @@ export default function SchemeGenerator() {
   const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const [openConfirmPaste, setOpenConfirmPaste] = useState<boolean>(false);
   const [correctionDialog, setCorrectionDialog] = useState<boolean>(false);
-
-  const getDefaultTask = (): RateableTask => {
-    return {
-      id: uuidv4(),
-      name: `Task ${taskCounter + 1}`,
-      max: 0,
-      step: 0.5,
-      delimiter: ':',
-    };
-  };
-
-  const getDefaultSingleChoiceTask = (): SingleChoiceTask => {
-    return {
-      id: uuidv4(),
-      name: `Task ${taskCounter + 1}`,
-      answer: {
-        text: 'text',
-        value: 0,
-      },
-      delimiter: ')',
-    };
-  };
-
-  const getDefaultComment = (task: TaskEntity): CommentEntity => {
-    return {
-      id: uuidv4(),
-      task: task.id,
-      text: '',
-    };
-  };
-
-  const getDefaultRating = (
-    task: TaskEntity,
-    comment: CommentEntity
-  ): RatingEntity => {
-    return {
-      id: uuidv4(),
-      task: task.id,
-      value: 0,
-      comment: comment.id,
-    };
-  };
 
   function onSelectSheet(event) {
     const sheetId = event.target.value;
@@ -337,66 +283,6 @@ export default function SchemeGenerator() {
     dispatch(schemaSetClipboard(text));
   }
 
-  function addDefaultTask() {
-    const dTask = getDefaultTask();
-    const dComment = getDefaultComment(dTask);
-    const dRating = getDefaultRating(dTask, dComment);
-    dispatch(schemaUpsertTask(dTask));
-    dispatch(schemaUpsertComment(dComment));
-    dispatch(schemaUpsertRating(dRating));
-  }
-
-  function addDefaultSingleChoiceTask() {
-    const dTask = getDefaultSingleChoiceTask();
-    const dComment = getDefaultComment(dTask);
-    const dRating = getDefaultRating(dTask, dComment);
-    dispatch(schemaUpsertTask(dTask));
-    dispatch(schemaUpsertComment(dComment));
-    dispatch(schemaUpsertRating(dRating));
-  }
-
-  function onAddTask() {
-    switch (taskType) {
-      case 1:
-        addDefaultSingleChoiceTask();
-        break;
-      default:
-        addDefaultTask();
-    }
-    setTaskCounter(taskCounter + 1);
-  }
-
-  function clearAllTasks() {
-    dispatch(schemaReset());
-  }
-
-  function onDeleteSelected() {
-    if (selectedTaskId) {
-      dispatch(removeSchemaTaskById(selectedTaskId));
-      dispatch(schemaClearSelectedTask());
-    }
-  }
-
-  function onAddSubTask() {
-    if (selectedTaskId) {
-      let dTask: Task;
-      switch (taskType) {
-        case 1:
-          dTask = getDefaultSingleChoiceTask();
-          break;
-        default:
-          dTask = getDefaultTask();
-      }
-
-      const dComment = getDefaultComment(dTask);
-      const dRating = getDefaultRating(dTask, dComment);
-      dispatch(schemaAddSubtask(selectedTaskId, dTask));
-      dispatch(schemaUpsertComment(dComment));
-      dispatch(schemaUpsertRating(dRating));
-      setTaskCounter(taskCounter + 1);
-    }
-  }
-
   function onChange(newValue: any) {
     if (newValue !== null) {
       try {
@@ -434,46 +320,6 @@ export default function SchemeGenerator() {
       >
         <Grid item style={{ margin: '0px 16px' }}>
           <Typography variant="h3">Schema Generator</Typography>
-        </Grid>
-        <Grid>
-          <FormControl size="small" variant="outlined">
-            <InputLabel id="sheet-select-label">Task Type</InputLabel>
-            <Select
-              labelId="task-type-select-label"
-              id="task-type-select"
-              variant="outlined"
-              value={taskType}
-              onChange={(e) => setTaskType(e.target.value as number)}
-              label="Task Type"
-            >
-              <MenuItem value={0}>Simple Task</MenuItem>
-              <MenuItem value={1}>Single Choice Task</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item style={{ margin: '0px 16px' }}>
-          <ButtonGroup size="small">
-            <Button type="button" onClick={onAddTask}>
-              Add Task
-            </Button>
-            <Button
-              type="button"
-              onClick={onAddSubTask}
-              disabled={selectedTaskId === undefined}
-            >
-              Add subtask
-            </Button>
-            <Button
-              type="button"
-              onClick={onDeleteSelected}
-              disabled={selectedTaskId === undefined}
-            >
-              Delete selected task
-            </Button>
-            <Button type="button" onClick={clearAllTasks}>
-              Clear Tasks
-            </Button>
-          </ButtonGroup>
         </Grid>
       </Grid>
       <Grid

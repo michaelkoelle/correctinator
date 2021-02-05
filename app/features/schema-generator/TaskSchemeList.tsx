@@ -1,5 +1,8 @@
 /* eslint-disable jest/no-export */
+import { Button, Grid } from '@material-ui/core';
 import React from 'react';
+import AddIcon from '@material-ui/icons/Add';
+import { useDispatch } from 'react-redux';
 import CommentEntity from '../../model/CommentEntity';
 import ParentTask from '../../model/ParentTask';
 import RateableTask from '../../model/RateableTask';
@@ -15,6 +18,7 @@ import {
 import SchemaParentTask from './SchemaParentTask';
 import SchemaRateableTask from './SchemaRateableTask';
 import SchemaSingleChoiceTask from './SchemaSingleChoiceTask';
+import { schemaAddSimpleTask } from '../../model/SchemaSlice';
 
 type TaskSchemeListProps = {
   tasks: Task[];
@@ -26,6 +30,7 @@ type TaskSchemeListProps = {
 
 export default function TaskSchemeList(props: TaskSchemeListProps) {
   const { tasks, ratings, ratingEntities, comments, type } = props;
+  const dispatch = useDispatch();
   const tasksToRender: JSX.Element[] = [];
 
   function generateTemplates(t: Task[], depth = 0) {
@@ -67,7 +72,6 @@ export default function TaskSchemeList(props: TaskSchemeListProps) {
               key={task.id}
               task={task}
               rating={rating}
-              comment={comment}
               depth={depth}
               type={type}
             />
@@ -79,5 +83,20 @@ export default function TaskSchemeList(props: TaskSchemeListProps) {
 
   generateTemplates(getTopLevelTasks(tasks));
 
-  return <div>{tasksToRender}</div>;
+  return (
+    <div>
+      {tasksToRender}
+      <Grid container direction="row" justify="center" alignItems="center">
+        <Grid item>
+          <Button
+            variant="contained"
+            onClick={() => dispatch(schemaAddSimpleTask())}
+          >
+            Add Task
+            <AddIcon style={{ margin: '0px 0px 2px 5px' }} />
+          </Button>
+        </Grid>
+      </Grid>
+    </div>
+  );
 }
