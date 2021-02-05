@@ -16,7 +16,7 @@ export default function TaskNameInput(props: TaskNameInputProps) {
 
   function onChangeName(e: ChangeEvent<{ value: unknown }>) {
     const newName = e.target.value as string;
-    const pattern = /(.+)([:|)|.|#|?|!]$)/g;
+    const pattern = /(.+)([:|)|#|?|!]$)/g;
     const result = pattern.exec(newName);
     let delimiter = ':';
     if (result && result[2]) {
