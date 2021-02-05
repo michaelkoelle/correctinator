@@ -1,5 +1,7 @@
 import ParentTask from '../model/ParentTask';
 import ParentTaskEntity from '../model/ParentTaskEntity';
+import RateableTask from '../model/RateableTask';
+import SingleChoiceTask from '../model/SingleChoiceTask';
 import Task from '../model/Task';
 import TaskEntity from '../model/TaskEntity';
 
@@ -11,26 +13,30 @@ export function isParentTask(t: Task): t is ParentTask {
   return (t as ParentTask).tasks !== undefined;
 }
 
-export function hasTaskEntitiesWithZeroMax(ts: TaskEntity[]): boolean {
-  return (
-    ts.find((t) => {
-      if (isParentTaskEntity(t)) {
-        return false;
-      }
-      return t.max === 0;
-    }) !== undefined
-  );
+export function isRateableTask(t: Task | TaskEntity): t is RateableTask {
+  return (t as RateableTask).max !== undefined;
 }
 
-export function hasTasksWithZeroMax(ts: Task[]): boolean {
-  return (
-    ts.find((t) => {
-      if (isParentTask(t)) {
-        return false;
+export function isSingleChoiceTask(
+  t: Task | TaskEntity
+): t is SingleChoiceTask {
+  return (t as SingleChoiceTask).answer !== undefined;
+}
+
+export function hasTasksWithZeroMax(ts: Task[] | TaskEntity[]): boolean {
+  const test: Task | TaskEntity = (ts as any).find((t: Task | TaskEntity) => {
+    if (isRateableTask(t)) {
+      if (t.max === 0) {
+        return true;
       }
-      return t.max === 0;
-    }) !== undefined
-  );
+    } else if (isSingleChoiceTask(t)) {
+      if (t.answer.value === 0) {
+        return true;
+      }
+    }
+    return false;
+  });
+  return test !== undefined;
 }
 
 export function getTopLevelTasks(tasks: Task[]): Task[] {

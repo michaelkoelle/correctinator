@@ -4,8 +4,13 @@ import React from 'react';
 import RateableTaskView from './RateableTaskView';
 import Task from '../../model/Task';
 import Rating from '../../model/Rating';
-import { isParentTask } from '../../utils/TaskUtil';
 import ParentTaskView from './ParentTaskView';
+import {
+  isParentTask,
+  isRateableTask,
+  isSingleChoiceTask,
+} from '../../utils/TaskUtil';
+import SingleChoiceTaskView from './SingleChoiceTaskView';
 
 type TaskCorrectionProps = {
   task: Task;
@@ -19,11 +24,33 @@ function TaskCorrection(props: TaskCorrectionProps) {
   if (isParentTask(task)) {
     return <ParentTaskView task={task} type={type} ratings={ratings} />;
   }
-  const rating = ratings.find((r) => r.task.id === task.id);
-  if (rating) {
-    return (
-      <RateableTaskView key={task.id} task={task} type={type} rating={rating} />
-    );
+  if (isRateableTask(task)) {
+    const rating = ratings.find((r) => r.task.id === task.id);
+    if (rating) {
+      return (
+        <RateableTaskView
+          key={task.id}
+          task={task}
+          type={type}
+          rating={rating}
+        />
+      );
+    }
+    return <></>;
+  }
+  if (isSingleChoiceTask(task)) {
+    const rating = ratings.find((r) => r.task.id === task.id);
+    if (rating) {
+      return (
+        <SingleChoiceTaskView
+          key={task.id}
+          task={task}
+          type={type}
+          rating={rating}
+        />
+      );
+    }
+    return <></>;
   }
   return <></>;
 }

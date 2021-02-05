@@ -59,7 +59,7 @@ export const {
 } = adapter.getSelectors((state: any) => state.corrections);
 
 export function upsertCorrection(correction: Correction) {
-  return (dispatch, getState) => {
+  return (dispatch) => {
     dispatch(
       correctionsImport(normalize([correction], CorrectionsSchema).entities)
     );

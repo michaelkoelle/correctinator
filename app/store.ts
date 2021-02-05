@@ -20,6 +20,7 @@ import {
   REHYDRATE,
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import { useDispatch } from 'react-redux';
 import createRootReducer from './rootReducer';
 import { reportChange } from './model/SaveSlice';
 
@@ -91,3 +92,5 @@ export const configuredStore = (initialState?: RootState) => {
 };
 export type Store = ReturnType<typeof configuredStore>;
 export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;
+// eslint-disable-next-line import/prefer-default-export
+export const useAppDispatch = () => useDispatch<any>();

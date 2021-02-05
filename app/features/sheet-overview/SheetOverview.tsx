@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  ButtonGroup,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -11,111 +12,60 @@ import {
   IconButton,
   Typography,
 } from '@material-ui/core';
-import * as Path from 'path';
-import fs from 'fs';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import { normalize } from 'normalizr';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Correction from '../../model/Correction';
-import {
-  correctionsImport,
-  deleteEntities,
-} from '../../model/CorrectionsSlice';
-import { CorrectionSchema } from '../../model/NormalizationSchema';
-import Parser from '../../parser/Parser';
-import Uni2WorkParser from '../../parser/Uni2WorkParser';
-import {
-  copySubmissionFiles,
-  createDirectory,
-  existsInWorkspace,
-  getAllFilesInDirectory,
-  openDirectory,
-  reloadState,
-} from '../../utils/FileAccess';
+import { remote } from 'electron';
+import { unwrapResult } from '@reduxjs/toolkit';
+import { openDirectory, reloadState } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import SheetCardList from './SheetCardList';
-
-type Conflict = {
-  correction: Correction;
-  importPath: string;
-  parser: Parser;
-};
+import {
+  ImportConflicts,
+  importCorrections,
+  overwriteConflictedCorrections,
+  resetImportConflicts,
+  selectsheetOverviewConflicts,
+  selectSheetOverviewLoading,
+} from '../../model/SheetOverviewSlice';
+import { ParserType } from '../../parser/Parser';
+import { useAppDispatch } from '../../store';
 
 export default function SheetOverview() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const workspace = useSelector(selectWorkspacePath);
-  const [loading, setLoading] = useState<boolean>(false);
+  const loading = useSelector(selectSheetOverviewLoading);
+  const conflicts: ImportConflicts | undefined = useSelector(
+    selectsheetOverviewConflicts
+  );
   const [openOverwriteDialog, setOpenOverwriteDialog] = useState<boolean>(
     false
   );
-  const [conflicts, setConflicts] = useState<Conflict[]>([]);
 
-  function ingestCorrection(
-    correction: Correction,
-    path: string,
-    parser: Parser
-  ) {
-    const submissionName = correction.submission.name;
-    const correctionDir = Path.join(workspace, submissionName);
-
-    // Create correction directory in workspace
-    createDirectory(correctionDir);
-
-    // Create file folder and copy submission files
-    // This is not really modular, other parsers could use a different folder structure -> need to add new parser method
-    const files: string[] = getAllFilesInDirectory(Path.dirname(path)).filter(
-      (file) => !file.match(parser.configFilePattern)
-    );
-    copySubmissionFiles(correctionDir, files, submissionName);
-
-    // Save config file
-    const { entities } = normalize(correction, CorrectionSchema);
-    fs.writeFileSync(
-      Path.join(correctionDir, 'config.json'),
-      JSON.stringify(entities)
-    );
-
-    // Update state
-    dispatch(correctionsImport(entities));
-  }
-
-  async function onImportSubmissions() {
-    const importDir: string = await openDirectory();
-
-    setLoading(true);
-
-    const parser: Parser = new Uni2WorkParser();
-    const configFilePaths = getAllFilesInDirectory(importDir).filter((file) =>
-      file.match(parser.configFilePattern)
-    );
-
-    const redundantCorrections: Conflict[] = [];
-
-    configFilePaths.forEach((importPath) => {
-      const content = fs.readFileSync(importPath, 'utf8');
-      const correction: Correction = parser.deserialize(content);
-
-      // Were the submissions already imported?
-      if (existsInWorkspace(correction.submission.name, workspace)) {
-        redundantCorrections.push({
-          correction,
-          importPath,
-          parser,
-        });
-        return;
-      }
-
-      ingestCorrection(correction, importPath, parser);
-    });
-
-    setLoading(false);
-
-    // Show conflict dialog
-    if (redundantCorrections.length > 0) {
-      setConflicts(redundantCorrections);
+  useEffect(() => {
+    if (conflicts) {
       setOpenOverwriteDialog(true);
     }
+  }, [conflicts]);
+
+  async function onImportSubmissionsFolder() {
+    const path: string = await openDirectory();
+    dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }));
+  }
+
+  async function onImportSubmissionsZip() {
+    const dialogReturnValue = await remote.dialog.showOpenDialog({
+      filters: [{ name: 'Zip', extensions: ['zip'] }],
+      properties: ['openFile'],
+    });
+    const path = dialogReturnValue.filePaths[0];
+    if (path) {
+      dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }));
+    }
+  }
+
+  async function onOverwriteConflicts() {
+    dispatch(overwriteConflictedCorrections());
   }
 
   return (
@@ -148,9 +98,14 @@ export default function SheetOverview() {
             spacing={4}
           >
             <Grid item>
-              <Button color="primary" onClick={onImportSubmissions}>
-                Import submissions
-              </Button>
+              <ButtonGroup variant="text">
+                <Button color="primary" onClick={onImportSubmissionsFolder}>
+                  Import submissions
+                </Button>
+                <Button color="primary" onClick={onImportSubmissionsZip}>
+                  (zip)
+                </Button>
+              </ButtonGroup>
             </Grid>
             <Grid item>
               <IconButton
@@ -169,22 +124,19 @@ export default function SheetOverview() {
       <Dialog
         open={openOverwriteDialog}
         onClose={() => setOpenOverwriteDialog(false)}
+        disableBackdropClick
       >
-        <DialogTitle>{`${conflicts.length} duplicate submissions found!`}</DialogTitle>
+        <DialogTitle>{`${conflicts?.conflicts.length} duplicate submissions found!`}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to overwrite ${conflicts.length} submissions? This will erase the correction progress of the submissions. This cannot be undone!`}
+            {`Are you sure you want to overwrite ${conflicts?.conflicts.length} submissions? This will erase the correction progress of the submissions. This cannot be undone!`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
               setOpenOverwriteDialog(false);
-              setLoading(true);
-              conflicts.forEach((c) =>
-                ingestCorrection(c.correction, c.importPath, c.parser)
-              );
-              setLoading(false);
+              onOverwriteConflicts();
             }}
             color="primary"
             autoFocus
@@ -194,6 +146,7 @@ export default function SheetOverview() {
           <Button
             onClick={() => {
               setOpenOverwriteDialog(false);
+              dispatch(resetImportConflicts());
             }}
             color="primary"
           >

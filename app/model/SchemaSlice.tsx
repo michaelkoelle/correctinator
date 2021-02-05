@@ -1,14 +1,12 @@
 /* eslint-disable import/no-cycle */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { v4 as uuidv4 } from 'uuid';
 import { isParentTaskEntity } from '../utils/TaskUtil';
 import CommentEntity from './CommentEntity';
-
 import ParentTaskEntity from './ParentTaskEntity';
 import RateableTask from './RateableTask';
 import RatingEntity from './RatingEntity';
-import Task from './Task';
 import TaskEntity from './TaskEntity';
-import { tasksUpsertMany } from './TaskSlice';
 
 export interface SchemaState {
   selectedTaskId: string | undefined;
@@ -217,6 +215,7 @@ export function schemaAddSubtask(parentId: string, task: TaskEntity) {
           id: parent.id,
           name: parent.name,
           tasks: [task.id],
+          delimiter: parent.delimiter,
         };
         dispatch(schemaUpsertTask(temp));
         // tasks.set(parent.id, temp);
@@ -288,8 +287,36 @@ export function removeSchemaTaskById(id: string) {
               name: t.name,
               max: 0,
               step: 0.5,
+              delimiter: t.delimiter,
             };
             temp = rTask;
+
+            // Create new rating and comment for rateable task
+            const getDefaultComment = (tsk: TaskEntity): CommentEntity => {
+              return {
+                id: uuidv4(),
+                task: tsk.id,
+                text: '',
+              };
+            };
+
+            const getDefaultRating = (
+              tsk: TaskEntity,
+              comment: CommentEntity
+            ): RatingEntity => {
+              return {
+                id: uuidv4(),
+                task: tsk.id,
+                value: 0,
+                comment: comment.id,
+              };
+            };
+
+            const comment = getDefaultComment(temp);
+            const rating = getDefaultRating(temp, comment);
+
+            dispatch(schemaUpsertComment(comment));
+            dispatch(schemaUpsertRating(rating));
           }
           // Update parent task
           dispatch(schemaUpsertTask(temp));

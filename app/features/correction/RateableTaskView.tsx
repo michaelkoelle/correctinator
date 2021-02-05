@@ -81,7 +81,9 @@ function RateableTaskView(props: RateableTaskViewProps) {
       >
         <Grid container spacing={2} alignItems="center" justify="space-between">
           <Grid item>
-            <Typography>{task.name}</Typography>
+            <Typography>
+              {`${task.name}${task.delimiter ? task.delimiter : ':'}`}
+            </Typography>
           </Grid>
           <Grid item>
             <Grid
