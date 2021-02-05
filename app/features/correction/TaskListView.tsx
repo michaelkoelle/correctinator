@@ -18,7 +18,7 @@ function TaskListView(props: TaskCorrectionList) {
 
   return (
     <List style={{ paddingBottom: disableGutters ? 0 : undefined }}>
-      {tasks?.map((t: any, i: number, a: any[]) => {
+      {tasks?.map((t: Task, i: number, a: Task[]) => {
         return (
           <ListItem
             key={t?.id}
