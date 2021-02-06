@@ -636,7 +636,7 @@ export default function SchemeGenerator() {
         <DialogTitle>Start correcting?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you want to start correcting the sheet "${selectedSheet?.name}" now?`}
+            {`Do you want to start correcting the sheet "${selectedSheet?.name}" now?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
