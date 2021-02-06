@@ -8,12 +8,15 @@ export const CorrectorSchema = new schema.Entity('correctors');
 export const LocationSchema = new schema.Entity('locations');
 export const NoteSchema = new schema.Entity('notes');
 export const AnnotationSchema = new schema.Entity('annotations');
-export const CommentSchema = new schema.Entity('comments');
 
 export const TaskSchema = new schema.Entity('tasks');
 export const TasksSchema = new schema.Array(TaskSchema);
 TaskSchema.define({
   tasks: TasksSchema,
+});
+
+export const CommentSchema = new schema.Entity('comments', {
+  task: TaskSchema,
 });
 
 export const SheetSchema = new schema.Entity('sheets', {

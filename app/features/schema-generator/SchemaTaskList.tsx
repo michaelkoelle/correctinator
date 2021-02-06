@@ -3,18 +3,19 @@ import { List, ListItem } from '@material-ui/core';
 import React from 'react';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
-import TaskCorrection from './TaskCorrection';
+import SchemaTaskView from './SchemaTaskView';
 
 type TaskCorrectionList = {
   tasks: Task[];
   ratings: Rating[];
   type: string;
+  depth: number;
   // eslint-disable-next-line react/require-default-props
   disableGutters?: boolean;
 };
 
-function TaskListView(props: TaskCorrectionList) {
-  const { tasks, ratings, type, disableGutters = false } = props;
+export default function SchemaTaskList(props: TaskCorrectionList) {
+  const { tasks, ratings, type, depth, disableGutters = false } = props;
 
   return (
     <List style={{ paddingBottom: disableGutters ? 0 : undefined }}>
@@ -27,12 +28,15 @@ function TaskListView(props: TaskCorrectionList) {
               paddingBottom: a?.length === i + 1 ? 0 : undefined,
             }}
           >
-            <TaskCorrection task={t} type={type} ratings={ratings} />
+            <SchemaTaskView
+              task={t}
+              type={type}
+              ratings={ratings}
+              depth={depth}
+            />
           </ListItem>
         );
       })}
     </List>
   );
 }
-
-export default TaskListView;

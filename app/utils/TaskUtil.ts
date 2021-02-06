@@ -4,6 +4,7 @@ import RateableTask from '../model/RateableTask';
 import SingleChoiceTask from '../model/SingleChoiceTask';
 import Task from '../model/Task';
 import TaskEntity from '../model/TaskEntity';
+import TaskType from '../model/TaskType';
 
 export function isParentTaskEntity(t: TaskEntity): t is ParentTaskEntity {
   return (t as ParentTaskEntity).tasks !== undefined;
@@ -21,6 +22,16 @@ export function isSingleChoiceTask(
   t: Task | TaskEntity
 ): t is SingleChoiceTask {
   return (t as SingleChoiceTask).answer !== undefined;
+}
+
+export function getTaskType(task: Task | TaskEntity): TaskType {
+  if (isRateableTask(task)) {
+    return TaskType.Simple;
+  }
+  if (isSingleChoiceTask(task)) {
+    return TaskType.SingleChoice;
+  }
+  return TaskType.Parent;
 }
 
 export function hasTasksWithZeroMax(ts: Task[] | TaskEntity[]): boolean {
