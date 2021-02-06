@@ -15,6 +15,7 @@ export default function TaskNameInput(props: TaskNameInputProps) {
   const dispatch = useDispatch();
 
   function onChangeName(e: ChangeEvent<{ value: unknown }>) {
+    e.stopPropagation();
     const newName = e.target.value as string;
     const pattern = /(.+)([:|)|#|?|!]$)/g;
     const result = pattern.exec(newName);
@@ -44,6 +45,7 @@ export default function TaskNameInput(props: TaskNameInputProps) {
       name="name"
       value={task.name}
       onChange={onChangeName}
+      onClick={(e) => e.stopPropagation()}
       style={{ width: `${21 * 0.6}em` }}
       className={styles.fields}
       rowsMax="1"

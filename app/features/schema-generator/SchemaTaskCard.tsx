@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
-import { Paper, IconButton, Button } from '@material-ui/core';
+import { Paper, IconButton, Button, Grid } from '@material-ui/core';
+import { CSSTransition, Transition } from 'react-transition-group';
 import {
   removeSchemaTaskById,
   schemaAddSimpleSubtask,
+  schemaClearSelectedTask,
+  schemaSetSelectedTask,
+  selectSchemaSelectedTaskId,
 } from '../../model/SchemaSlice';
 import Task from '../../model/Task';
 
@@ -18,72 +22,94 @@ type SchemaTaskCardProps = {
 export default function SchemaTaskCard(props: SchemaTaskCardProps) {
   const { task, depth, children } = props;
   const dispatch = useDispatch();
-  const [hover, setHover] = useState<boolean>();
-
-  const INDENT_SIZE = 25;
+  const [hover, setHover] = useState<boolean>(false);
+  const selectedTask: string | undefined = useSelector(
+    selectSchemaSelectedTaskId
+  );
+  const selected: boolean = selectedTask === task.id;
+  const INDENT_SIZE = 15;
   const marginLeft = `${depth * INDENT_SIZE}pt`;
-
-  function onHoverStart() {
-    setHover(true);
-  }
-
-  function onHoverEnd() {
-    setHover(false);
-  }
 
   function onDelete() {
     dispatch(removeSchemaTaskById(task.id));
   }
 
-  function onAddSubTask() {
+  function onAddSubTask(e) {
+    e.stopPropagation();
     dispatch(schemaAddSimpleSubtask(task.id));
+  }
+
+  function onSelection(e) {
+    e.stopPropagation();
+    if (selected) {
+      dispatch(schemaClearSelectedTask());
+    } else {
+      dispatch(schemaSetSelectedTask(task.id));
+    }
   }
 
   return (
     <Paper
       style={{
         padding: '10px',
-        margin: hover ? `0 0 20px ${marginLeft}` : `0 0 10px ${marginLeft}`,
+        // padding: '15px',
+        paddingRight: '0px',
+        margin: '0px',
+        marginLeft,
+        marginRight: '-1px',
+        borderTopRightRadius: '0px',
+        borderBottomRightRadius: '0px',
+        // margin: hover ? `0 0 20px 0` : `0 0 10px 0`,
         position: 'relative',
+        width: '100%',
       }}
-      elevation={hover ? 3 : 0}
-      variant={hover ? 'elevation' : 'outlined'}
+      elevation={selected ? 3 : 0}
+      variant={selected ? 'elevation' : 'outlined'}
       className="MuiPaper-outlined"
-      onMouseEnter={onHoverStart}
-      onMouseLeave={onHoverEnd}
-      onMouseOver={onHoverStart}
+      onClick={onSelection}
     >
-      {hover ? (
-        <>
-          <IconButton
-            onClick={onDelete}
-            style={{
-              padding: '0px',
-              position: 'absolute',
-              top: '-7px',
-              right: '-7px',
-            }}
-          >
-            <CancelIcon />
-          </IconButton>
+      <IconButton
+        onClick={onDelete}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          padding: '0px',
+          position: 'absolute',
+          top: '-7px',
+          right: '-7px',
+          opacity: hover || selected ? 1 : 0,
+          transition: 'opacity 150ms ease-out',
+        }}
+      >
+        <CancelIcon />
+      </IconButton>
+
+      {children}
+
+      <Grid
+        container
+        direction="column"
+        justify="center"
+        alignItems="flex-end"
+        style={{
+          margin: '10px 0 0 0',
+          display: selected ? 'flex' : 'none',
+        }}
+      >
+        <Grid item>
           <Button
             onClick={onAddSubTask}
             variant="contained"
+            size="small"
             style={{
-              padding: '2px 2px 0px 8px',
-              position: 'absolute',
-              bottom: '-13px',
-              right: '15px',
+              margin: '0 10px 0 0',
             }}
           >
             Add subtask
             <AddIcon fontSize="small" style={{ marginBottom: '3px' }} />
           </Button>
-        </>
-      ) : (
-        <></>
-      )}
-      {children}
+        </Grid>
+      </Grid>
     </Paper>
   );
 }

@@ -5,6 +5,7 @@ import React, { ChangeEvent, useEffect, useState } from 'react';
 import AceEditor from 'react-ace';
 import { v4 as uuidv4 } from 'uuid';
 import * as YAML from 'yaml';
+import AddIcon from '@material-ui/icons/Add';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import {
   Button,
@@ -41,6 +42,7 @@ import {
   schemaSetEntities,
   selectSchemaClipboard,
   schemaSetClipboard,
+  schemaAddSimpleTask,
 } from '../../model/SchemaSlice';
 import { tasksUpsertMany } from '../../model/TaskSlice';
 import { selectAllSheets, sheetsUpsertOne } from '../../model/SheetSlice';
@@ -65,7 +67,6 @@ import {
 } from '../../utils/TaskUtil';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
-import TaskSchemeList from './TaskSchemeList';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { correctionsUpsertMany } from '../../model/CorrectionsSlice';
 import { commentsUpsertMany } from '../../model/CommentSlice';
@@ -73,6 +74,7 @@ import CorrectionEntity from '../../model/CorrectionEntity';
 import { ratingsUpsertMany } from '../../model/RatingSlice';
 import { saveAllCorrections } from '../../utils/FileAccess';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
+import SchemaTaskList from './SchemaTaskList';
 
 function initializeSheet(
   sheetId: string,
@@ -153,6 +155,7 @@ export default function SchemeGenerator() {
     RatingsSchema,
     entities
   );
+
   const [type, setType] = useState('points');
   const maxValueTasks: number = tasks
     ? getMaxValueForTasks(getTopLevelTasks(tasks))
@@ -546,16 +549,41 @@ export default function SchemeGenerator() {
                 height: '0px',
                 minHeight: 'calc(100%)',
                 overflow: 'auto',
-                padding: '16px',
+                // padding: '16px',
               }}
             >
+              <SchemaTaskList
+                type={selectedSheet ? selectedSheet.valueType : type}
+                tasks={getTopLevelTasks(tasks)}
+                ratings={ratings}
+                depth={0}
+              />
+              <Grid
+                container
+                direction="row"
+                justify="center"
+                alignItems="center"
+              >
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    style={{ margin: '5px 0 10px 0' }}
+                    onClick={() => dispatch(schemaAddSimpleTask())}
+                  >
+                    Add Task
+                    <AddIcon style={{ margin: '0px 0px 2px 5px' }} />
+                  </Button>
+                </Grid>
+              </Grid>
+              {/*
               <TaskSchemeList
                 tasks={tasks}
                 ratings={ratings}
                 ratingEntities={ratingsEntity}
                 comments={commentsEntity}
                 type={selectedSheet ? selectedSheet.valueType : type}
-              />
+              /> */}
             </Paper>
           </Grid>
         </Grid>

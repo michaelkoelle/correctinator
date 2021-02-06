@@ -1,88 +1,90 @@
 /* eslint-disable react/jsx-no-duplicate-props */
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent } from 'react';
 import TextField from '@material-ui/core/TextField';
-import {
-  Card,
-  Collapse,
-  FormControl,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-} from '@material-ui/core';
+import { Collapse, IconButton, InputAdornment } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
-import CancelIcon from '@material-ui/icons/Cancel';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import styles from './TaskScheme.css';
 import {
-  convertTask,
-  schemaSetSelectedTask,
   schemaUpsertComment,
   schemaUpsertRating,
   schemaUpsertTask,
-  selectSchemaSelectedTaskId,
 } from '../../model/SchemaSlice';
 import RateableTask from '../../model/RateableTask';
-import RatingEntity from '../../model/RatingEntity';
-import CommentEntity from '../../model/CommentEntity';
 import TaskNameInput from './TaskNameInput';
 import SchemaTaskCard from './SchemaTaskCard';
-import TaskType from '../../model/TaskType';
-import { getTaskType } from '../../utils/TaskUtil';
 import SelectTaskType from './SelectTaskType';
+import Rating from '../../model/Rating';
 
 type SchemaRateableTaskProps = {
   task: RateableTask;
-  rating: RatingEntity;
-  comment: CommentEntity;
+  rating: Rating;
   depth: number;
   type: string;
 };
 
 export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
-  const { task, rating, comment, depth, type } = props;
+  const { task, rating, type, depth } = props;
   const dispatch = useDispatch();
 
   const [expanded, setExpanded] = React.useState(false);
 
   function onChangeValue(e: ChangeEvent<{ value: unknown }>) {
-    const temp = { ...rating };
-    temp.value = Math.min(e.target.value as number, task.max);
-    dispatch(schemaUpsertRating(temp));
+    e.stopPropagation();
+    const value = Math.min(e.target.value as number, task.max);
+    dispatch(
+      schemaUpsertRating({
+        id: rating.id,
+        task: rating.task.id,
+        comment: rating.comment.id,
+        value,
+      })
+    );
   }
 
   function onChangeMax(e: ChangeEvent<{ value: unknown }>) {
+    e.stopPropagation();
     const temp = { ...task };
-    const temp1 = { ...rating };
     const newMax: number = e.target.value as number;
-    if (temp1.value > newMax) {
-      temp1.value = newMax;
-      dispatch(schemaUpsertRating(temp1));
+    if (rating.value > newMax) {
+      dispatch(
+        schemaUpsertRating({
+          id: rating.id,
+          task: rating.task.id,
+          comment: rating.comment.id,
+          value: newMax,
+        })
+      );
     }
-    temp.max = Math.max(temp1.value, newMax);
+    temp.max = Math.max(rating.value, newMax);
     dispatch(schemaUpsertTask(temp));
   }
 
   function onChangeStep(e: ChangeEvent<{ value: unknown }>) {
+    e.stopPropagation();
     const temp = { ...task };
     temp.step = e.target.value as number;
     dispatch(schemaUpsertTask(temp));
   }
 
   function onChangeComment(e: ChangeEvent<{ value: unknown }>) {
-    const temp = { ...comment };
-    temp.text = e.target.value as string;
-    dispatch(schemaUpsertComment(temp));
+    e.stopPropagation();
+    dispatch(
+      schemaUpsertComment({
+        id: rating.comment.id,
+        task: rating.comment.task.id,
+        text: e.target.value as string,
+      })
+    );
   }
 
-  function handleExpandClick() {
+  function handleExpandClick(e) {
+    e.stopPropagation();
     setExpanded(!expanded);
   }
 
   return (
-    <SchemaTaskCard depth={depth} task={task}>
+    <SchemaTaskCard task={task} depth={depth}>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"
@@ -97,6 +99,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
         }}
         inputProps={{ min: 0, max: task.max, step: task.step }}
         onChange={onChangeValue}
+        onClick={(e) => e.stopPropagation()}
         size="small"
         variant="outlined"
       />
@@ -113,6 +116,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
         }}
         inputProps={{ min: 0, step: task.step }}
         onChange={onChangeMax}
+        onClick={(e) => e.stopPropagation()}
         size="small"
         variant="outlined"
         error={task.max <= 0}
@@ -141,6 +145,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
           value={task.step}
           inputProps={{ min: '0.5', step: '0.5' }}
           onChange={onChangeStep}
+          onClick={(e) => e.stopPropagation()}
           variant="outlined"
           size="small"
         />
@@ -151,8 +156,9 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
           multiline
           className={styles.comment}
           name="comment"
-          value={comment.text}
+          value={rating.comment.text}
           onChange={onChangeComment}
+          onClick={(e) => e.stopPropagation()}
           variant="outlined"
           size="small"
         />

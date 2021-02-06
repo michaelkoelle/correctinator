@@ -289,6 +289,7 @@
     "react-router-dom": "^5.2.0",
     "react-sizeme": "^2.6.12",
     "react-split-pane": "^0.1.92",
+    "react-transition-group": "^4.4.1",
     "react-viewer": "^3.2.2",
     "react-virtualized": "^9.22.2",
     "redux": "^4.0.5",
