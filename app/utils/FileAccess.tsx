@@ -3,7 +3,7 @@ import { OpenDialogReturnValue, remote } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
 import 'setimmediate';
-import archiver from 'archiver';
+import AdmZip from 'adm-zip';
 import { normalize } from 'normalizr';
 import { serializeCorrection } from './Formatter';
 import Correction from '../model/Correction';
@@ -101,36 +101,49 @@ export function exportCorrections(
   corrections: Correction[],
   conditionalComments: ConditionalComment[] = []
 ) {
-  const output = fs.createWriteStream(zipPath);
-  const archive = archiver('zip', {
-    zlib: { level: 9 }, // compression level.
-  });
-  archive.pipe(output);
-
-  archive.on('error', (err) => {
-    throw err;
-  });
+  const zip = new AdmZip();
 
   corrections.forEach((c) => {
-    const text = parser.serialize(
+    const content = parser.serialize(
       c,
       serializeCorrection(c, conditionalComments)
     );
 
-    archive.append(text, {
-      name: Path.join(c.submission.name, parser.getConfigFileName(c)),
-    });
+    // Add rating file
+    zip.addFile(
+      Path.join(c.submission.name, parser.getConfigFileName(c)),
+      Buffer.alloc(content.length, content)
+    );
 
-    getFilesForCorrectionFromWorkspace(c.submission.name, workspace).forEach(
-      (file) => {
-        archive.append(fs.createReadStream(file), {
-          name: `/${c.submission.name}/files/${Path.parse(file).base}`,
-        });
-      }
+    // Add submission files folder
+    zip.addLocalFolder(
+      Path.join(workspace, c.submission.name, 'files'),
+      Path.join(c.submission.name, 'files')
     );
   });
 
-  archive.finalize();
+  zip.writeZip(zipPath);
+
+  // Verify zip contents
+  const zipVal = new AdmZip(zipPath);
+  const zipEntries = zipVal.getEntries();
+
+  const validation = corrections
+    .map((c) => Path.join(c.submission.name, parser.getConfigFileName(c)))
+    .map((path) => {
+      let hit = false;
+      zipEntries.forEach((entry) => {
+        if (entry.entryName === path) {
+          hit = true;
+        }
+      });
+      return { path, valid: hit };
+    });
+
+  // If not all directories have been found in zip, throw error
+  if (validation.filter((v) => !v.valid).length > 0) {
+    throw Error('Validation failed!');
+  }
 }
 
 function deleteFolderRecursive(path) {
@@ -178,19 +191,6 @@ export function existsInWorkspace(name: string, workspace: string): boolean {
   return fs.existsSync(appPath);
 }
 
-/*
-export function reloadState(dispatch, workspace: string) {
-  // Delete old entities
-  dispatch(deleteEntities());
-  // Load new entities
-  getAllFilesInDirectory(workspace)
-    .filter((file) => Path.parse(file).base === 'config.json')
-    .forEach((file) => {
-      const entities = JSON.parse(fs.readFileSync(file, 'utf8'));
-      dispatch(correctionsImport(entities));
-    });
-}
-*/
 export function reloadState(workspace: string) {
   return (dispatch, getState) => {
     // Delete old entities
@@ -216,24 +216,9 @@ export function saveAllCorrections() {
 }
 
 export function exportWorkspace(zipPath: string, workspace: string) {
-  const output = fs.createWriteStream(zipPath);
-  const archive = archiver('zip', {
-    zlib: { level: 9 }, // compression level.
-  });
-  archive.pipe(output);
-
-  archive.on('error', (err) => {
-    throw err;
-  });
-
-  const paths: string[] = getAllFilesInDirectory(workspace);
-  paths.forEach((file) => {
-    archive.append(fs.createReadStream(file), {
-      name: Path.relative(workspace, file),
-    });
-  });
-
-  archive.finalize();
+  const zip = new AdmZip();
+  zip.addLocalFolder(workspace);
+  zip.writeZip(zipPath);
 }
 
 export function deleteEverythingInDir(dir: string) {
