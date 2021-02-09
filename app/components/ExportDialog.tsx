@@ -458,7 +458,7 @@ export default function ExportDialog(props: {
       </Dialog>
       <Snackbar
         open={openError}
-        autoHideDuration={5000}
+        autoHideDuration={3000}
         onClose={() => setOpenError(false)}
       >
         <Alert onClose={() => setOpenError(false)} severity="error">
@@ -467,7 +467,7 @@ export default function ExportDialog(props: {
       </Snackbar>
       <Snackbar
         open={openSuccess}
-        autoHideDuration={5000}
+        autoHideDuration={3000}
         onClose={() => setOpenSuccess(false)}
       >
         <Alert onClose={() => setOpenSuccess(false)} severity="success">
