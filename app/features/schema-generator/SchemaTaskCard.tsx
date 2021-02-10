@@ -16,17 +16,18 @@ import Task from '../../model/Task';
 type SchemaTaskCardProps = {
   task: Task;
   depth: number;
+  expanded: boolean;
   children: JSX.Element[];
 };
 
 export default function SchemaTaskCard(props: SchemaTaskCardProps) {
-  const { task, depth, children } = props;
+  const { task, depth, expanded, children } = props;
   const dispatch = useDispatch();
-  const [hover, setHover] = useState<boolean>(false);
+  const [hoverDeleteButton, setHoverDeleteButton] = useState<boolean>(false);
   const selectedTask: string | undefined = useSelector(
     selectSchemaSelectedTaskId
   );
-  const selected: boolean = selectedTask === task.id;
+  const selected: boolean = selectedTask === task.id || expanded;
   const INDENT_SIZE = 15;
   const marginLeft = `${depth * INDENT_SIZE}pt`;
 
@@ -70,14 +71,15 @@ export default function SchemaTaskCard(props: SchemaTaskCardProps) {
     >
       <IconButton
         onClick={onDelete}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
+        onMouseEnter={() => setHoverDeleteButton(true)}
+        onMouseOver={() => setHoverDeleteButton(true)}
+        onMouseLeave={() => setHoverDeleteButton(false)}
         style={{
           padding: '0px',
           position: 'absolute',
           top: '-7px',
           right: '-7px',
-          opacity: hover || selected ? 1 : 0,
+          opacity: hoverDeleteButton || selected ? 1 : 0,
           transition: 'opacity 150ms ease-out',
         }}
       >

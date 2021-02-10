@@ -10,6 +10,7 @@ type BaseRating = {
 
 export type ValueRating = BaseRating & {
   value: number;
+  autoCorrected?: boolean;
 };
 
 export type MultipleValueRating = BaseRating & {

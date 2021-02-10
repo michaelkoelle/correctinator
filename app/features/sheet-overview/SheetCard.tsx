@@ -16,13 +16,15 @@ import {
   ListItem,
   Menu,
   MenuItem,
+  Snackbar,
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import React from 'react';
+import React, { useState } from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
+import { Alert } from '@material-ui/lab';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 import ExportDialog from '../../components/ExportDialog';
 import Correction from '../../model/Correction';
@@ -31,7 +33,10 @@ import { setTabIndex } from '../../model/HomeSlice';
 import Status from '../../model/Status';
 import { SheetSchema } from '../../model/NormalizationSchema';
 import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
-import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
+import {
+  schemaClearSelectedSheetWithId,
+  schemaSetSelectedSheet,
+} from '../../model/SchemaSlice';
 import {
   deleteCorrectionFromWorkspace,
   reloadState,
@@ -43,6 +48,9 @@ import {
   selectAllEntities,
   selectCorrectionsBySheetId,
 } from '../../model/Selectors';
+import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
+import { msToTime } from '../../utils/TimeUtil';
+import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -52,9 +60,14 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   const corrections: Correction[] = useSelector(
     selectCorrectionsBySheetId(sheet.id)
   );
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
-  const [openExportDialog, setOpenExportDialog] = React.useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [openAutoCorrectionInfo, setOpenAutoCorrectionInfo] = useState(false);
+  const [autoCorrectionCount, setAutoCorrectionCount] = useState<{
+    taskCount: number;
+    subCount: number;
+  }>({ taskCount: 0, subCount: 0 });
 
   function onStartCorrection() {
     dispatch(correctionPageSetSheetId(sheet.id));
@@ -95,23 +108,16 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   function onDeleteSheet() {
     onCloseConfirmDialog();
     dispatch(saveAllCorrections());
+    dispatch(schemaClearSelectedSheetWithId(sheet.id));
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
     dispatch(reloadState(workspace));
   }
 
-  function msToTime(s) {
-    function pad(n, z = 2) {
-      return `00${n}`.slice(-z);
-    }
-    let t = s;
-    const ms = t % 1000;
-    t = (t - ms) / 1000;
-    const secs = t % 60;
-    t = (t - secs) / 60;
-    const mins = t % 60;
-    const hrs = (t - mins) / 60;
-
-    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+  function onAutoCorrectSingleChoiceTasks() {
+    const counts: any = dispatch(autoCorrectSingleChoiceTasksOfSheet(sheet.id));
+    setAnchorEl(null);
+    setAutoCorrectionCount(counts);
+    setOpenAutoCorrectionInfo(true);
   }
 
   function missingSchemas() {
@@ -145,6 +151,17 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
               >
                 <MenuItem onClick={onExport}>Export corrections</MenuItem>
                 <MenuItem onClick={onOpenConfirmDialog}>Delete sheet</MenuItem>
+                <MenuItem
+                  onClick={onAutoCorrectSingleChoiceTasks}
+                  disabled={
+                    !sheet.tasks ||
+                    getRateableTasks(sheet.tasks).filter((t) =>
+                      isSingleChoiceTask(t)
+                    ).length === 0
+                  }
+                >
+                  Auto correct single choice tasks
+                </MenuItem>
               </Menu>
             </>
             // eslint-disable-next-line prettier/prettier
@@ -311,6 +328,15 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
         open={openExportDialog}
         handleClose={onCloseExportDialog}
       />
+      <Snackbar
+        open={openAutoCorrectionInfo}
+        autoHideDuration={5000}
+        onClose={() => setOpenAutoCorrectionInfo(false)}
+      >
+        <Alert onClose={() => setOpenAutoCorrectionInfo(false)} severity="info">
+          {`Corrected ${autoCorrectionCount.subCount} submissions! (${autoCorrectionCount.taskCount} Single Choice Tasks)`}
+        </Alert>
+      </Snackbar>
     </ListItem>
   );
 }

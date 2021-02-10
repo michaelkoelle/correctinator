@@ -84,7 +84,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
   }
 
   return (
-    <SchemaTaskCard task={task} depth={depth}>
+    <SchemaTaskCard task={task} depth={depth} expanded={expanded}>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"

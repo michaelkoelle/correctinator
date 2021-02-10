@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { remote } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import routes from './constants/routes.json';
 import App from './containers/App';
@@ -15,17 +15,17 @@ import NewHomePage from './containers/NewHomePage';
 import FramelessTitleBar from './containers/FramelessTitleBar';
 import { saveAllCorrections } from './utils/FileAccess';
 import { selectUnsavedChanges } from './model/SaveSlice';
+import UpdaterDialog from './components/UpdaterDialog';
 
 export default function Routes() {
   const dispatch = useDispatch();
   // const workspace = useSelector(selectWorkspacePath);
   const unsavedChanges = useSelector(selectUnsavedChanges);
+  const [openUpdaterDialog, setOpenUpdaterDialog] = useState<boolean>(false);
 
-  /*
   useEffect(() => {
-    reloadState(dispatch, workspace);
-  }, [dispatch, workspace]);
- */
+    setOpenUpdaterDialog(true);
+  }, []);
 
   useEffect(() => {
     const beforeQuit = (e) => {
@@ -93,7 +93,7 @@ export default function Routes() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <App>
-        <FramelessTitleBar theme={theme} />
+        <FramelessTitleBar setOpenUpdater={setOpenUpdaterDialog} />
         <Switch>
           <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
           <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
@@ -104,6 +104,10 @@ export default function Routes() {
           />
           <Route path={routes.HOME} component={NewHomePage} />
         </Switch>
+        <UpdaterDialog
+          open={openUpdaterDialog}
+          setOpen={setOpenUpdaterDialog}
+        />
       </App>
     </ThemeProvider>
   );

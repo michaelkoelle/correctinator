@@ -11,57 +11,11 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, dialog } from 'electron';
-import { autoUpdater } from 'electron-updater';
-import log from 'electron-log';
+import fs from 'fs';
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { autoUpdater, UpdateCheckResult } from 'electron-updater';
 import MenuBuilder from './menu';
-
-export default class AppUpdater {
-  constructor(mainWindow) {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-
-    /*
-    autoUpdater.on('error', (error: { stack: any } | null) => {
-      dialog.showErrorBox(
-        'Error: ',
-        error == null ? 'unknown' : (error.stack || error).toString()
-      );
-    });
-
-    autoUpdater.on('update-available', async () => {
-      const { response } = await dialog.showMessageBox(mainWindow, {
-        type: 'info',
-        title: 'Found Updates',
-        message: 'Found updates, do you want update now?',
-        buttons: ['Yes', 'No'],
-      });
-
-      if (response === 0) {
-        autoUpdater.downloadUpdate();
-      }
-    });
-
-    autoUpdater.on('update-not-available', () => {
-      dialog.showMessageBox({
-        title: 'No Updates',
-        message: 'Current version is up-to-date.',
-      });
-    });
-
-    autoUpdater.on('update-downloaded', async () => {
-      const { response } = await dialog.showMessageBox(mainWindow, {
-        type: 'info',
-        title: 'Install Updates',
-        message: 'Update downloaded, application will be quit for update...',
-      });
-      setImmediate(() => autoUpdater.quitAndInstall());
-    });
-  */
-
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
+import * as IPCConstants from './constants/ipc';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -146,15 +100,61 @@ const createWindow = async () => {
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
-
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater(mainWindow);
 };
 
 /**
  * Add event listeners...
  */
+
+ipcMain.on(IPCConstants.CHECK_FOR_UPDATE_PENDING, (event) => {
+  const { sender } = event;
+
+  // Automatically invoke success on development environment.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    !fs.existsSync(path.join(__dirname, 'dev-app-update.yml'))
+  ) {
+    sender.send(IPCConstants.CHECK_FOR_UPDATE_SUCCESS);
+  } else {
+    const result = autoUpdater.checkForUpdates();
+
+    result
+      .then((checkResult: UpdateCheckResult) => {
+        const { updateInfo } = checkResult;
+        sender.send(IPCConstants.CHECK_FOR_UPDATE_SUCCESS, updateInfo);
+        return undefined;
+      })
+      .catch(() => {
+        sender.send(IPCConstants.CHECK_FOR_UPDATE_FAILURE);
+      });
+  }
+});
+
+ipcMain.on(IPCConstants.DOWNLOAD_UPDATE_PENDING, (event) => {
+  const { sender } = event;
+  if (process.env.NODE_ENV === 'development') {
+    setTimeout(() => sender.send(IPCConstants.DOWNLOAD_UPDATE_SUCCESS), 3000);
+  } else {
+    const result = autoUpdater.downloadUpdate();
+    result
+      .then(() => {
+        sender.send(IPCConstants.DOWNLOAD_UPDATE_SUCCESS);
+        return undefined;
+      })
+      .catch(() => {
+        sender.send(IPCConstants.DOWNLOAD_UPDATE_FAILURE);
+      });
+  }
+});
+
+ipcMain.on(IPCConstants.QUIT_AND_INSTALL_UPDATE, () => {
+  if (!(process.env.NODE_ENV === 'development')) {
+    autoUpdater.quitAndInstall(
+      true, // isSilent
+      true // isForceRunAfter, restart app after update is installed
+    );
+  }
+});
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even

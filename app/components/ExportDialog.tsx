@@ -22,6 +22,7 @@ import {
   Paper,
   Select,
   Slider,
+  Snackbar,
   Switch,
   TextField,
   Tooltip,
@@ -29,6 +30,7 @@ import {
 import { remote } from 'electron';
 import Path from 'path';
 import { useSelector } from 'react-redux';
+import { Alert } from '@material-ui/lab';
 import { exportCorrections } from '../utils/FileAccess';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import ConditionalComment from '../model/ConditionalComment';
@@ -106,6 +108,8 @@ export default function ExportDialog(props: {
   const { open, handleClose, correctionsToExport } = props;
   const workspace = useSelector(selectWorkspacePath);
   const [openSuccess, setOpenSuccess] = React.useState(false);
+  const [openError, setOpenError] = React.useState(false);
+  const [error, setError] = React.useState('');
   const [exportInProgress, setExportInProgress] = React.useState(false);
   const [value, setValue] = React.useState<number[]>([60, 80, 100]);
   const [comments, setComments] = React.useState<string[]>([
@@ -213,27 +217,25 @@ export default function ExportDialog(props: {
       });
 
       if (path !== undefined) {
-        if (conditionalComment) {
+        try {
           exportCorrections(
             path,
             workspace,
             new Uni2WorkParser(),
             correctionsToExport,
-            condComments
+            conditionalComment ? condComments : []
           );
-        } else {
-          exportCorrections(
-            path,
-            workspace,
-            new Uni2WorkParser(),
-            correctionsToExport,
-            condComments
-          );
+          setExportInProgress(false);
+          closeExportDialog();
+          setOpenSuccess(true);
+        } catch (err) {
+          console.log(err);
+          setError(error);
+          setExportInProgress(false);
+          closeExportDialog();
+          setOpenError(true);
         }
       }
-      setExportInProgress(false);
-      closeExportDialog();
-      setOpenSuccess(true);
     }
   }
 
@@ -454,21 +456,24 @@ export default function ExportDialog(props: {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={openSuccess}>
-        <MuiDialogTitle>
-          <Typography variant="h5">Success!</Typography>
-        </MuiDialogTitle>
-        <DialogContent>
-          Export of
-          {` ${Path.parse(path).base} `}
-          was successful!
-        </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={() => setOpenSuccess(false)}>
-            Nice
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Snackbar
+        open={openError}
+        autoHideDuration={3000}
+        onClose={() => setOpenError(false)}
+      >
+        <Alert onClose={() => setOpenError(false)} severity="error">
+          {`Error exporting ${Path.parse(path).base}!`}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={openSuccess}
+        autoHideDuration={3000}
+        onClose={() => setOpenSuccess(false)}
+      >
+        <Alert onClose={() => setOpenSuccess(false)} severity="success">
+          {`Export of ${Path.parse(path).base} was successful!`}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
