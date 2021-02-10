@@ -42,7 +42,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
     UpdaterState.CHECKING_FOR_UPDATE
   );
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | undefined>();
-  console.log(updateInfo);
+
   useEffect(() => {
     if (open) {
       ipcRenderer.send(IPCConstants.CHECK_FOR_UPDATE_PENDING);
