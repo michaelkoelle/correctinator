@@ -6,9 +6,10 @@ import {
   Grid,
   Paper,
   Typography,
+  Tooltip,
 } from '@material-ui/core';
 import WarningIcon from '@material-ui/icons/Warning';
-import React from 'react';
+import React, { useState } from 'react';
 import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
 import WebIcon from '@material-ui/icons/Web';
@@ -21,6 +22,7 @@ import SheetOverviewPage from '../containers/SheetOverviewPage';
 import SchemeGeneratorPage from '../containers/SchemeGeneratorPage';
 import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
 import CorrectionViewPage from '../containers/CorrectionViewPage';
+import InfoDialog from './InfoDialog';
 
 const useStyle = makeStyles({
   indicator: {
@@ -31,6 +33,7 @@ const useStyle = makeStyles({
 export default function Navigation(): JSX.Element {
   const dispatch = useDispatch();
   const tabIndex = useSelector(selectTabIndex);
+  const [openInfo, setOpenInfo] = useState<boolean>(false);
   const classes = useStyle();
 
   function setTab(newValue) {
@@ -98,7 +101,7 @@ export default function Navigation(): JSX.Element {
                 width: '60px',
                 borderRadius: '0',
               }}
-              disabled
+              onClick={() => setOpenInfo(true)}
             >
               <InfoIcon />
             </IconButton>
@@ -167,6 +170,7 @@ export default function Navigation(): JSX.Element {
           </TabPanel>
         </Grid>
       </TabContext>
+      <InfoDialog open={openInfo} setOpen={setOpenInfo} />
     </Grid>
   );
 }
