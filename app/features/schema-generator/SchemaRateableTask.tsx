@@ -6,6 +6,8 @@ import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import { useDispatch } from 'react-redux';
 import styles from './TaskScheme.css';
 import {
+  schemaClearSelectedTask,
+  schemaSetSelectedTask,
   schemaUpsertComment,
   schemaUpsertRating,
   schemaUpsertTask,
@@ -80,11 +82,16 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
 
   function handleExpandClick(e) {
     e.stopPropagation();
+    if (expanded) {
+      dispatch(schemaClearSelectedTask());
+    } else {
+      dispatch(schemaSetSelectedTask(task.id));
+    }
     setExpanded(!expanded);
   }
 
   return (
-    <SchemaTaskCard task={task} depth={depth} expanded={expanded}>
+    <SchemaTaskCard task={task} depth={depth}>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"

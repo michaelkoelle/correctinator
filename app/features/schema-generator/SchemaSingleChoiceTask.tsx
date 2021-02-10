@@ -10,7 +10,12 @@ import {
 import { useDispatch } from 'react-redux';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import styles from './TaskScheme.css';
-import { schemaUpsertRating, schemaUpsertTask } from '../../model/SchemaSlice';
+import {
+  schemaClearSelectedTask,
+  schemaSetSelectedTask,
+  schemaUpsertRating,
+  schemaUpsertTask,
+} from '../../model/SchemaSlice';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 import TaskNameInput from './TaskNameInput';
 import SchemaTaskCard from './SchemaTaskCard';
@@ -78,11 +83,16 @@ export default function SchemaSingleChoiceTask(
 
   function onExpand(e) {
     e.stopPropagation();
+    if (expanded) {
+      dispatch(schemaClearSelectedTask());
+    } else {
+      dispatch(schemaSetSelectedTask(task.id));
+    }
     setExpanded(!expanded);
   }
 
   return (
-    <SchemaTaskCard task={task} depth={depth} expanded={expanded}>
+    <SchemaTaskCard task={task} depth={depth}>
       <TaskNameInput task={task} />
       <TextField
         label="Value"

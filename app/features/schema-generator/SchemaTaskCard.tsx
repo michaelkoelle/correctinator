@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import { Paper, IconButton, Button, Grid } from '@material-ui/core';
-import { CSSTransition, Transition } from 'react-transition-group';
 import {
   removeSchemaTaskById,
   schemaAddSimpleSubtask,
@@ -16,18 +15,17 @@ import Task from '../../model/Task';
 type SchemaTaskCardProps = {
   task: Task;
   depth: number;
-  expanded: boolean;
   children: JSX.Element[];
 };
 
 export default function SchemaTaskCard(props: SchemaTaskCardProps) {
-  const { task, depth, expanded, children } = props;
+  const { task, depth, children } = props;
   const dispatch = useDispatch();
   const [hoverDeleteButton, setHoverDeleteButton] = useState<boolean>(false);
   const selectedTask: string | undefined = useSelector(
     selectSchemaSelectedTaskId
   );
-  const selected: boolean = selectedTask === task.id || expanded;
+  const selected: boolean = selectedTask === task.id;
   const INDENT_SIZE = 15;
   const marginLeft = `${depth * INDENT_SIZE}pt`;
 
