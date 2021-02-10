@@ -33,7 +33,10 @@ import { setTabIndex } from '../../model/HomeSlice';
 import Status from '../../model/Status';
 import { SheetSchema } from '../../model/NormalizationSchema';
 import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
-import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
+import {
+  schemaClearSelectedSheetWithId,
+  schemaSetSelectedSheet,
+} from '../../model/SchemaSlice';
 import {
   deleteCorrectionFromWorkspace,
   reloadState,
@@ -46,6 +49,7 @@ import {
   selectCorrectionsBySheetId,
 } from '../../model/Selectors';
 import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
+import { msToTime } from '../../utils/TimeUtil';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -59,7 +63,10 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [openExportDialog, setOpenExportDialog] = useState(false);
   const [openAutoCorrectionInfo, setOpenAutoCorrectionInfo] = useState(false);
-  const [autoCorrectionCount, setAutoCorrectionCount] = useState<number>(0);
+  const [autoCorrectionCount, setAutoCorrectionCount] = useState<{
+    taskCount: number;
+    subCount: number;
+  }>({ taskCount: 0, subCount: 0 });
 
   function onStartCorrection() {
     dispatch(correctionPageSetSheetId(sheet.id));
@@ -105,24 +112,10 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   }
 
   function onAutoCorrectSingleChoiceTasks() {
-    const count: any = dispatch(autoCorrectSingleChoiceTasksOfSheet(sheet.id));
-    setAutoCorrectionCount(count as number);
+    const counts: any = dispatch(autoCorrectSingleChoiceTasksOfSheet(sheet.id));
+    setAnchorEl(null);
+    setAutoCorrectionCount(counts);
     setOpenAutoCorrectionInfo(true);
-  }
-
-  function msToTime(s) {
-    function pad(n, z = 2) {
-      return `00${n}`.slice(-z);
-    }
-    let t = s;
-    const ms = t % 1000;
-    t = (t - ms) / 1000;
-    const secs = t % 60;
-    t = (t - secs) / 60;
-    const mins = t % 60;
-    const hrs = (t - mins) / 60;
-
-    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
   }
 
   function missingSchemas() {
@@ -327,11 +320,11 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
       />
       <Snackbar
         open={openAutoCorrectionInfo}
-        autoHideDuration={3000}
+        autoHideDuration={5000}
         onClose={() => setOpenAutoCorrectionInfo(false)}
       >
         <Alert onClose={() => setOpenAutoCorrectionInfo(false)} severity="info">
-          {`Corrected ${autoCorrectionCount} single choice tasks!`}
+          {`Corrected ${autoCorrectionCount.subCount} submissions! (${autoCorrectionCount.taskCount} Single Choice Tasks)`}
         </Alert>
       </Snackbar>
     </ListItem>

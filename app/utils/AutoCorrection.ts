@@ -4,11 +4,12 @@ import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import RatingEntity from '../model/RatingEntity';
 import { ratingsUpdateOne } from '../model/RatingSlice';
 import SingleChoiceTask from '../model/SingleChoiceTask';
-import SubmissionEntity from '../model/SubmissionEntity';
 import { getFilesForCorrectionFromWorkspace } from './FileAccess';
 import { getRateableTasks, isSingleChoiceTask } from './TaskUtil';
 import SheetEntity from '../model/SheetEntity';
 import CorrectionEntity from '../model/CorrectionEntity';
+import { correctionsUpdateOne } from '../model/CorrectionsSlice';
+import Status from '../model/Status';
 
 export function extractStudentSolution(
   text: string
@@ -73,7 +74,8 @@ export function autoCorrectSingleChoiceTasksOfSheet(sheetId: string) {
   return (dispatch, getState) => {
     // Get all targeted submissions
     const state = getState();
-    let count = 0;
+    let subCount = 0;
+    let taskCount = 0;
     const workspace = selectWorkspacePath(state);
     const corrections = Object.values<CorrectionEntity>(
       state.corrections.entities
@@ -111,9 +113,24 @@ export function autoCorrectSingleChoiceTasksOfSheet(sheetId: string) {
           sheet.tasks,
           state
         ).filter((t) => isSingleChoiceTask(t)) as SingleChoiceTask[];
-        count += dispatch(autoCorrection(tasks, studentSolution, c.ratings));
+        taskCount += dispatch(
+          autoCorrection(tasks, studentSolution, c.ratings)
+        );
+        subCount += 1;
+        const ratings = getState().ratings.entities;
+        // if all ratings of the correction are autocorrected status is set to done
+        if (
+          c.ratings.filter((id) => {
+            const rating: RatingEntity = ratings[id];
+            return !rating.autoCorrected;
+          }).length === 0
+        ) {
+          dispatch(
+            correctionsUpdateOne({ id: c.id, changes: { status: Status.Done } })
+          );
+        }
       }
     });
-    return count;
+    return { taskCount, subCount };
   };
 }
