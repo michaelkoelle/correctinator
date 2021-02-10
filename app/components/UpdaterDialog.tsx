@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import CloseIcon from '@material-ui/icons/Close';
-import CancelIcon from '@material-ui/icons/Cancel';
 import CheckIcon from '@material-ui/icons/Check';
 import {
   CircularProgress,
-  DialogContentText,
-  Fab,
   Grid,
   IconButton,
   Typography,
@@ -24,18 +19,24 @@ import * as IPCConstants from '../constants/ipc';
 type UpdaterDialogProps = {
   open: boolean;
   setOpen: (v: boolean) => unknown;
+  showNotAvailiable?: boolean;
+};
+
+const defaultProps = {
+  showNotAvailiable: false,
 };
 
 enum UpdaterState {
   CHECKING_FOR_UPDATE,
   UPDATE_AVAILIABLE,
+  UPDATE_NOT_AVAILIABLE,
   DOWNLOADING_UPDATE,
   DOWNLOAD_FAILED,
   UPDATE_DOWNLOADED,
 }
 
-export default function UpdaterDialog(props: UpdaterDialogProps) {
-  const { open, setOpen } = props;
+function UpdaterDialog(props: UpdaterDialogProps) {
+  const { open, setOpen, showNotAvailiable } = props;
   const theme = useTheme();
   const [updaterState, setUpdaterState] = useState<UpdaterState>(
     UpdaterState.CHECKING_FOR_UPDATE
@@ -43,43 +44,56 @@ export default function UpdaterDialog(props: UpdaterDialogProps) {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | undefined>();
 
   useEffect(() => {
-    ipcRenderer.send(IPCConstants.CHECK_FOR_UPDATE_PENDING);
-  }, []);
-
-  ipcRenderer.on(
-    IPCConstants.CHECK_FOR_UPDATE_SUCCESS,
-    (event, info: UpdateInfo | undefined) => {
-      const version = info && info.version;
-      if (version && version !== currentAppVersion) {
-        // Only start download if user confirms
-        setUpdateInfo(info);
-        setUpdaterState(UpdaterState.UPDATE_AVAILIABLE);
-      } else {
-        // No updates found. Just exit for now
-        setTimeout(() => {
-          setOpen(false);
-        }, 1000);
-      }
+    if (open) {
+      ipcRenderer.send(IPCConstants.CHECK_FOR_UPDATE_PENDING);
     }
-  );
+  }, [open]);
 
-  ipcRenderer.on(IPCConstants.CHECK_FOR_UPDATE_FAILURE, () => {
-    // Trigger failure in your state.
-    setOpen(false);
-  });
+  useEffect(() => {
+    ipcRenderer.on(
+      IPCConstants.CHECK_FOR_UPDATE_SUCCESS,
+      (event, info: UpdateInfo | undefined) => {
+        const version = info && info.version;
+        if (version && version !== currentAppVersion) {
+          // Only start download if user confirms
+          setUpdateInfo(info);
+          setUpdaterState(UpdaterState.UPDATE_AVAILIABLE);
+        } else if (showNotAvailiable) {
+          // No updates found. Show update no availiable content
+          setUpdaterState(UpdaterState.UPDATE_NOT_AVAILIABLE);
+        } else {
+          // No updates found. Just exit for now
+          setTimeout(() => {
+            setOpen(false);
+          }, 1000);
+        }
+      }
+    );
 
-  ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_SUCCESS, () => {
-    // Update state for download complete
-    setUpdaterState(UpdaterState.UPDATE_DOWNLOADED);
-    setTimeout(() => {
-      ipcRenderer.send(IPCConstants.QUIT_AND_INSTALL_UPDATE);
-    }, 1000);
-  });
+    ipcRenderer.on(IPCConstants.CHECK_FOR_UPDATE_FAILURE, () => {
+      // Trigger failure in your state.
+      setOpen(false);
+    });
 
-  ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_FAILURE, () => {
-    // Trigger failure in your state.
-    setUpdaterState(UpdaterState.DOWNLOAD_FAILED);
-  });
+    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_SUCCESS, () => {
+      // Update state for download complete
+      setUpdaterState(UpdaterState.UPDATE_DOWNLOADED);
+      setTimeout(() => {
+        ipcRenderer.send(IPCConstants.QUIT_AND_INSTALL_UPDATE);
+      }, 1000);
+    });
+
+    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_FAILURE, () => {
+      // Trigger failure in your state.
+      setUpdaterState(UpdaterState.DOWNLOAD_FAILED);
+    });
+    return () => {
+      ipcRenderer.removeAllListeners(IPCConstants.CHECK_FOR_UPDATE_SUCCESS);
+      ipcRenderer.removeAllListeners(IPCConstants.CHECK_FOR_UPDATE_FAILURE);
+      ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_SUCCESS);
+      ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_FAILURE);
+    };
+  }, [setOpen, showNotAvailiable]);
 
   function onDownloadUpdate() {
     setUpdaterState(UpdaterState.DOWNLOADING_UPDATE);
@@ -103,6 +117,31 @@ export default function UpdaterDialog(props: UpdaterDialogProps) {
           </Grid>
           <Grid item>
             <CircularProgress size={30} />
+          </Grid>
+        </Grid>
+      );
+      break;
+    case UpdaterState.UPDATE_NOT_AVAILIABLE:
+      content = (
+        <Grid
+          item
+          container
+          direction="column"
+          justify="center"
+          alignItems="center"
+          spacing={2}
+        >
+          <Grid item>
+            <Typography gutterBottom>No updates availiable!</Typography>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setOpen(false)}
+            >
+              OK
+            </Button>
           </Grid>
         </Grid>
       );
@@ -261,3 +300,7 @@ export default function UpdaterDialog(props: UpdaterDialogProps) {
     </Dialog>
   );
 }
+
+UpdaterDialog.defaultProps = defaultProps;
+
+export default UpdaterDialog;

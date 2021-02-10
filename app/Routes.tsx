@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { ipcRenderer, remote } from 'electron';
+import { remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import routes from './constants/routes.json';
 import App from './containers/App';
@@ -22,9 +22,15 @@ export default function Routes() {
   // const workspace = useSelector(selectWorkspacePath);
   const unsavedChanges = useSelector(selectUnsavedChanges);
   const [openUpdaterDialog, setOpenUpdaterDialog] = useState<boolean>(false);
+  const [showNotAvailiable, setShowNotAvailiable] = useState<boolean>(false);
+
+  function updaterDialog(show: boolean) {
+    setShowNotAvailiable(show);
+    setOpenUpdaterDialog(true);
+  }
 
   useEffect(() => {
-    setOpenUpdaterDialog(true);
+    updaterDialog(false);
   }, []);
 
   useEffect(() => {
@@ -47,13 +53,6 @@ export default function Routes() {
   remote.nativeTheme.on('updated', () =>
     setShouldUseDarkColors(remote.nativeTheme.shouldUseDarkColors)
   );
-
-  /*
-  remote.getCurrentWindow().on('close', () => {
-    console.log('close');
-    dispatch(saveAllCorrections());
-  });
-*/
 
   const theme = React.useMemo(
     () =>
@@ -93,7 +92,7 @@ export default function Routes() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <App>
-        <FramelessTitleBar setOpenUpdater={setOpenUpdaterDialog} />
+        <FramelessTitleBar setOpenUpdater={updaterDialog} />
         <Switch>
           <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
           <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
@@ -107,6 +106,7 @@ export default function Routes() {
         <UpdaterDialog
           open={openUpdaterDialog}
           setOpen={setOpenUpdaterDialog}
+          showNotAvailiable={showNotAvailiable}
         />
       </App>
     </ThemeProvider>
