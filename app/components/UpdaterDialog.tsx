@@ -11,7 +11,7 @@ import {
   Typography,
   useTheme,
 } from '@material-ui/core';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, shell } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { version as currentAppVersion } from '../package.json';
 import * as IPCConstants from '../constants/ipc';
@@ -80,6 +80,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       setUpdaterState(UpdaterState.UPDATE_DOWNLOADED);
       setTimeout(() => {
         ipcRenderer.send(IPCConstants.QUIT_AND_INSTALL_UPDATE);
+        setOpen(false);
       }, 1000);
     });
 
@@ -163,25 +164,63 @@ function UpdaterDialog(props: UpdaterDialogProps) {
               } is now availiable!`}
             </Typography>
           </Grid>
-          <Grid item container justify="center" alignItems="center" spacing={2}>
-            <Grid item>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => onDownloadUpdate()}
-              >
-                Update now
-              </Button>
+          {process.platform !== 'darwin' ? (
+            <Grid
+              item
+              container
+              justify="center"
+              alignItems="center"
+              spacing={2}
+            >
+              <Grid item>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => onDownloadUpdate()}
+                >
+                  Update now
+                </Button>
+              </Grid>
+              <Grid item>
+                <IconButton
+                  style={{ padding: '2px' }}
+                  onClick={() => setOpen(false)}
+                >
+                  <CloseIcon style={{ width: '1.5rem', height: '1.5rem' }} />
+                </IconButton>
+              </Grid>
             </Grid>
-            <Grid item>
-              <IconButton
-                style={{ padding: '2px' }}
-                onClick={() => setOpen(false)}
-              >
-                <CloseIcon style={{ width: '1.5rem', height: '1.5rem' }} />
-              </IconButton>
+          ) : (
+            <Grid
+              item
+              container
+              justify="center"
+              alignItems="center"
+              spacing={2}
+            >
+              <Grid item>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    shell.openExternal(
+                      `https://github.com/koellemichael/correctinator/releases/download/v${updateInfo?.version}/${updateInfo?.files[1].url}`
+                    );
+                  }}
+                >
+                  Manual Download
+                </Button>
+              </Grid>
+              <Grid item>
+                <IconButton
+                  style={{ padding: '2px' }}
+                  onClick={() => setOpen(false)}
+                >
+                  <CloseIcon style={{ width: '1.5rem', height: '1.5rem' }} />
+                </IconButton>
+              </Grid>
             </Grid>
-          </Grid>
+          )}
         </Grid>
       );
       break;
