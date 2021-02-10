@@ -27,7 +27,7 @@ export default function SchemaParentTask(props: SchemaParentTaskProps) {
   const sumMax = getMaxValueForTasks(task.tasks);
 
   return (
-    <SchemaTaskCard task={task} depth={depth}>
+    <SchemaTaskCard task={task} depth={depth} expanded={false}>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"
