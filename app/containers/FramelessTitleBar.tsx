@@ -246,14 +246,6 @@ export default function FramelessTitleBar(props: {
           },
         },
         {
-          label: 'Check for updates (legacy)',
-          async click() {
-            await remote
-              .require('electron-updater')
-              .autoUpdater.checkForUpdatesAndNotify();
-          },
-        },
-        {
           label: 'View Release Notes',
           async click() {
             setOpen(true);
