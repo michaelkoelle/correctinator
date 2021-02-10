@@ -82,7 +82,7 @@ export default function SchemaSingleChoiceTask(
   }
 
   return (
-    <SchemaTaskCard task={task} depth={depth}>
+    <SchemaTaskCard task={task} depth={depth} expanded={expanded}>
       <TaskNameInput task={task} />
       <TextField
         label="Value"
