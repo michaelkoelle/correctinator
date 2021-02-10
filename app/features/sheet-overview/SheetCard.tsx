@@ -50,6 +50,7 @@ import {
 } from '../../model/Selectors';
 import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
 import { msToTime } from '../../utils/TimeUtil';
+import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -150,7 +151,15 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
               >
                 <MenuItem onClick={onExport}>Export corrections</MenuItem>
                 <MenuItem onClick={onOpenConfirmDialog}>Delete sheet</MenuItem>
-                <MenuItem onClick={onAutoCorrectSingleChoiceTasks}>
+                <MenuItem
+                  onClick={onAutoCorrectSingleChoiceTasks}
+                  disabled={
+                    !sheet.tasks ||
+                    getRateableTasks(sheet.tasks).filter((t) =>
+                      isSingleChoiceTask(t)
+                    ).length === 0
+                  }
+                >
                   Auto correct single choice tasks
                 </MenuItem>
               </Menu>

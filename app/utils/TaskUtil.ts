@@ -116,7 +116,7 @@ export function flatMapTaskEntity(
   return list;
 }
 
-export function getRateableTasks(
+export function getRateableTasksFromIds(
   tasks: string[],
   state,
   list: TaskEntity[] = []
@@ -124,7 +124,18 @@ export function getRateableTasks(
   const te: TaskEntity[] = tasks.map((id) => state.tasks.entities[id]);
   te.forEach((t) => {
     if (isParentTaskEntity(t)) {
-      getRateableTasks(t.tasks, state, list);
+      getRateableTasksFromIds(t.tasks, state, list);
+    } else {
+      list.push(t);
+    }
+  });
+  return list;
+}
+
+export function getRateableTasks(te: Task[], list: Task[] = []) {
+  te.forEach((t) => {
+    if (isParentTask(t)) {
+      getRateableTasks(t.tasks, list);
     } else {
       list.push(t);
     }

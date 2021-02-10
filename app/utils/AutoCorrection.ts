@@ -5,7 +5,7 @@ import RatingEntity from '../model/RatingEntity';
 import { ratingsUpdateOne } from '../model/RatingSlice';
 import SingleChoiceTask from '../model/SingleChoiceTask';
 import { getFilesForCorrectionFromWorkspace } from './FileAccess';
-import { getRateableTasks, isSingleChoiceTask } from './TaskUtil';
+import { getRateableTasksFromIds, isSingleChoiceTask } from './TaskUtil';
 import SheetEntity from '../model/SheetEntity';
 import CorrectionEntity from '../model/CorrectionEntity';
 import { correctionsUpdateOne } from '../model/CorrectionsSlice';
@@ -109,7 +109,7 @@ export function autoCorrectSingleChoiceTasksOfSheet(sheetId: string) {
       // For Every student solution try to correct it
       const sheet: SheetEntity = state.sheets.entities[sheetId];
       if (sheet && sheet.tasks && studentSolution && c.ratings) {
-        const tasks: SingleChoiceTask[] = getRateableTasks(
+        const tasks: SingleChoiceTask[] = getRateableTasksFromIds(
           sheet.tasks,
           state
         ).filter((t) => isSingleChoiceTask(t)) as SingleChoiceTask[];
