@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { remote } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
+import { UpdateInfo } from 'electron-updater';
 import routes from './constants/routes.json';
 import App from './containers/App';
 import SchemeGeneratorPage from './containers/SchemeGeneratorPage';
@@ -16,6 +17,11 @@ import FramelessTitleBar from './containers/FramelessTitleBar';
 import { saveAllCorrections } from './utils/FileAccess';
 import { selectUnsavedChanges } from './model/SaveSlice';
 import UpdaterDialog from './components/UpdaterDialog';
+import {
+  CHECK_FOR_UPDATE_PENDING,
+  CHECK_FOR_UPDATE_SUCCESS,
+} from './constants/ipc';
+import { version as currentAppVersion } from '../package.json';
 
 export default function Routes() {
   const dispatch = useDispatch();
@@ -30,11 +36,25 @@ export default function Routes() {
   }
 
   useEffect(() => {
-    updaterDialog(false);
+    ipcRenderer.on(
+      CHECK_FOR_UPDATE_SUCCESS,
+      (_event, info: UpdateInfo | undefined) => {
+        const version = info && info.version;
+        if (version && version !== currentAppVersion) {
+          // Show updater dialog
+          updaterDialog(false);
+        }
+      }
+    );
+    // Check for updates at start
+    ipcRenderer.send(CHECK_FOR_UPDATE_PENDING);
+    return () => {
+      ipcRenderer.removeAllListeners(CHECK_FOR_UPDATE_SUCCESS);
+    };
   }, []);
 
   useEffect(() => {
-    const beforeQuit = (e) => {
+    const beforeQuit = () => {
       if (unsavedChanges) {
         // e.returnValue = false;
         dispatch(saveAllCorrections());
