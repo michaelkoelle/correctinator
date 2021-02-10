@@ -107,6 +107,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   function onDeleteSheet() {
     onCloseConfirmDialog();
     dispatch(saveAllCorrections());
+    dispatch(schemaClearSelectedSheetWithId(sheet.id));
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
     dispatch(reloadState(workspace));
   }

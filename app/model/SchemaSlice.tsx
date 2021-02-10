@@ -1,23 +1,17 @@
 /* eslint-disable import/no-cycle */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { v4 as uuidv4 } from 'uuid';
 import {
   generateComment,
   generateRating,
   generateSimpleTask,
   generateSingleChoiceTask,
 } from '../utils/Generator';
-import {
-  isParentTask,
-  isParentTaskEntity,
-  isSingleChoiceTask,
-} from '../utils/TaskUtil';
+import { isParentTaskEntity } from '../utils/TaskUtil';
 import CommentEntity from './CommentEntity';
 import ParentTaskEntity from './ParentTaskEntity';
 import RateableTask from './RateableTask';
 import RatingEntity from './RatingEntity';
 import SingleChoiceTask from './SingleChoiceTask';
-import Task from './Task';
 import TaskEntity from './TaskEntity';
 import TaskType from './TaskType';
 
@@ -67,6 +61,12 @@ const slice = createSlice({
     },
     schemaClearSelectedSheet: (state) => {
       state.selectedSheetId = undefined;
+    },
+    schemaClearSelectedSheetWithId: (state, action: PayloadAction<string>) => {
+      state.selectedSheetId =
+        action.payload === state.selectedSheetId
+          ? undefined
+          : state.selectedSheetId;
     },
     schemaSetTasks: (
       state,
@@ -172,6 +172,7 @@ export const {
   schemaSetTasks,
   schemaSetEntities,
   schemaSetClipboard,
+  schemaClearSelectedSheetWithId,
 } = slice.actions;
 
 export const selectSchemaEntities = (state) => {
