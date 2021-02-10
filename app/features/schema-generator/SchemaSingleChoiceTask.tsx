@@ -117,7 +117,7 @@ export default function SchemaSingleChoiceTask(
       />
       <Checkbox
         title="Initial"
-        color="primary"
+        color="default"
         checked={rating.value > 0}
         style={{ marginTop: '4px' }}
         onChange={onChangeChoiceValue}

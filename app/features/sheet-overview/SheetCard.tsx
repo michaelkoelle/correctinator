@@ -16,13 +16,15 @@ import {
   ListItem,
   Menu,
   MenuItem,
+  Snackbar,
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import React from 'react';
+import React, { useState } from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
+import { Alert } from '@material-ui/lab';
 import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 import ExportDialog from '../../components/ExportDialog';
 import Correction from '../../model/Correction';
@@ -43,6 +45,7 @@ import {
   selectAllEntities,
   selectCorrectionsBySheetId,
 } from '../../model/Selectors';
+import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -52,9 +55,11 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   const corrections: Correction[] = useSelector(
     selectCorrectionsBySheetId(sheet.id)
   );
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [openConfirmDialog, setOpenConfirmDialog] = React.useState(false);
-  const [openExportDialog, setOpenExportDialog] = React.useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [openAutoCorrectionInfo, setOpenAutoCorrectionInfo] = useState(false);
+  const [autoCorrectionCount, setAutoCorrectionCount] = useState<number>(0);
 
   function onStartCorrection() {
     dispatch(correctionPageSetSheetId(sheet.id));
@@ -97,6 +102,12 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     dispatch(saveAllCorrections());
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
     dispatch(reloadState(workspace));
+  }
+
+  function onAutoCorrectSingleChoiceTasks() {
+    const count: any = dispatch(autoCorrectSingleChoiceTasksOfSheet(sheet.id));
+    setAutoCorrectionCount(count as number);
+    setOpenAutoCorrectionInfo(true);
   }
 
   function msToTime(s) {
@@ -145,6 +156,9 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
               >
                 <MenuItem onClick={onExport}>Export corrections</MenuItem>
                 <MenuItem onClick={onOpenConfirmDialog}>Delete sheet</MenuItem>
+                <MenuItem onClick={onAutoCorrectSingleChoiceTasks}>
+                  Auto correct single choice tasks
+                </MenuItem>
               </Menu>
             </>
             // eslint-disable-next-line prettier/prettier
@@ -311,6 +325,15 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
         open={openExportDialog}
         handleClose={onCloseExportDialog}
       />
+      <Snackbar
+        open={openAutoCorrectionInfo}
+        autoHideDuration={3000}
+        onClose={() => setOpenAutoCorrectionInfo(false)}
+      >
+        <Alert onClose={() => setOpenAutoCorrectionInfo(false)} severity="info">
+          {`Corrected ${autoCorrectionCount} single choice tasks!`}
+        </Alert>
+      </Snackbar>
     </ListItem>
   );
 }

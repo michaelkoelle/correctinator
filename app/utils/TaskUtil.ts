@@ -98,3 +98,36 @@ export function flatMapTask(pt: ParentTask, list: Task[] = []) {
   });
   return list;
 }
+
+export function flatMapTaskEntity(
+  pt: ParentTaskEntity,
+  state,
+  list: TaskEntity[] = []
+) {
+  list.push(pt);
+  pt.tasks.forEach((tsk) => {
+    const t = state.tasks.entities[tsk];
+    if (isParentTaskEntity(t)) {
+      flatMapTaskEntity(t, state, list);
+    } else {
+      list.push(t);
+    }
+  });
+  return list;
+}
+
+export function getRateableTasks(
+  tasks: string[],
+  state,
+  list: TaskEntity[] = []
+) {
+  const te: TaskEntity[] = tasks.map((id) => state.tasks.entities[id]);
+  te.forEach((t) => {
+    if (isParentTaskEntity(t)) {
+      getRateableTasks(t.tasks, state, list);
+    } else {
+      list.push(t);
+    }
+  });
+  return list;
+}
