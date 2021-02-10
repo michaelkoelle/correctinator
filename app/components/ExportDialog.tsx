@@ -115,7 +115,7 @@ export default function ExportDialog(props: {
   const [comments, setComments] = React.useState<string[]>([
     'Gut!',
     'Sehr gut!',
-    'Perfekt',
+    'Perfekt!',
   ]);
   const [path, setPath] = React.useState<string>('');
   const [format, setFormat] = React.useState('Uni2Work');
