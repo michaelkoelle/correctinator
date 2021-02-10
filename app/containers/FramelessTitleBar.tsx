@@ -11,6 +11,7 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  useTheme,
 } from '@material-ui/core';
 import { remote, shell } from 'electron';
 import ReleaseNotes from '../components/ReleaseNotes';
@@ -27,13 +28,16 @@ import {
 } from '../features/workspace/workspaceSlice';
 import { selectUnsavedChanges } from '../model/SaveSlice';
 import ConfirmDialog from '../components/ConfirmDialog';
-
-const { version } = require('../package.json');
+import { version } from '../package.json';
 
 const currentWindow = remote.getCurrentWindow();
 
-export default function FramelessTitleBar(props: any) {
+export default function FramelessTitleBar(props: {
+  setOpenUpdater: (boolean) => void;
+}) {
   const dispatch = useDispatch();
+  const { setOpenUpdater } = props;
+  const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
   const [oldPath, setOldPath] = useState<string>(workspace);
@@ -49,7 +53,6 @@ export default function FramelessTitleBar(props: any) {
     releaseName: '',
   });
   const [open, setOpen] = useState(false);
-  const { theme } = props;
 
   function onCloseReleaseNotes() {
     setOpen(false);
@@ -239,11 +242,15 @@ export default function FramelessTitleBar(props: any) {
         {
           label: 'Check for updates',
           async click() {
-            console.log(
-              await remote
-                .require('electron-updater')
-                .autoUpdater.checkForUpdates()
-            );
+            setOpenUpdater(true);
+          },
+        },
+        {
+          label: 'Check for updates (legacy)',
+          async click() {
+            await remote
+              .require('electron-updater')
+              .autoUpdater.checkForUpdatesAndNotify();
           },
         },
         {
