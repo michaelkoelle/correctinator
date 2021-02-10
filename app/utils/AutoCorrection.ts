@@ -64,6 +64,19 @@ export function autoCorrection(
           })
         );
         count += 1;
+      } else if (rating && !solution) {
+        // Solution is missing
+        dispatch(
+          ratingsUpdateOne({
+            id: rating.id,
+            changes: {
+              value: 0,
+              comment: 'Solution is missing',
+              autoCorrected: true,
+            },
+          })
+        );
+        count += 1;
       }
     });
     return count;
