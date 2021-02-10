@@ -80,6 +80,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       setUpdaterState(UpdaterState.UPDATE_DOWNLOADED);
       setTimeout(() => {
         ipcRenderer.send(IPCConstants.QUIT_AND_INSTALL_UPDATE);
+        setOpen(false);
       }, 1000);
     });
 
