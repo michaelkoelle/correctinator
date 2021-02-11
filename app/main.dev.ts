@@ -17,6 +17,12 @@ import { autoUpdater, UpdateCheckResult } from 'electron-updater';
 import MenuBuilder from './menu';
 import * as IPCConstants from './constants/ipc';
 
+class AppUpdater {
+  constructor() {
+    autoUpdater.autoDownload = false;
+  }
+}
+
 let mainWindow: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {
@@ -100,6 +106,9 @@ const createWindow = async () => {
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
+
+  // eslint-disable-next-line no-new
+  new AppUpdater();
 };
 
 /**
@@ -122,10 +131,10 @@ ipcMain.on(IPCConstants.CHECK_FOR_UPDATE_PENDING, (event) => {
       .then((checkResult: UpdateCheckResult) => {
         const { updateInfo } = checkResult;
         sender.send(IPCConstants.CHECK_FOR_UPDATE_SUCCESS, updateInfo);
-        return undefined;
+        return checkResult;
       })
-      .catch(() => {
-        sender.send(IPCConstants.CHECK_FOR_UPDATE_FAILURE);
+      .catch((e) => {
+        sender.send(IPCConstants.CHECK_FOR_UPDATE_FAILURE, e.message);
       });
   }
 });
@@ -141,8 +150,8 @@ ipcMain.on(IPCConstants.DOWNLOAD_UPDATE_PENDING, (event) => {
         sender.send(IPCConstants.DOWNLOAD_UPDATE_SUCCESS);
         return undefined;
       })
-      .catch(() => {
-        sender.send(IPCConstants.DOWNLOAD_UPDATE_FAILURE);
+      .catch((e) => {
+        sender.send(IPCConstants.DOWNLOAD_UPDATE_FAILURE, e.message);
       });
   }
 });

@@ -42,6 +42,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
     UpdaterState.CHECKING_FOR_UPDATE
   );
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | undefined>();
+  const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (open) {
@@ -52,7 +53,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
   useEffect(() => {
     ipcRenderer.on(
       IPCConstants.CHECK_FOR_UPDATE_SUCCESS,
-      (event, info: UpdateInfo | undefined) => {
+      (_event, info: UpdateInfo | undefined) => {
         const version = info && info.version;
         if (version && version !== currentAppVersion) {
           // Only start download if user confirms
@@ -70,8 +71,9 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       }
     );
 
-    ipcRenderer.on(IPCConstants.CHECK_FOR_UPDATE_FAILURE, () => {
+    ipcRenderer.on(IPCConstants.CHECK_FOR_UPDATE_FAILURE, (_event, err) => {
       // Trigger failure in your state.
+      setError(err);
       setOpen(false);
     });
 
@@ -84,8 +86,9 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       }, 1000);
     });
 
-    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_FAILURE, () => {
+    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_FAILURE, (_event, err) => {
       // Trigger failure in your state.
+      setError(err);
       setUpdaterState(UpdaterState.DOWNLOAD_FAILED);
     });
     return () => {
@@ -258,6 +261,17 @@ function UpdaterDialog(props: UpdaterDialogProps) {
               Download failed!
             </Typography>
           </Grid>
+          {error && (
+            <Grid item>
+              <Typography
+                color="error"
+                style={{ marginTop: '-20px' }}
+                gutterBottom
+              >
+                {error}
+              </Typography>
+            </Grid>
+          )}
           <Grid item container justify="center" alignItems="center" spacing={2}>
             <Grid item>
               <Button
