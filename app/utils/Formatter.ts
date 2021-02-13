@@ -95,10 +95,9 @@ export function serializeTasks(
     if (isRateableTask(task) && rating?.comment.text.trim().length > 0) {
       return `${wordWrap(rating.comment.text, 60, depth + 1)}\n`;
     }
+    // Unused right now
     if (isSingleChoiceTask(task) && rating.value === 0) {
-      const solution = `${task.name}${task.delimiter ? task.delimiter : ':'} ${
-        task.answer.text
-      }`;
+      const solution = `${task.name} -> ${task.answer.text}`;
       return `${wordWrap(solution, 60, depth + 1)}\n`;
     }
     return '';
@@ -120,6 +119,11 @@ export function serializeTasks(
         !isParentTask(task) && rating
           ? getComment(task, rating)
           : serializeTasks(subTasks, ratings, type, depth + 1, maxChars);
+      if (isSingleChoiceTask(task)) {
+        return `${indent}${taskName}${delimiter} ${
+          value !== undefined && value > 0 ? '✓' : `X (${task.answer.text})`
+        }\n`;
+      }
       return `${indent}${taskName}${delimiter} ${value}/${max} ${type}\n${commentOrSubtask}`;
     })
     .join('');
