@@ -112,7 +112,7 @@ export function exportCorrections(
     // Add rating file
     zip.addFile(
       Path.join(c.submission.name, parser.getConfigFileName(c)),
-      Buffer.alloc(content.length, content)
+      Buffer.from(content, 'utf-8')
     );
 
     // Add submission files folder
