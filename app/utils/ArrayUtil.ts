@@ -16,6 +16,9 @@ export function groupBy(list, keyGetter) {
 }
 
 export function zipCorrectionsAndMapToTime(rows: Correction[][]): number[][] {
+  if (rows === undefined || rows.length === 0) {
+    return [];
+  }
   const max = Math.max(...rows.map((r) => r.length));
   const index = rows.findIndex((c) => c.length === max);
   const array: Correction[] = rows[index];
