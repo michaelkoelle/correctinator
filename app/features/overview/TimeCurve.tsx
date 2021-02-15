@@ -30,8 +30,10 @@ export default function TimeCurve(props: TimeCurveProps) {
 
   function getTickValues(t: number, max: number): number[] {
     const v: number[] = [];
-    for (let i = 0; i <= max; i += Math.ceil(times.length / t)) {
-      v.push(i);
+    for (let i = 0; i <= t; i += 1) {
+      if (i * Math.ceil(times.length / t) <= max) {
+        v.push(i);
+      }
     }
     return v;
   }
@@ -53,7 +55,7 @@ export default function TimeCurve(props: TimeCurveProps) {
           0,
           times && times.length > 0
             ? times.reduce((acc, v) => (v > acc ? v : acc))
-            : 0,
+            : 10,
         ]}
         onMouseLeave={() => setHoveredPoint(undefined)}
         className={styles.plot}
@@ -62,7 +64,13 @@ export default function TimeCurve(props: TimeCurveProps) {
         }}
       >
         <LineSeries
-          data={data}
+          data={
+            data.length > 0
+              ? data
+              : new Array(15).fill(0).map((_v, i) => {
+                  return { x: i + 1, y: 0 };
+                })
+          }
           curve={curveCatmullRom.alpha(0.5)}
           stroke={
             theme.palette.type === 'dark'
