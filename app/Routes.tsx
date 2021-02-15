@@ -6,6 +6,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { ipcRenderer, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import { UpdateInfo } from 'electron-updater';
+import { Palette } from '@material-ui/icons';
 import routes from './constants/routes.json';
 import App from './containers/App';
 import SchemeGeneratorPage from './containers/SchemeGeneratorPage';
@@ -85,6 +86,7 @@ export default function Routes() {
             '@global': {
               '*::-webkit-scrollbar': {
                 width: '0.5em',
+                height: '0.5em',
               },
               '*::-webkit-scrollbar-track': {
                 '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)',
@@ -95,6 +97,9 @@ export default function Routes() {
                   : 'rgba(0,0,0,.2)',
                 outline: '1px solid slategrey',
                 borderRadius: '5px',
+              },
+              '*::-webkit-scrollbar-corner': {
+                opacity: 0,
               },
             },
           },
