@@ -51,6 +51,7 @@ import {
 import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
+import { overviewClearSelectedSheetWithId } from '../../model/OverviewSlice';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -109,6 +110,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     onCloseConfirmDialog();
     dispatch(saveAllCorrections());
     dispatch(schemaClearSelectedSheetWithId(sheet.id));
+    dispatch(overviewClearSelectedSheetWithId(sheet.id));
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
     dispatch(reloadState(workspace));
   }
