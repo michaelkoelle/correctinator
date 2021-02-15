@@ -31,8 +31,9 @@ export default function TimeCurve(props: TimeCurveProps) {
   function getTickValues(t: number, max: number): number[] {
     const v: number[] = [];
     for (let i = 0; i <= t; i += 1) {
-      if (i * Math.ceil(times.length / t) <= max) {
-        v.push(i);
+      const tick = i * Math.ceil(times.length / t);
+      if (tick <= max) {
+        v.push(tick);
       }
     }
     return v;
