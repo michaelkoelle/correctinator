@@ -121,7 +121,7 @@ export function serializeTasks(
           : serializeTasks(subTasks, ratings, type, depth + 1, maxChars);
       if (isSingleChoiceTask(task)) {
         return `${indent}${taskName}${delimiter} ${
-          value !== undefined && value > 0 ? '✓' : `X (${task.answer.text})`
+          value !== undefined && value > 0 ? '✔️' : `❌ (${task.answer.text})`
         }\n`;
       }
       return `${indent}${taskName}${delimiter} ${value}/${max} ${type}\n${commentOrSubtask}`;
