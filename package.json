@@ -1,7 +1,7 @@
 {
   "name": "correctinator",
   "productName": "correctinator",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Ein Korrekturprogramm mit Media Viewer für Uni2Work Bewertungsdateien.",
   "scripts": {
     "build": "concurrently \"yarn build-main\" \"yarn build-renderer\"",
@@ -292,6 +292,7 @@
     "react-transition-group": "^4.4.1",
     "react-viewer": "^3.2.2",
     "react-virtualized": "^9.22.2",
+    "react-vis": "^1.11.7",
     "redux": "^4.0.5",
     "redux-persist": "^6.0.0",
     "redux-thunk": "^2.3.0",

@@ -5,10 +5,7 @@ import {
   IconButton,
   Grid,
   Paper,
-  Typography,
-  Tooltip,
 } from '@material-ui/core';
-import WarningIcon from '@material-ui/icons/Warning';
 import React, { useState } from 'react';
 import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -23,6 +20,7 @@ import SchemeGeneratorPage from '../containers/SchemeGeneratorPage';
 import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
 import CorrectionViewPage from '../containers/CorrectionViewPage';
 import InfoDialog from './InfoDialog';
+import OverviewPage from '../containers/OverviewPage';
 
 const useStyle = makeStyles({
   indicator: {
@@ -81,7 +79,6 @@ export default function Navigation(): JSX.Element {
                 style={{
                   minWidth: '40px',
                 }}
-                disabled
               />
               <Tab
                 icon={<WidgetsIcon />}
@@ -137,24 +134,7 @@ export default function Navigation(): JSX.Element {
             value="1"
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
-            <Grid
-              container
-              direction="column"
-              justify="center"
-              alignItems="center"
-              style={{ height: '100%' }}
-            >
-              <Grid item>
-                <WarningIcon />
-              </Grid>
-              <Grid item>
-                <Typography>Under construction...</Typography>
-              </Grid>
-            </Grid>
-            {/*
-            <OverviewPage submissions={submissions} />
-          */}
-            2
+            <OverviewPage />
           </TabPanel>
           <TabPanel
             value="2"
