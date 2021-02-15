@@ -152,9 +152,6 @@ function verifyZipContents(zipPath, corrections, parser) {
   const zipVal = new AdmZip(zipPath);
   const zipEntries = zipVal.getEntries();
 
-  console.log(zipEntries);
-  console.log(corrections);
-
   const validation = corrections
     .map((c) => Path.join(c.submission.name, parser.getConfigFileName(c)))
     .map((path) => {
@@ -167,8 +164,6 @@ function verifyZipContents(zipPath, corrections, parser) {
       });
       return { path, valid: hit };
     });
-
-  console.log(validation);
 
   // If not all directories have been found in zip, throw error
   if (validation.filter((v) => !v.valid).length > 0) {
@@ -211,16 +206,21 @@ export function exportCorrections1(
         serializeCorrection(c, conditionalComments)
       );
 
+      // Add submission files folder
+      fs.readdirSync(Path.join(workspace, c.submission.name, 'files')).forEach(
+        (f) => {
+          const path = Path.join(workspace, c.submission.name, 'files', f);
+          const fBuffer = fs.readFileSync(path);
+          archive.append(fBuffer, {
+            name: Path.join(c.submission.name, 'files', f),
+          });
+        }
+      );
+
       // Add rating file
-      archive.append(content, {
+      archive.append(Buffer.from(content), {
         name: Path.join(c.submission.name, parser.getConfigFileName(c)),
       });
-
-      // Add submission files folder
-      archive.directory(
-        Path.join(workspace, c.submission.name, 'files'),
-        Path.join(c.submission.name, 'files')
-      );
     });
 
     archive.finalize();

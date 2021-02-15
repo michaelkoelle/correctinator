@@ -22,6 +22,14 @@ export type Uni2WorkDataStructure = {
       max: number;
       type: string;
     };
+    'exam-part'?: {
+      'exam-name': string;
+      'exam-part-number': number;
+    };
+    weight?: {
+      denominator: number;
+      numerator: number;
+    };
   };
   rated_by: string;
   rated_at: string | null;
@@ -68,6 +76,16 @@ export default class Uni2WorkParser implements Parser {
       status: Uni2WorkParser.deserializeStatus(u2wData.rating_done),
       location: Uni2WorkParser.deserializeLocation(u2wData.rated_at),
     };
+
+    // Exam Sheet
+    if (u2wData.sheet['exam-part'] && u2wData.sheet.weight) {
+      correction.submission.sheet.examPart = {
+        examName: u2wData.sheet['exam-part']['exam-name'],
+        examPartNumber: u2wData.sheet['exam-part']['exam-part-number'],
+      };
+      correction.submission.sheet.weight = u2wData.sheet.weight;
+    }
+
     correction.submission.correction = correction;
 
     return correction;
@@ -146,6 +164,14 @@ export default class Uni2WorkParser implements Parser {
           max: correction.submission.sheet.maxValue,
           type: correction.submission.sheet.valueType,
         },
+        'exam-part': correction.submission.sheet.examPart
+          ? {
+              'exam-name': correction.submission.sheet.examPart.examName,
+              'exam-part-number':
+                correction.submission.sheet.examPart.examPartNumber,
+            }
+          : undefined,
+        weight: correction.submission.sheet.weight,
       },
       rated_by: correction.corrector.name,
       rated_at:

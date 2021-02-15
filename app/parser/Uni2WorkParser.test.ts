@@ -248,6 +248,75 @@ const u2wTestData2: Uni2WorkDataStructure = {
   rating_done: false,
 };
 
+const u2wTestString3 = `term: SoSe 2020
+school: Institut für Informatik
+course: Rechnerarchitektur
+sheet:
+  name: Online-Hausarbeit 5
+  type: exam-part-points
+  grading:
+    max: 10
+    type: points
+  exam-part:
+    exam-name: Test Klausur
+    exam-part-number: 1
+  weight:
+    denominator: 1
+    numerator: 1
+rated_by: John Doe
+rated_at: null
+submission: uwazxvya2akrnnc2
+points: null
+rating_done: false
+...
+`;
+
+const correctionTestData3: Correction = {
+  id: '5475c708-3ced-5ff5-ad51-a1c12f8a2757',
+  submission: {
+    id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
+    name: 'uwazxvya2akrnnc2',
+    sheet: {
+      id: 'e9a0d6f5-14ab-55b2-9973-c3be7f1f7c73',
+      name: 'Online-Hausarbeit 5',
+      type: 'exam-part-points',
+      maxValue: 10,
+      valueType: 'points',
+      school: {
+        id: '344bd582-e110-53f6-a10c-6a14d6a7e291',
+        name: 'Institut für Informatik',
+      },
+      term: {
+        id: 'b91bb5ff-1141-53f7-96b5-2cafc53ce6ea',
+        year: 2020,
+        summerterm: true,
+      },
+      course: {
+        id: '73ae54b7-afdd-5912-a5d0-a1dd488fe912',
+        name: 'Rechnerarchitektur',
+      },
+      examPart: {
+        examName: 'Test Klausur',
+        examPartNumber: 1,
+      },
+      weight: {
+        denominator: 1,
+        numerator: 1,
+      },
+    },
+  },
+  corrector: {
+    id: 'b3aa67d2-4ae3-5441-860a-88ab5391673d',
+    name: 'John Doe',
+  },
+  status: Status.Todo,
+  location: {
+    id: '148bdfa9-7596-5319-a197-ead64880df40',
+    name: null,
+  },
+};
+correctionTestData3.submission.correction = correctionTestData3;
+
 // Term
 
 test('serializeTerm SoSe 2020', () => {
@@ -353,6 +422,10 @@ test('deserialize Correction u2wTestData1', () => {
 
 test('serialize correctionTestData2', () => {
   expect(parser.serialize(correctionTestData2)).toContain(u2wTestString2);
+});
+
+test('serialize Exam correctionTestData3', () => {
+  expect(parser.serialize(correctionTestData3)).toContain(u2wTestString3);
 });
 
 // Rating
