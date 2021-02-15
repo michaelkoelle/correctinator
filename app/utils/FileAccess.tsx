@@ -4,6 +4,7 @@ import fs from 'fs';
 import * as Path from 'path';
 import 'setimmediate';
 import AdmZip from 'adm-zip';
+import archiver from 'archiver';
 import { normalize } from 'normalizr';
 import { serializeCorrection } from './Formatter';
 import Correction from '../model/Correction';
@@ -112,7 +113,7 @@ export function exportCorrections(
     // Add rating file
     zip.addFile(
       Path.join(c.submission.name, parser.getConfigFileName(c)),
-      Buffer.from(content, 'utf-8')
+      Buffer.from(content, 'utf8')
     );
 
     // Add submission files folder
@@ -144,6 +145,86 @@ export function exportCorrections(
   if (validation.filter((v) => !v.valid).length > 0) {
     throw Error('Validation failed!');
   }
+}
+
+function verifyZipContents(zipPath, corrections, parser) {
+  // Verify zip contents
+  const zipVal = new AdmZip(zipPath);
+  const zipEntries = zipVal.getEntries();
+
+  console.log(zipEntries);
+  console.log(corrections);
+
+  const validation = corrections
+    .map((c) => Path.join(c.submission.name, parser.getConfigFileName(c)))
+    .map((path) => {
+      let hit = false;
+      zipEntries.forEach((entry) => {
+        console.log(entry.entryName, path);
+        if (entry.entryName === path.replace('\\', '/')) {
+          hit = true;
+        }
+      });
+      return { path, valid: hit };
+    });
+
+  console.log(validation);
+
+  // If not all directories have been found in zip, throw error
+  if (validation.filter((v) => !v.valid).length > 0) {
+    throw Error('Validation failed!');
+  }
+}
+
+export function exportCorrections1(
+  zipPath: string,
+  workspace: string,
+  parser: Parser,
+  corrections: Correction[],
+  conditionalComments: ConditionalComment[] = []
+) {
+  return new Promise((resolve, reject) => {
+    const output = fs.createWriteStream(zipPath);
+
+    output.on('close', () => {
+      try {
+        verifyZipContents(zipPath, corrections, parser);
+        resolve(zipPath);
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+    const archive = archiver('zip', {
+      zlib: { level: 9 },
+    });
+
+    archive.on('error', (e) => {
+      reject(e);
+    });
+
+    archive.pipe(output);
+
+    corrections.forEach((c) => {
+      const content = parser.serialize(
+        c,
+        serializeCorrection(c, conditionalComments)
+      );
+
+      // Add rating file
+      archive.append(content, {
+        name: Path.join(c.submission.name, parser.getConfigFileName(c)),
+      });
+
+      // Add submission files folder
+      archive.directory(
+        Path.join(workspace, c.submission.name, 'files'),
+        Path.join(c.submission.name, 'files')
+      );
+    });
+
+    archive.finalize();
+  });
 }
 
 function deleteFolderRecursive(path) {

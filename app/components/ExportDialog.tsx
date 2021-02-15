@@ -31,7 +31,7 @@ import { remote } from 'electron';
 import Path from 'path';
 import { useSelector } from 'react-redux';
 import { Alert } from '@material-ui/lab';
-import { exportCorrections } from '../utils/FileAccess';
+import { exportCorrections, exportCorrections1 } from '../utils/FileAccess';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import ConditionalComment from '../model/ConditionalComment';
 import Uni2WorkParser from '../parser/Uni2WorkParser';
@@ -217,6 +217,32 @@ export default function ExportDialog(props: {
       });
 
       if (path !== undefined) {
+        console.log('try');
+        exportCorrections1(
+          path,
+          workspace,
+          new Uni2WorkParser(),
+          correctionsToExport,
+          conditionalComment ? condComments : []
+        )
+          .then((v) => {
+            console.log('success');
+            setExportInProgress(false);
+            closeExportDialog();
+            setOpenSuccess(true);
+            return v;
+          })
+          .catch(() => {
+            console.log('error');
+            setError(error);
+            setExportInProgress(false);
+            closeExportDialog();
+            setOpenError(true);
+          });
+      }
+
+      /*
+      if (path !== undefined) {
         try {
           exportCorrections(
             path,
@@ -236,6 +262,7 @@ export default function ExportDialog(props: {
           setOpenError(true);
         }
       }
+*/
     }
   }
 
