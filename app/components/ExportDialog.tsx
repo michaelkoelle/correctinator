@@ -213,11 +213,10 @@ export default function ExportDialog(props: {
     if (correctionsToExport.length > 0) {
       setExportInProgress(true);
       const condComments: ConditionalComment[] = value.map((v, i) => {
-        return { text: comments[i], minPercentage: v };
+        return { text: comments[i], minPercentage: v / 100.0 };
       });
 
       if (path !== undefined) {
-        console.log('try');
         exportCorrections1(
           path,
           workspace,
@@ -226,14 +225,12 @@ export default function ExportDialog(props: {
           conditionalComment ? condComments : []
         )
           .then((v) => {
-            console.log('success');
             setExportInProgress(false);
             closeExportDialog();
             setOpenSuccess(true);
             return v;
           })
           .catch(() => {
-            console.log('error');
             setError(error);
             setExportInProgress(false);
             closeExportDialog();

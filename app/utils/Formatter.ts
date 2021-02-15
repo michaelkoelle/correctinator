@@ -158,9 +158,8 @@ export function serializeCorrection(
       ? `\n${wordWrap(correction.annotation.text, 60)}\n`
       : '';
   const conditionalComment = getConditionalCommentForValue(
-    (getRatingValueForTasks(tasks, ratings) /
-      correction.submission.sheet.maxValue) *
-      100,
+    getRatingValueForTasks(tasks, ratings) /
+      correction.submission.sheet.maxValue,
     conditionalComments
   ).text;
   const serializedConditionalComment =
