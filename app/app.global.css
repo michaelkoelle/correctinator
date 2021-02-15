@@ -4,6 +4,7 @@
  */
 @import '~@fortawesome/fontawesome-free/css/all.css';
 @import 'containers/SplitPane.css';
+@import '../node_modules/react-vis/dist/style.css';
 body {
   position: relative;
   color: black;

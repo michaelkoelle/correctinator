@@ -1,232 +1,138 @@
 /* eslint-disable react/display-name */
 import {
-  Button,
-  Dialog,
-  DialogTitle,
+  FormControl,
   Grid,
-  LinearProgress,
-  Typography,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
 } from '@material-ui/core';
 import React from 'react';
-import MUIDataTable from 'mui-datatables';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAllCorrectionsDenormalized } from '../../model/Selectors';
+import Correction from '../../model/Correction';
+import { getTotalValueOfRatings } from '../../utils/Formatter';
+import Histogram from './Histogram';
+import TimeCurve from './TimeCurve';
+import CorrectionTable from './CorrectionTable';
 import {
-  StylesProvider,
-  createMuiTheme,
-  MuiThemeProvider,
-} from '@material-ui/core/styles';
+  overviewSetSheetId,
+  selectOverviewSheetId,
+} from '../../model/OverviewSlice';
+import { groupBy, zipCorrectionsAndMapToTime } from '../../utils/ArrayUtil';
+import { selectAllSheets } from '../../model/SheetSlice';
+import SheetEntity from '../../model/SheetEntity';
 
-import { remote } from 'electron';
-import { getUniqueSheets, exportCorrections } from '../../utils/FileAccess';
-import LoadingItemList from '../../components/LoadingItemList';
-import Status from '../../model/Status';
-import StatusIcon from '../../components/StatusIcon';
-import ExportDialog from '../../components/ExportDialog';
+export default function Overview() {
+  const dispatch = useDispatch();
+  const sheets: SheetEntity[] = useSelector(selectAllSheets);
+  const selectedSheetId: string | undefined = useSelector(
+    selectOverviewSheetId
+  );
+  const allCorrections: Correction[] = useSelector(
+    selectAllCorrectionsDenormalized
+  );
+  const corrections: Correction[] = selectedSheetId
+    ? allCorrections.filter((c) => c.submission.sheet.id === selectedSheetId)
+    : allCorrections;
 
-const columns = [
-  {
-    name: 'status',
-    label: 'Status',
-    options: {
-      customBodyRender: (value: Status) => <StatusIcon status={value} />,
-    },
-  },
-  {
-    name: 'submission',
-    label: 'ID',
-  },
-  {
-    name: 'sheet.name',
-    label: 'Sheet',
-  },
-  {
-    name: 'sheet.type',
-    label: 'Sheet Type',
-  },
-  { name: 'points', label: 'Value' },
-  {
-    name: 'sheet.grading.max',
-    label: 'Max',
-  },
-  {
-    name: 'sheet.grading.type',
-    label: 'Type',
-  },
-  { name: 'term', label: 'Term' },
-  { name: 'school', label: 'School' },
-  { name: 'course', label: 'Course' },
-  { name: 'rated_by', label: 'Rated by' },
-  { name: 'note', label: 'Note' },
-];
+  const ratings: number[] = corrections
+    ? corrections
+        // .filter((c) => c.status === Status.Done)
+        .map((c) =>
+          c.ratings
+            ? getTotalValueOfRatings(c.ratings) / c.submission.sheet.maxValue
+            : 0
+        )
+    : [];
 
-export default function Overview(props: any) {
-  const { submissions } = props;
-  const [open, setOpen] = React.useState(false);
-  const [exportDialog, setExportDialog] = React.useState(false);
-  const [progress] = React.useState(0) as any;
-  const [summaryProgress] = React.useState([]) as any;
-  const [selected, setSelected] = React.useState([]) as any;
-
-  function onExportSubmissions() {
-    setExportDialog(true);
+  function calcAvgTimesOfAllCorrections(aC: Correction[]): number[] {
+    const grouped: Map<string, Correction[]> = groupBy(
+      aC,
+      (c: Correction) => c.submission.sheet.id
+    );
+    return zipCorrectionsAndMapToTime(Array.from(grouped.values())).map((ta) =>
+      ta !== undefined
+        ? ta.reduce((a, v) => (v !== undefined ? a + v : a), 0) / ta.length
+        : 0
+    );
   }
 
-  function onSelectionChange(_selected: any, allRowsSelected: any[]): void {
-    const sel: any[] = [];
-    allRowsSelected.forEach((row) => {
-      sel.push(submissions[row.dataIndex]);
-    });
-    setSelected(sel);
-  }
+  const times: number[] =
+    selectedSheetId && corrections
+      ? corrections
+          // .filter((c) => c.status === Status.Done)
+          .map((c) => (c.timeElapsed ? c.timeElapsed : 0))
+      : calcAvgTimesOfAllCorrections(allCorrections);
 
-  function onCloseExportDialog() {
-    setExportDialog(false);
-  }
-
-  /*
-  function timeout(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  async function onOpen() {
-    const path: string = await openDirectory();
-    const files = getAllFilesInDirectory(path);
-
-    setProgress(0);
-    setOpen(true);
-    setSummaryProgress([
-      {
-        message: 'Searching for submissions...',
-        active: true,
-        complete: false,
-      },
-    ]);
-
-    await timeout(1000);
-
-    console.log(files);
-    const ratingFiles: string[] = getAllRatingFiles(path);
-    console.log(ratingFiles);
-    const submissionDirectories: string[] = getAllSubmissionDirectories(path);
-    await timeout(1000);
-    setSummaryProgress([
-      {
-        message: 'Searching for submissions...',
-        active: true,
-        complete: true,
-      },
-    ]);
-    setProgress(30);
-
-    setSummaryProgress([
-      {
-        message: 'Searching for submissions...',
-        active: true,
-        complete: true,
-      },
-      {
-        message: `Creating stuctures [0/${submissionDirectories.length}]...`,
-        active: true,
-        complete: false,
-      },
-    ]);
-    await timeout(1000);
-    const subs: any[] = [];
-    submissionDirectories.forEach((dir, i) => {
-      const temp = createSubmissionFileStruture(dir);
-      temp.id = i;
-      subs.push(temp);
-    });
-    // loadSubmissions();
-    setSummaryProgress([
-      {
-        message: 'Searching for submissions...',
-        active: true,
-        complete: true,
-      },
-      {
-        message: `Creating stuctures [${submissionDirectories.length}/${submissionDirectories.length}]...`,
-        active: true,
-        complete: true,
-      },
-    ]);
-    setProgress(100);
-    setTimeout(() => setOpen(false), 1000);
-  }
-*/
   return (
     <Grid
       container
-      direction="column"
-      wrap="nowrap"
       style={{
         height: 'calc(100% - 29px)',
       }}
     >
-      <Grid container justify="space-between" alignItems="center">
-        <Grid item>
-          <Typography variant="h3">Overview</Typography>
+      <Grid
+        item
+        xs={8}
+        style={{ height: '100%', padding: '20px 10px 20px 10px' }}
+      >
+        <Grid style={{ padding: '10px 10px 10px 10px' }}>
+          <FormControl size="small" variant="outlined">
+            <InputLabel id="sheet-select-label">Selected Sheet</InputLabel>
+            <Select
+              labelId="task-type-select-label"
+              id="task-type-select"
+              variant="outlined"
+              value={selectedSheetId || 'all'}
+              onChange={(e) => {
+                const value = e.target.value as string;
+                const id = value === 'all' ? undefined : value;
+                dispatch(overviewSetSheetId(id));
+              }}
+              style={{ minWidth: '15em' }}
+              label="Selected Sheet"
+            >
+              <MenuItem value="all">All Sheets</MenuItem>
+              {sheets.map((s) => (
+                <MenuItem key={s.id} value={s.id}>
+                  {s.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="secondary"
-            style={{
-              width: 'fit-content',
-              marginTop: '16px',
-              marginBottom: '16px',
-              marginRight: '16px',
-            }}
-            onClick={onExportSubmissions}
-            disabled={selected.length <= 0}
-          >
-            Export selected submissions
-          </Button>
+        <Grid
+          style={{
+            height: 'calc(100% - 20px)',
+            padding: '10px 10px 20px 10px',
+          }}
+        >
+          <CorrectionTable corrections={corrections} />
         </Grid>
       </Grid>
       <Grid
+        container
+        direction="column"
         item
+        wrap="nowrap"
+        xs={4}
         style={{
-          flex: '1 1 0%',
-          height: '0px',
-          overflow: 'auto',
-          padding: '2px',
-          marginRight: '16px',
-          marginBottom: '16px',
+          height: '100%',
         }}
       >
-        <MUIDataTable
-          title="Submission Overview"
-          data={submissions}
-          columns={columns}
-          style={{ userSelect: 'none' }}
-          options={{
-            enableNestedDataAccess: '.',
-            print: false,
-            pagination: false,
-            selectableRows: 'muliple',
-            selectableRowsHideCheckboxes: true,
-            selectableRowsOnClick: true,
-            selectToolbarPlacement: 'none',
-            responsive: 'simple',
-            onRowSelectionChange: onSelectionChange,
-            setTableProps: () => {
-              return {
-                padding: 'none',
-                size: 'small',
-              };
-            },
-          }}
-        />
-        <ExportDialog
-          open={exportDialog}
-          handleClose={onCloseExportDialog}
-          correctionsToExport={selected}
-        />
-        <Dialog open={open}>
-          <DialogTitle>Submission import</DialogTitle>
-          <LoadingItemList progress={summaryProgress} />
-          <LinearProgress variant="determinate" value={progress} />
-        </Dialog>
+        <Grid item xs={12} style={{ padding: '20px 10px 10px 10px' }}>
+          <Histogram ratings={ratings} />
+        </Grid>
+        <Grid item xs={12} style={{ padding: '10px 10px 20px 10px' }}>
+          <Paper
+            style={{
+              height: '100%',
+            }}
+          >
+            <TimeCurve times={times} />
+          </Paper>
+        </Grid>
       </Grid>
     </Grid>
   );

@@ -81,11 +81,6 @@ export default function Routes() {
           type: shouldUseDarkColors ? 'dark' : 'light',
         },
         overrides: {
-          MuiTableCell: {
-            root: {
-              userSelect: 'none',
-            },
-          },
           MuiCssBaseline: {
             '@global': {
               '*::-webkit-scrollbar': {

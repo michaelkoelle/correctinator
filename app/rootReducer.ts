@@ -21,6 +21,7 @@ import ratingsReducer from './model/RatingSlice';
 import correctionPageReducer from './model/CorrectionPageSlice';
 import saveReducer from './model/SaveSlice';
 import sheetOverviewReducer from './model/SheetOverviewSlice';
+import overviewReducer from './model/OverviewSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
@@ -44,5 +45,6 @@ export default function createRootReducer(history: History) {
     ratings: ratingsReducer,
     save: saveReducer,
     sheetOverview: sheetOverviewReducer,
+    overview: overviewReducer,
   });
 }
