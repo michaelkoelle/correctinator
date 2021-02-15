@@ -23,6 +23,7 @@ const useStyles = makeStyles({
 
 export default function TimeCurve(props: TimeCurveProps) {
   const { times } = props;
+
   const theme = useTheme();
   const styles = useStyles();
   const [hoveredPoint, setHoveredPoint] = useState<VerticalBarSeriesPoint>();
@@ -68,6 +69,10 @@ export default function TimeCurve(props: TimeCurveProps) {
               ? theme.palette.primary.dark
               : theme.palette.primary.light
           }
+          style={{
+            strokeLinejoin: 'round',
+            strokeWidth: 4,
+          }}
           onNearestX={(value) => setHoveredPoint(value)}
         />
         <XAxis
@@ -92,7 +97,14 @@ export default function TimeCurve(props: TimeCurveProps) {
           <Hint
             value={hoveredPoint}
             format={(d) => [
-              { title: 'Time', value: `${msToTime(d.y).substring(3)} min` },
+              {
+                title: 'Time',
+                value: `${
+                  d.y > 60 * 60 * 1000
+                    ? msToTime(d.y)
+                    : msToTime(d.y).substring(3)
+                } min`,
+              },
             ]}
           />
         )}

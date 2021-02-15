@@ -103,7 +103,11 @@ export default function CorrectionTable(props: CorrectionTableProps) {
               <TableCell>{row.term}</TableCell>
               <TableCell>{row.sheet}</TableCell>
               <TableCell>{`${row.rating} / ${row.max}`}</TableCell>
-              <TableCell>{msToTime(row.time).substring(3)}</TableCell>
+              <TableCell>
+                {row.time > 60 * 60 * 1000
+                  ? msToTime(row.time)
+                  : msToTime(row.time).substring(3)}
+              </TableCell>
               <TableCell>{row.note}</TableCell>
             </TableRow>
           ))}
