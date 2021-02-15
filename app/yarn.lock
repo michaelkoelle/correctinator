@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@types/adm-zip@^0.4.33":
+  version "0.4.33"
+  resolved "https://registry.yarnpkg.com/@types/adm-zip/-/adm-zip-0.4.33.tgz#ea5b94f771443f655613b64f920c0555867200dd"
+  integrity sha512-WM0DCWFLjXtddl0fu0+iN2ZF+qz8RF9RddG5OSy/S90AQz01Fu8lHn/3oTIZDxvG8gVcnBLAHMHOdBLbV6m6Mw==
+  dependencies:
+    "@types/node" "*"
+
 "@types/archiver@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@types/archiver/-/archiver-3.1.1.tgz#10cc1be44af8911e57484342c7b3b32a5f178a1a"
@@ -63,6 +70,13 @@
   integrity sha512-ngNe2AY/2CHuZQstOS0Jo5jnSjeyKTdSgqrXCQEltRMXLp9rwPUpJdgkoWzES6wn427Z8zo8dkBN8Sx7hlRmig==
   dependencies:
     "@types/prop-types" "*"
+    "@types/react" "*"
+
+"@types/react-vis@^1.11.5":
+  version "1.11.5"
+  resolved "https://registry.yarnpkg.com/@types/react-vis/-/react-vis-1.11.5.tgz#60442aae4dff9022254f48fa1b985678c8e45e74"
+  integrity sha512-siCSR0RiKdwYmmEYLO2Jy3ejn3tWsUSFFAheyLI2Qevny9cFb/LC0zjsjfu7Nm0dXVrlY+QwRukPmVVZ3CkVOg==
+  dependencies:
     "@types/react" "*"
 
 "@types/react@*":
