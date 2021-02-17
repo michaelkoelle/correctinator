@@ -157,7 +157,6 @@ function verifyZipContents(zipPath, corrections, parser) {
     .map((path) => {
       let hit = false;
       zipEntries.forEach((entry) => {
-        console.log(entry.entryName, path);
         if (entry.entryName === path.replace('\\', '/')) {
           hit = true;
         }
