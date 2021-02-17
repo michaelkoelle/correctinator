@@ -190,6 +190,7 @@ export default function MediaViewer(props: MediaViewerProps) {
                   size="medium"
                   aria-label="add"
                   onClick={onPreviousFile}
+                  disabled={files.length === 1}
                 >
                   <NavigateBeforeIcon />
                 </IconButton>
@@ -208,9 +209,16 @@ export default function MediaViewer(props: MediaViewerProps) {
             </Grid>
             <Grid item>
               <Tooltip title="Zoom in">
-                <IconButton size="medium" aria-label="add" onClick={onZoomIn}>
-                  <AddIcon />
-                </IconButton>
+                <span>
+                  <IconButton
+                    size="medium"
+                    aria-label="add"
+                    onClick={onZoomIn}
+                    disabled={scale >= ZOOMMAX}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
             </Grid>
             <Grid item>
@@ -220,9 +228,16 @@ export default function MediaViewer(props: MediaViewerProps) {
             </Grid>
             <Grid item>
               <Tooltip title="Zoom out">
-                <IconButton size="medium" aria-label="add" onClick={onZoomOut}>
-                  <RemoveIcon />
-                </IconButton>
+                <span>
+                  <IconButton
+                    size="medium"
+                    aria-label="add"
+                    onClick={onZoomOut}
+                    disabled={scale <= ZOOMMIN}
+                  >
+                    <RemoveIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
             </Grid>
             <Grid item>
@@ -238,7 +253,12 @@ export default function MediaViewer(props: MediaViewerProps) {
             </Grid>
             <Grid item>
               <Tooltip title="Next file">
-                <IconButton size="medium" aria-label="add" onClick={onNextFile}>
+                <IconButton
+                  size="medium"
+                  aria-label="add"
+                  onClick={onNextFile}
+                  disabled={files.length === 1}
+                >
                   <NavigateNextIcon />
                 </IconButton>
               </Tooltip>
@@ -249,6 +269,7 @@ export default function MediaViewer(props: MediaViewerProps) {
                   size="medium"
                   aria-label="add"
                   onClick={onResetScale}
+                  disabled={scale === 1}
                 >
                   <CropFreeIcon />
                 </IconButton>
