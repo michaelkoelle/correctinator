@@ -11,24 +11,65 @@ import CorrectionEntity from '../model/CorrectionEntity';
 import { correctionsUpdateOne } from '../model/CorrectionsSlice';
 import Status from '../model/Status';
 
+enum SolutionsStatus {
+  NO_OCCURENCE,
+  SINGLE_OCCURENCE,
+  MULTIPLE_OCCURENCES,
+}
+
+type NoSolutionFound = {
+  status: SolutionsStatus.NO_OCCURENCE;
+};
+
+type SingleSolutionFound = {
+  status: SolutionsStatus.SINGLE_OCCURENCE;
+  text: string;
+};
+
+type MultipleSolutionsFound = {
+  status: SolutionsStatus.MULTIPLE_OCCURENCES;
+  texts: string[];
+};
+
+type Solution = SingleSolutionFound | MultipleSolutionsFound | NoSolutionFound;
+
 export function extractStudentSolution(
-  text: string
-): Map<string, string> | undefined {
-  const solution: Map<string, string> = new Map<string, string>();
-
-  // Extracts <one char>[)|:|=][i|v]
-  const pattern = /(\w)[ |\t]*?[)|:|=]\s*[(]?\s*([i|v]+)/gim;
-
-  const matches = text.matchAll(pattern);
-
-  Array.from(matches).forEach((match) => {
-    if (match && match.length === 3) {
-      const [, taskName, solutionText] = match;
-      solution.set(taskName, solutionText);
-    }
+  texts: string[],
+  task: SingleChoiceTask
+): Solution {
+  // Extracts <taskName>[)|:|=][i|v]
+  const re = new RegExp(
+    `(${task.name})[ |\\t]*?[)|:|=][ |\\t]*[(]?[ |\\t]*([i|v]+)`,
+    'gim'
+  );
+  const solutions: string[] = [];
+  texts.forEach((text) => {
+    const matches = text.matchAll(re);
+    Array.from(matches).forEach((match) => {
+      if (match && match.length === 3) {
+        const [, , solutionText] = match;
+        solutions.push(solutionText);
+      }
+    });
   });
 
-  return solution.size > 0 ? solution : undefined;
+  const solution = solutions.length >= 0 ? solutions[0] : undefined;
+
+  if (solutions.length === 1 && solution !== undefined) {
+    return {
+      status: SolutionsStatus.SINGLE_OCCURENCE,
+      text: solution,
+    };
+  }
+
+  if (solutions.length > 1) {
+    return {
+      status: SolutionsStatus.MULTIPLE_OCCURENCES,
+      texts: solutions,
+    };
+  }
+
+  return { status: SolutionsStatus.NO_OCCURENCE };
 }
 
 export function determineValue(
@@ -42,7 +83,7 @@ export function determineValue(
 
 export function autoCorrection(
   tasks: SingleChoiceTask[],
-  studentSolution: Map<string, string>,
+  texts: string[],
   ratingIds: string[]
 ) {
   return (dispatch, getState) => {
@@ -52,33 +93,52 @@ export function autoCorrection(
       (id) => state.ratings.entities[id]
     );
 
+    const potentialMissing: { ratingId: string; solution: Solution }[] = [];
+
     tasks.forEach((t) => {
-      const solution = studentSolution.get(t.name);
+      const solution: Solution = extractStudentSolution(texts, t);
       const rating = ratings.find((r) => r.task === t.id);
-      if (rating && solution) {
-        const value = determineValue(t, solution);
+      if (rating) {
+        switch (solution.status) {
+          case SolutionsStatus.NO_OCCURENCE:
+            potentialMissing.push({ ratingId: rating.id, solution });
+            break;
+          case SolutionsStatus.SINGLE_OCCURENCE:
+            dispatch(
+              ratingsUpdateOne({
+                id: rating.id,
+                changes: {
+                  value: determineValue(t, solution.text),
+                  autoCorrected: true,
+                },
+              })
+            );
+            count += 1;
+            break;
+          case SolutionsStatus.MULTIPLE_OCCURENCES:
+            // @TODO show in UI
+            break;
+          default:
+        }
+      }
+    });
+
+    // If more than one task can be answered consider the other ones missing
+    if (potentialMissing.length !== tasks.length) {
+      potentialMissing.forEach((m) => {
         dispatch(
           ratingsUpdateOne({
-            id: rating.id,
-            changes: { value, autoCorrected: true },
-          })
-        );
-        count += 1;
-      } else if (rating && !solution) {
-        // Solution is missing
-        dispatch(
-          ratingsUpdateOne({
-            id: rating.id,
+            id: m.ratingId,
             changes: {
               value: 0,
-              comment: 'Solution is missing',
               autoCorrected: true,
             },
           })
         );
         count += 1;
-      }
-    });
+      });
+    }
+
     return count;
   };
 }
@@ -106,30 +166,26 @@ export function autoCorrectSingleChoiceTasksOfSheet(sheetId: string) {
       ).filter((f) => Path.extname(f) === '.txt');
 
       // Extract the student solution from every .txt files
-      let studentSolution: Map<string, string> | undefined;
-      txtFiles.forEach((f) => {
-        const text = fs.readFileSync(f, { encoding: 'utf8' });
-        const sol = extractStudentSolution(text);
-        // Only consider the one with the most matches
-        if (
-          (sol && !studentSolution) ||
-          (sol && studentSolution && studentSolution.size < sol.size)
-        ) {
-          studentSolution = sol;
-        }
+      const texts: string[] = txtFiles.map((f) => {
+        return fs.readFileSync(f, { encoding: 'utf8' });
       });
 
       // For Every student solution try to correct it
       const sheet: SheetEntity = state.sheets.entities[sheetId];
-      if (sheet && sheet.tasks && studentSolution && c.ratings) {
+      if (sheet && sheet.tasks && c.ratings) {
         const tasks: SingleChoiceTask[] = getRateableTasksFromIds(
           sheet.tasks,
           state
         ).filter((t) => isSingleChoiceTask(t)) as SingleChoiceTask[];
-        taskCount += dispatch(
-          autoCorrection(tasks, studentSolution, c.ratings)
+        const taskCountDelta = dispatch(
+          autoCorrection(tasks, texts, c.ratings)
         );
-        subCount += 1;
+        taskCount += taskCountDelta;
+
+        if (taskCountDelta > 0) {
+          subCount += 1;
+        }
+
         const ratings = getState().ratings.entities;
         // if all ratings of the correction are autocorrected status is set to done
         if (
