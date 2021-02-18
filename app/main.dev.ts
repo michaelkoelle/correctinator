@@ -137,14 +137,20 @@ ipcMain.on(IPCConstants.DOWNLOAD_UPDATE_PENDING, (event) => {
   if (process.env.NODE_ENV === 'development') {
     setTimeout(() => sender.send(IPCConstants.DOWNLOAD_UPDATE_SUCCESS), 3000);
   } else {
+    const updateProgress = (progressObj) => {
+      sender.send(IPCConstants.DOWNLOAD_UPDATE_PROGRESS, progressObj.percent);
+    };
+    autoUpdater.on('download-progress', updateProgress);
     const result = autoUpdater.downloadUpdate();
     result
       .then(() => {
         sender.send(IPCConstants.DOWNLOAD_UPDATE_SUCCESS);
+        autoUpdater.removeListener('download-progress', updateProgress);
         return undefined;
       })
       .catch((e) => {
         sender.send(IPCConstants.DOWNLOAD_UPDATE_FAILURE, e.message);
+        autoUpdater.removeListener('download-progress', updateProgress);
       });
   }
 });

@@ -15,6 +15,7 @@ import { ipcRenderer, shell } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { version as currentAppVersion } from '../package.json';
 import * as IPCConstants from '../constants/ipc';
+import CircularProgressWithLabel from './CircularProgressWithLabel';
 
 type UpdaterDialogProps = {
   open: boolean;
@@ -42,6 +43,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
     UpdaterState.CHECKING_FOR_UPDATE
   );
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | undefined>();
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -77,6 +79,10 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       setOpen(false);
     });
 
+    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_PROGRESS, (_event, percent) => {
+      setDownloadProgress(percent);
+    });
+
     ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_SUCCESS, () => {
       // Update state for download complete
       setUpdaterState(UpdaterState.UPDATE_DOWNLOADED);
@@ -96,6 +102,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       ipcRenderer.removeAllListeners(IPCConstants.CHECK_FOR_UPDATE_FAILURE);
       ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_SUCCESS);
       ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_FAILURE);
+      ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_PROGRESS);
     };
   }, [setOpen, showNotAvailiable]);
 
@@ -241,7 +248,11 @@ function UpdaterDialog(props: UpdaterDialogProps) {
             <Typography gutterBottom>Downloading update...</Typography>
           </Grid>
           <Grid item>
-            <CircularProgress size={30} />
+            {downloadProgress === 0 ? (
+              <CircularProgress size={30} />
+            ) : (
+              <CircularProgressWithLabel value={downloadProgress} size={30} />
+            )}
           </Grid>
         </Grid>
       );
