@@ -183,6 +183,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
               item
               container
               direction="column"
+              alignItems="flex-end"
               style={{ width: 'fit-content' }}
             >
               <Grid item>
@@ -192,10 +193,10 @@ export default function CorrectionView(props: CorrectionViewProps) {
                 />
               </Grid>
               <Grid item>
-                <TimeRemaining corrections={corrections} />
+                <TimeAverage corrections={corrections} />
               </Grid>
               <Grid item>
-                <TimeAverage corrections={corrections} />
+                <TimeRemaining corrections={corrections} />
               </Grid>
             </Grid>
           )}

@@ -215,7 +215,7 @@ export default function ExportDialog(props: {
       const condComments: ConditionalComment[] = value.map((v, i) => {
         return { text: comments[i], minPercentage: v / 100.0 };
       });
-      /*
+
       if (path !== undefined) {
         exportCorrections1(
           path,
@@ -236,7 +236,8 @@ export default function ExportDialog(props: {
             closeExportDialog();
             setOpenError(true);
           });
-      } */
+      }
+      /*
       if (path !== undefined) {
         try {
           exportCorrections(
@@ -256,6 +257,7 @@ export default function ExportDialog(props: {
           setOpenError(true);
         }
       }
+      */
     }
   }
 

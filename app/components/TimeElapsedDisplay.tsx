@@ -26,7 +26,7 @@ export default function TimeElapsedDisplay(props: TimeElapsedDisplayProps) {
     <Tooltip title="Elapsed time for this correction">
       <Typography>
         <i className="fas fa-stopwatch" style={{ marginRight: '10px' }} />
-        {time}
+        {time.substring(3)}
       </Typography>
     </Tooltip>
   );

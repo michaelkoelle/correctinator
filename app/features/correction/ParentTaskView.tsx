@@ -92,7 +92,7 @@ function ParentTaskView(props: ParentTaskViewProps) {
         dispatch(
           commentsUpdateOne({
             id: rating.comment.id,
-            changes: { text: 'Lösung fehlt' },
+            changes: { text: 'Missing Solution' },
           })
         );
       });

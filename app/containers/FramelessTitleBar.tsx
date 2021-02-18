@@ -111,11 +111,13 @@ export default function FramelessTitleBar(props: {
                 const dir: string = await openDirectory();
                 setOldPath(workspace);
                 dispatch(saveAllCorrections());
-                const filesToCopy: string[] = fse.readdirSync(workspace);
-                dispatch(workspaceSetPath(dir));
-                if (filesToCopy.length > 0) {
-                  setOpenMoveFilesDialog(true);
+                if (fse.existsSync(workspace)) {
+                  const filesToCopy: string[] = fse.readdirSync(workspace);
+                  if (filesToCopy.length > 0) {
+                    setOpenMoveFilesDialog(true);
+                  }
                 }
+                dispatch(workspaceSetPath(dir));
                 dispatch(reloadState(dir));
               },
             },

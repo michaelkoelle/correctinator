@@ -17,7 +17,7 @@ export default function TimeAverage(props: TimeAverageProps) {
     >
       <Typography>
         <span style={{ marginRight: '10px' }}>Ø</span>
-        {msToTime(getAverageCorrectionTime(last, corrections))}
+        {msToTime(getAverageCorrectionTime(last, corrections)).substring(3)}
       </Typography>
     </Tooltip>
   );

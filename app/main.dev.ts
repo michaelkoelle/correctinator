@@ -72,16 +72,9 @@ const createWindow = async () => {
     minHeight: 600, // and a min height!
     // Remove the window frame from windows applications
     frame: false,
-    webPreferences:
-      (process.env.NODE_ENV === 'development' ||
-        process.env.E2E_BUILD === 'true') &&
-      process.env.ERB_SECURE !== 'true'
-        ? {
-            nodeIntegration: true,
-          }
-        : {
-            preload: path.join(__dirname, 'dist/renderer.prod.js'),
-          },
+    webPreferences: {
+      nodeIntegration: true,
+    },
   });
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
@@ -144,14 +137,20 @@ ipcMain.on(IPCConstants.DOWNLOAD_UPDATE_PENDING, (event) => {
   if (process.env.NODE_ENV === 'development') {
     setTimeout(() => sender.send(IPCConstants.DOWNLOAD_UPDATE_SUCCESS), 3000);
   } else {
+    const updateProgress = (progressObj) => {
+      sender.send(IPCConstants.DOWNLOAD_UPDATE_PROGRESS, progressObj.percent);
+    };
+    autoUpdater.on('download-progress', updateProgress);
     const result = autoUpdater.downloadUpdate();
     result
       .then(() => {
         sender.send(IPCConstants.DOWNLOAD_UPDATE_SUCCESS);
+        autoUpdater.removeListener('download-progress', updateProgress);
         return undefined;
       })
       .catch((e) => {
         sender.send(IPCConstants.DOWNLOAD_UPDATE_FAILURE, e.message);
+        autoUpdater.removeListener('download-progress', updateProgress);
       });
   }
 });
