@@ -23,7 +23,7 @@ function TaskCommentInput(props: TaskCommentInputProps) {
           (c) =>
             c &&
             c.text !== '' &&
-            c.task === ((comment.task as unknown) as string)
+            c.task === ((comment.task.id as unknown) as string)
         )
         .map((c) => c.text)
     ),
