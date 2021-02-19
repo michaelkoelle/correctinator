@@ -229,13 +229,6 @@ export default function FramelessTitleBar(props: {
                     : 'dark';
                 },
               },
-              {
-                label: 'Toggle Developer Tools',
-                accelerator: 'Alt+Ctrl+I',
-                click: () => {
-                  currentWindow.webContents.toggleDevTools();
-                },
-              },
             ],
     },
     {
