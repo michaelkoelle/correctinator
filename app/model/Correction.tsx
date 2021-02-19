@@ -17,6 +17,7 @@ type Correction = {
   note?: Note;
   annotation?: Annotation;
   timeElapsed?: number;
+  autoCorrectionAttempted?: boolean;
 };
 
 export default Correction;

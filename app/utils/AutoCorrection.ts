@@ -199,6 +199,13 @@ export function autoCorrectSingleChoiceTasksOfSheet(sheetId: string) {
           );
         }
       }
+
+      dispatch(
+        correctionsUpdateOne({
+          id: c.id,
+          changes: { autoCorrectionAttempted: true },
+        })
+      );
     });
     return { taskCount, subCount };
   };

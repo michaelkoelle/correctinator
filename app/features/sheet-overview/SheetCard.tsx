@@ -19,6 +19,7 @@ import {
   Snackbar,
   Tooltip,
   Typography,
+  useTheme,
 } from '@material-ui/core';
 import React, { useState } from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
@@ -52,9 +53,12 @@ import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection'
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
 import { overviewClearSelectedSheetWithId } from '../../model/OverviewSlice';
+import Histogram from '../overview/Histogram';
+import { getTotalValueOfRatings } from '../../utils/Formatter';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
+  const theme = useTheme();
   const workspace = useSelector(selectWorkspacePath);
   const entities = useSelector(selectAllEntities);
   const sheet: Sheet = denormalize(props.sheet, SheetSchema, entities);
@@ -69,6 +73,25 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     taskCount: number;
     subCount: number;
   }>({ taskCount: 0, subCount: 0 });
+
+  const notInitialized =
+    corrections.filter(
+      (c) =>
+        c?.ratings === undefined ||
+        c?.ratings?.length === 0 ||
+        c?.submission.sheet.tasks === undefined ||
+        c?.submission.sheet.tasks?.length === 0
+    ).length > 0;
+
+  const autoCorrectionAvailiable =
+    sheet.tasks &&
+    getRateableTasks(sheet.tasks).filter((t) => isSingleChoiceTask(t))
+      .length !== 0;
+  const correctionsFinished =
+    corrections.filter((c) => c.status !== Status.Done).length === 0;
+  const autoCorrectionAttempted =
+    corrections.length !== 0 &&
+    corrections.filter((c) => c.autoCorrectionAttempted !== true).length === 0;
 
   function onStartCorrection() {
     dispatch(correctionPageSetSheetId(sheet.id));
@@ -122,19 +145,6 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     setOpenAutoCorrectionInfo(true);
   }
 
-  function missingSchemas() {
-    // TODO Add new status not_initialized
-    return (
-      corrections.filter(
-        (c) =>
-          c?.ratings === undefined ||
-          c?.ratings?.length === 0 ||
-          c?.submission.sheet.tasks === undefined ||
-          c?.submission.sheet.tasks?.length === 0
-      ).length > 0
-    );
-  }
-
   return (
     <ListItem style={{ width: 'fit-content', margin: '0 auto' }}>
       <Card elevation={4}>
@@ -153,14 +163,10 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
               >
                 <MenuItem onClick={onExport}>Export corrections</MenuItem>
                 <MenuItem onClick={onOpenConfirmDialog}>Delete sheet</MenuItem>
+                <MenuItem onClick={onCreateSchema}>New task schema</MenuItem>
                 <MenuItem
                   onClick={onAutoCorrectSingleChoiceTasks}
-                  disabled={
-                    !sheet.tasks ||
-                    getRateableTasks(sheet.tasks).filter((t) =>
-                      isSingleChoiceTask(t)
-                    ).length === 0
-                  }
+                  disabled={!autoCorrectionAvailiable}
                 >
                   Auto correct single choice tasks
                 </MenuItem>
@@ -186,100 +192,116 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
           title={sheet.name}
         />
         <CardContent>
-          <Grid
-            item
-            container
-            direction="row"
-            justify="space-between"
-            alignItems="center"
-            spacing={2}
-          >
-            <Grid
-              item
-              container
-              direction="column"
-              justify="center"
-              alignItems="center"
-              spacing={2}
-              style={{ width: 'fit-content' }}
-            >
-              <Grid
-                item
-                container
-                direction="row"
-                justify="flex-start"
-                alignItems="center"
-                spacing={2}
-              >
-                <Grid item>
-                  <Tooltip
-                    title={`${
-                      corrections.filter(
-                        (s) => s?.ratings && s?.ratings?.length > 0
-                      ).length
-                    } / ${corrections.length}`}
-                  >
-                    <div>
-                      <CircularProgressWithLabel
-                        value={
-                          (corrections.filter(
-                            (s) => s?.ratings && s?.ratings?.length > 0
-                          ).length /
-                            corrections.length) *
-                          100
-                        }
-                      />
-                    </div>
-                  </Tooltip>
-                </Grid>
-                <Grid item>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    component="p"
-                  >
-                    Correction scheme assigned
-                  </Typography>
-                </Grid>
+          {notInitialized ? (
+            <Typography variant="body2" color="textSecondary">
+              <i
+                className="fas fa-exclamation-circle"
+                style={{
+                  marginRight: '10px',
+                  color:
+                    theme.palette.type === 'dark'
+                      ? theme.palette.warning.dark
+                      : theme.palette.warning.light,
+                }}
+              />
+              Exercise sheet does not contain a task schema
+            </Typography>
+          ) : undefined}
+          {!notInitialized && !correctionsFinished ? (
+            <Typography variant="body2" color="textSecondary">
+              <i
+                className="fas fa-info-circle"
+                style={{
+                  marginRight: '10px',
+                  color:
+                    theme.palette.type === 'dark'
+                      ? theme.palette.info.dark
+                      : theme.palette.info.light,
+                }}
+              />
+              {`Ready for correction - ${
+                corrections.filter((c) => c.status !== Status.Done).length
+              } left`}
+            </Typography>
+          ) : undefined}
+          {!notInitialized &&
+          !correctionsFinished &&
+          corrections.filter((c) => c.status === Status.Marked).length > 0 ? (
+            <Typography variant="body2" color="textSecondary">
+              <i
+                className="fas fa-info-circle"
+                style={{
+                  marginRight: '10px',
+                  color:
+                    theme.palette.type === 'dark'
+                      ? theme.palette.info.dark
+                      : theme.palette.info.light,
+                }}
+              />
+              {`You have marked ${
+                corrections.filter((c) => c.status === Status.Marked).length
+              } corrections`}
+            </Typography>
+          ) : undefined}
+          {!notInitialized && correctionsFinished ? (
+            <Typography variant="body2" color="textSecondary">
+              <i
+                className="fas fa-check-circle"
+                style={{
+                  marginRight: '10px',
+                  color:
+                    theme.palette.type === 'dark'
+                      ? theme.palette.success.dark
+                      : theme.palette.success.light,
+                }}
+              />
+              Correction finished
+            </Typography>
+          ) : undefined}
+          {autoCorrectionAvailiable &&
+          !correctionsFinished &&
+          !autoCorrectionAttempted ? (
+            <Typography variant="body2" color="textSecondary">
+              <i
+                className="fas fa-info-circle"
+                style={{
+                  marginRight: '10px',
+                  color:
+                    theme.palette.type === 'dark'
+                      ? theme.palette.info.dark
+                      : theme.palette.info.light,
+                }}
+              />
+              You may try to correct single choice tasks automatically
+            </Typography>
+          ) : undefined}
+        </CardContent>
+        <CardActions>
+          <Grid container justify="space-between" alignItems="center">
+            {notInitialized ? (
+              <Grid item>
+                <Button onClick={onCreateSchema}>New Task Schema</Button>
               </Grid>
-              <Grid
-                item
-                container
-                direction="row"
-                justify="flex-start"
-                alignItems="center"
-                spacing={2}
-              >
-                <Grid item>
-                  <Tooltip
-                    title={`${
-                      corrections.filter((s) => s.status === Status.Done).length
-                    } / ${corrections.length}`}
-                  >
-                    <div>
-                      <CircularProgressWithLabel
-                        value={
-                          (corrections.filter((s) => s.status === Status.Done)
-                            .length /
-                            corrections.length) *
-                          100
-                        }
-                      />
-                    </div>
-                  </Tooltip>
-                </Grid>
-                <Grid item>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    component="p"
-                  >
-                    Corrections done
-                  </Typography>
-                </Grid>
+            ) : (
+              <Grid item>
+                <Button onClick={onStartCorrection}>Correction</Button>
               </Grid>
-            </Grid>
-            <Grid item>
+            )}
+            {autoCorrectionAvailiable &&
+            !correctionsFinished &&
+            !autoCorrectionAttempted ? (
+              <Grid item>
+                <Button onClick={onAutoCorrectSingleChoiceTasks}>
+                  Auto Correction
+                </Button>
+              </Grid>
+            ) : undefined}
+            {!notInitialized && correctionsFinished ? (
+              <Grid item>
+                <Button onClick={onExport}>Export as .zip</Button>
+              </Grid>
+            ) : undefined}
+            <Grid item style={{ marginRight: '10px' }}>
               <Typography variant="body2" color="textSecondary">
                 <i className="far fa-clock" style={{ marginRight: '10px' }} />
                 {msToTime(
@@ -293,12 +315,6 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
               </Typography>
             </Grid>
           </Grid>
-        </CardContent>
-        <CardActions>
-          <Button onClick={onCreateSchema}>Schema</Button>
-          <Button onClick={onStartCorrection} disabled={missingSchemas()}>
-            Correction
-          </Button>
         </CardActions>
         <LinearProgress
           variant="determinate"

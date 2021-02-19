@@ -10,6 +10,7 @@ type CorrectionEntity = {
   note?: string;
   annotation?: string;
   timeElapsed?: number;
+  autoCorrectionAttempted?: boolean;
 };
 
 export default CorrectionEntity;
