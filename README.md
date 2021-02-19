@@ -9,8 +9,8 @@ A correction program ([Download](#download)) with media viewer for Uni2Work rati
 1. **Import submissions** - You can import submissions via the home tab. You can import a single submission or multiple submissions at the same time. After importing they are grouped by exercise sheets.
 2. **Initialize submissions** - After the successful import, the submissions must be initialized. The initialization assigns a task structure to an exercise sheet. This structure can then be used to do the corrections later. Learn more about schema generation [here](#Initialize-submissions).
 3. **Correction** - The score is automatically calculated from the sum of the sub-tasks' scores. In addition, comments on the tasks can be written in the respective comment field of the task. For general comments there is a separate comment field at the end of each submission. The status of the correction will be set to "Done" as you click on the "Next" button.
-4. **Mark corrections and take notes** - It is possible to mark submissions and add a note. Marked deliveries must be explicitly reset in order to complete them.
-5. **Export to zip** - Once all the submissions have reached the "Done" status, you will be asked if the submissions should be exported and compressed as a .zip file. In the Export Dialog you can set the output path and adjust [conditional comments](#conditional-comments).
+4. **Mark corrections and take notes** - It is possible to mark corrections and add a note. This is useful if you need to wait for approval or an answer of another tutor. Marked corrections must be explicitly reset in order to complete them.
+5. **Export to zip** - Once all the corrections have reached the "Done" status, you will be asked if the corrections should be exported and compressed as a .zip file. In the Export Dialog you can set the output path and adjust [conditional comments](#conditional-comments). Alternatively you can export the corrections in the home tab.
 
 ## Initialize submissions
 
