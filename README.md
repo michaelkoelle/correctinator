@@ -30,6 +30,10 @@ Example:
 
 With this function, conditional comments can be added to the correction depending on the achieved score. You can define three comments via the Export Menu Dialog.
 
+## Automatic Correction
+
+Single choice tasks can be corrected automatically, provided they are submitted by the student in the correct format. For automatic correction, the single choice tasks must first be defined in the schema. Add a new task and change the type to single choice task. "Answer" stands for the correct answer in text form and "Value" for the point value if the single choice task was answered correctly. Students must submit their solutions in a .txt file in the format \<taskname>[ : | ) | = ] \<answer [ i | v ]>. Note that currently answer can **only** consist of the chars "i" and "v" for lower roman numerals. As soon as the exercise sheet is initialized with the tasks, a button for automatic correction is displayed in the home tab. Alternatively you can find the button in the menu for the sheet cards. Only unique answers will be corrected.
+
 ## Light/Dark Mode
 
 You can decide for yourself, if you wanna come over to the dark side or keep getting blinded by the light (theme).
