@@ -17,7 +17,6 @@ import {
   Menu,
   MenuItem,
   Snackbar,
-  Tooltip,
   Typography,
   useTheme,
 } from '@material-ui/core';
@@ -26,7 +25,6 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
 import { Alert } from '@material-ui/lab';
-import CircularProgressWithLabel from '../../components/CircularProgressWithLabel';
 import ExportDialog from '../../components/ExportDialog';
 import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
@@ -53,8 +51,6 @@ import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection'
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
 import { overviewClearSelectedSheetWithId } from '../../model/OverviewSlice';
-import Histogram from '../overview/Histogram';
-import { getTotalValueOfRatings } from '../../utils/Formatter';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -272,7 +268,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
                       : theme.palette.info.light,
                 }}
               />
-              You may try to correct single choice tasks automatically
+              You may try to automatically correct single choice tasks
             </Typography>
           ) : undefined}
         </CardContent>
@@ -298,7 +294,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
             ) : undefined}
             {!notInitialized && correctionsFinished ? (
               <Grid item>
-                <Button onClick={onExport}>Export as .zip</Button>
+                <Button onClick={onExport}>Export</Button>
               </Grid>
             ) : undefined}
             <Grid item style={{ marginRight: '10px' }}>
