@@ -315,13 +315,13 @@ export default function CorrectionView(props: CorrectionViewProps) {
         <DialogTitle>Export Corrections?</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Seems like you finished your correction :) Would you like to export
-            the corrections in the Uni2Work format?
+            Seems like you are finished with the correction. Would you like to
+            export the corrections?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={onExport} color="primary">
-            Yes!!!
+            Yes
           </Button>
           <Button onClick={onCloseDialog} color="primary" autoFocus>
             No
