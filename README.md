@@ -30,7 +30,9 @@ Example:
 
 With this function, conditional comments can be added to the correction depending on the achieved score. You can define three comments via the Export Menu Dialog.
 
-![alt text](https://i.imgur.com/xWGnYyc.png 'Example conditional comments')
+<p align="center">
+<img src="https://i.imgur.com/xWGnYyc.png" width="400" justify="center">
+</p>
 
 ## Automatic Correction
 
