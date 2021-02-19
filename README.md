@@ -2,7 +2,7 @@
 
 A correction program ([Download](#download)) with media viewer for Uni2Work rating files.
 
-![alt text](https://i.imgur.com/750Gbjf.png 'Correctinator')
+![alt text](https://i.imgur.com/D9yYvEB.png 'Correctinator')
 
 ## Workflow
 
@@ -18,7 +18,7 @@ Submissions must be initialized with a task schema. The schema generator is used
 
 Example:
 
-![alt text](https://i.imgur.com/MuYfHJ8.png 'Example schema')
+![alt text](https://imgur.com/yCghoKG.png 'Example schema')
 
 ## Media Viewer
 
@@ -29,6 +29,8 @@ Example:
 ## Conditional Comments
 
 With this function, conditional comments can be added to the correction depending on the achieved score. You can define three comments via the Export Menu Dialog.
+
+![alt text](https://i.imgur.com/xWGnYyc.png 'Example conditional comments')
 
 ## Automatic Correction
 
