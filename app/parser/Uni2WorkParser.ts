@@ -42,7 +42,8 @@ export default class Uni2WorkParser implements Parser {
   public configFilePattern = /bewertung_([a-z0-9]{16})\.txt/g;
 
   public deserialize(text: string): Correction {
-    const u2wDoc = YAML.parseDocument(text);
+    const [configText, ...rest] = text.split('...');
+    const u2wDoc = YAML.parseDocument(configText);
 
     if (u2wDoc.errors.length > 0) {
       throw new Error(`Could not parse the rating file!`);
