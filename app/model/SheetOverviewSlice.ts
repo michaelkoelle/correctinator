@@ -134,7 +134,10 @@ export function importCorrectionsFromFolderToWorkspace(
 
   configFilePaths.forEach((importPath) => {
     const content = fs.readFileSync(importPath, 'utf8');
-    const correction: Correction = parser.deserialize(content);
+    const correction: Correction = parser.deserialize(
+      content,
+      Path.basename(Path.dirname(importPath))
+    );
 
     // Were the submissions already imported?
     if (existsInWorkspace(correction.submission.name, workspace)) {
@@ -179,7 +182,10 @@ export function importCorrectionsFromZipToWorkspace(
 
   configFiles.forEach((zipEntry) => {
     const content = zipEntry.getData().toString('utf8');
-    const correction: Correction = parser.deserialize(content);
+    const correction: Correction = parser.deserialize(
+      content,
+      Path.basename(Path.dirname(zipEntry.entryName))
+    );
 
     // Were the submissions already imported?
     if (existsInWorkspace(correction.submission.name, workspace)) {
@@ -251,7 +257,10 @@ export const overwriteConflictedCorrections = createAsyncThunk<void, void>(
         const zipEntry = zip.getEntry(c.path);
         const content = zipEntry.getData().toString('utf8');
         const parser: Parser = getParser(c.parser);
-        const correction: Correction = parser.deserialize(content);
+        const correction: Correction = parser.deserialize(
+          content,
+          Path.basename(Path.dirname(c.path))
+        );
         ingestCorrectionFromZip(
           dispatch,
           correction,
@@ -267,7 +276,10 @@ export const overwriteConflictedCorrections = createAsyncThunk<void, void>(
       importConflicts.conflicts.forEach((c) => {
         const content = fs.readFileSync(c.path, 'utf8');
         const parser: Parser = getParser(c.parser);
-        const correction: Correction = parser.deserialize(content);
+        const correction: Correction = parser.deserialize(
+          content,
+          Path.basename(Path.dirname(c.path))
+        );
         ingestCorrectionFromFolder(
           dispatch,
           correction,

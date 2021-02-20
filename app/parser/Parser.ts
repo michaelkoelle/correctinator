@@ -6,7 +6,7 @@ export enum ParserType {
 
 export default interface Parser {
   configFilePattern: RegExp;
-  deserialize(text: string): Correction;
+  deserialize(text: string, dirName: string): Correction;
   serialize(correction: Correction, tasksAndComments?: string): string;
   getConfigFileName(correction: Correction): string;
   getType(): ParserType;

@@ -1,7 +1,7 @@
 {
   "name": "correctinator",
   "productName": "correctinator",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "Ein Korrekturprogramm mit Media Viewer für Uni2Work Bewertungsdateien.",
   "main": "./main.prod.js",
   "author": {

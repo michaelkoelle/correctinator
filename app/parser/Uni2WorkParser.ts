@@ -41,7 +41,7 @@ export type Uni2WorkDataStructure = {
 export default class Uni2WorkParser implements Parser {
   public configFilePattern = /bewertung_([a-z0-9]{16})\.txt/g;
 
-  public deserialize(text: string): Correction {
+  public deserialize(text: string, dirName: string): Correction {
     const [configText, ...rest] = text.split('...');
     const u2wDoc = YAML.parseDocument(configText);
 
@@ -52,11 +52,21 @@ export default class Uni2WorkParser implements Parser {
     // TODO: Validate JSON against its type
     const u2wData: Uni2WorkDataStructure = u2wDoc.toJSON();
 
+    // If matriculation number is encoded in the dir name extracted it
+    const re = new RegExp(`(\\d+)_${u2wData.submission}`, 'gmi');
+    const match = re.exec(dirName);
+    let matNr: string | undefined;
+
+    if (match && match.length === 2) {
+      [, matNr] = match;
+    }
+
     const correction: Correction = {
       id: UUID.v5(`correction-${u2wData.submission}`),
       submission: {
         id: UUID.v5(u2wData.submission),
         name: u2wData.submission,
+        matNr,
         sheet: {
           id: UUID.v5(
             `${u2wData.school}-${u2wData.course}-${u2wData.term}-${u2wData.sheet.name}`
