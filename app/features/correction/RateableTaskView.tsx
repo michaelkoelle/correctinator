@@ -136,7 +136,7 @@ function RateableTaskView(props: RateableTaskViewProps) {
             </Grid>
           </Grid>
           <Grid item xs={12}>
-            <TaskCommentInput comment={rating.comment} />
+            <TaskCommentInput comment={rating.comment} ratingId={rating.id} />
           </Grid>
         </Grid>
       </Card>

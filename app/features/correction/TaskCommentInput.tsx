@@ -6,15 +6,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import Comment from '../../model/Comment';
 import CommentEntity from '../../model/CommentEntity';
 import { commentsUpdateOne, selectAllComments } from '../../model/CommentSlice';
+import RatingEntity from '../../model/RatingEntity';
+import { ratingsUpdateOne, selectAllRatings } from '../../model/RatingSlice';
 
 type TaskCommentInputProps = {
   comment: Comment;
+  ratingId: string;
 };
 
 function TaskCommentInput(props: TaskCommentInputProps) {
-  const { comment } = props;
+  const { comment, ratingId } = props;
   const dispatch = useDispatch();
   const comments: CommentEntity[] = useSelector(selectAllComments);
+  const ratings: RatingEntity[] = useSelector(selectAllRatings);
 
   const options: string[] = [
     ...new Set(
@@ -42,6 +46,24 @@ function TaskCommentInput(props: TaskCommentInputProps) {
         changes: { text: value || '' },
       })
     );
+
+    // Overwrite rating if comment is selected
+    if (reason === 'select-option') {
+      const otherComment = comments.find(
+        (c) => c.task === comment.task.id && c.text === value
+      );
+      const otherRating = ratings.find(
+        (r) => r.comment === otherComment?.id && r.task === comment.task.id
+      );
+      if (otherRating) {
+        dispatch(
+          ratingsUpdateOne({
+            id: ratingId,
+            changes: { value: otherRating.value },
+          })
+        );
+      }
+    }
   }
 
   return (
