@@ -206,7 +206,7 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
             <Grid item xs={12} style={{ padding: '4px' }}>
               <Grid
                 container
-                spacing={5}
+                spacing={2}
                 justify="space-evenly"
                 alignItems="center"
               >
@@ -223,6 +223,18 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
                     fullWidth
                     disabled={correction === undefined}
                   />
+                </Grid>
+                <Grid item>
+                  <Typography variant="body1">
+                    {`ID: ${correction?.submission.name}`}
+                  </Typography>
+                  <Typography variant="body1">
+                    {`MatNr: ${
+                      correction?.submission.matNr
+                        ? correction?.submission.matNr
+                        : 'anonymous'
+                    }`}
+                  </Typography>
                 </Grid>
                 <Grid item>
                   <Typography variant="body1">
@@ -246,10 +258,10 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
                 </Grid>
                 <Grid item>
                   <Typography variant="body1">
-                    {`Rated by: ${correction?.corrector.name}`}
+                    {`Corrector: ${correction?.corrector.name}`}
                   </Typography>
                   <Typography variant="body1">
-                    {`Rated at: ${correction?.location.name}`}
+                    {`Date: ${correction?.location.name}`}
                   </Typography>
                 </Grid>
               </Grid>
