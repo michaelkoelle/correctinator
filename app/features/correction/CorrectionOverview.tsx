@@ -4,6 +4,7 @@ import {
   Grid,
   IconButton,
   Paper,
+  Snackbar,
   TextField,
   Tooltip,
   Typography,
@@ -14,6 +15,8 @@ import BookmarkIcon from '@material-ui/icons/Bookmark';
 import BookmarkBorderIcon from '@material-ui/icons/BookmarkBorder';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { clipboard } from 'electron';
+import { Alert } from '@material-ui/lab';
 import StatusIcon from '../../components/StatusIcon';
 import Status from '../../model/Status';
 import { correctionsUpdateOne } from '../../model/CorrectionsSlice';
@@ -35,6 +38,7 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
       : 0;
   const index = useSelector(selectCorrectionPageIndex);
   const [expanded, setExpanded] = useState(false);
+  const [openCopy, setOpenCopy] = useState(false);
 
   useEffect(() => {
     setExpanded(
@@ -102,6 +106,11 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
     }
   }
 
+  function onCopyToClipboard(text: string) {
+    clipboard.writeText(text);
+    setOpenCopy(true);
+  }
+
   const noteValue = correction?.note === undefined ? '' : correction?.note.text;
 
   return (
@@ -117,12 +126,45 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
           <StatusIcon status={correction ? correction?.status : -1} />
         </Grid>
         <Grid item style={{ padding: '4px' }}>
-          <Typography variant="h6" display="inline">
-            <Box fontWeight="bold" display="inline" marginRight="10px">
-              ID:
-            </Box>
-            <Box display="inline">{correction?.submission.name}</Box>
-          </Typography>
+          {correction?.submission.matNr ? (
+            <Typography variant="h6" display="inline">
+              <Box fontWeight="bold" display="inline" marginRight="10px">
+                MatNr:
+              </Box>
+              <Box
+                display="inline"
+                style={{
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  if (correction?.submission.matNr) {
+                    onCopyToClipboard(correction?.submission.matNr);
+                  }
+                }}
+              >
+                {correction?.submission.matNr}
+              </Box>
+            </Typography>
+          ) : (
+            <Typography variant="h6" display="inline">
+              <Box fontWeight="bold" display="inline" marginRight="10px">
+                ID:
+              </Box>
+              <Box
+                display="inline"
+                style={{
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  if (correction?.submission.name) {
+                    onCopyToClipboard(correction?.submission.name);
+                  }
+                }}
+              >
+                {correction?.submission.name}
+              </Box>
+            </Typography>
+          )}
         </Grid>
         <Grid item style={{ padding: '4px' }}>
           <div style={{ display: 'inline-flex' }}>
@@ -215,6 +257,15 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
           </Box>
         </Collapse>
       </Grid>
+      <Snackbar
+        open={openCopy}
+        autoHideDuration={3000}
+        onClose={() => setOpenCopy(false)}
+      >
+        <Alert onClose={() => setOpenCopy(false)} severity="info">
+          Copied to clipboard!
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 }

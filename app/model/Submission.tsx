@@ -6,6 +6,7 @@ type Submission = {
   id: string;
   name: string;
   sheet: Sheet;
+  matNr?: string;
   correction?: Correction;
 };
 export default Submission;
