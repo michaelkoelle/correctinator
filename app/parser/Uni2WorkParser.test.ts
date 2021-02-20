@@ -417,7 +417,7 @@ test('deserializeSchool Institut für Informatik', () => {
 // Correction
 
 test('deserialize Correction u2wTestData1', () => {
-  expect(parser.deserialize(u2wTestString1, '')).toStrictEqual(
+  expect(parser.deserialize(u2wTestString1, 'uwazxvya2akrnnc2')).toMatchObject(
     correctionTestData1
   );
 });
