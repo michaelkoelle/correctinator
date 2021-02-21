@@ -130,7 +130,10 @@ export function autoCorrection(
     dispatch(
       ratingsUpdateMany(
         correctedRatings.map((c) => {
-          return { id: c.ratingId, changes: { value: c.value } };
+          return {
+            id: c.ratingId,
+            changes: { value: c.value, autoCorrected: true },
+          };
         })
       )
     );
