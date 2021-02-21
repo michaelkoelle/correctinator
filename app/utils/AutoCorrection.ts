@@ -39,9 +39,10 @@ export function extractStudentSolution(
 ): Solution {
   // Extracts <taskName>[)|:|=][i|v]
   const re = new RegExp(
-    `(${task.name})[ |\\t]*?[)|:|=][ |\\t]*[(]?[ |\\t]*([i|v]+)`,
+    `\\b(${task.name})[ |\\t]*?[)|）|:|=|.|-|>]{1,3}[ |\\t]*[(|（|\\[]?[ |\\t]*([i|v]+)`,
     'gim'
   );
+
   const solutions: string[] = [];
   texts.forEach((text) => {
     const matches = text.matchAll(re);
