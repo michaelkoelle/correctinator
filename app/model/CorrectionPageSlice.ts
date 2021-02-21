@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { selectCorrectionsBySheetId } from './Selectors';
 
 export interface CorrectionPageState {
   sheetId: string | undefined;
@@ -43,3 +44,15 @@ export const {
   correctionPageSetTimeStart,
 } = correctionPageSlice.actions;
 export default correctionPageSlice.reducer;
+
+export function correctionPageSetIndexOfCorrection(correctionId: string) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const sheetId = selectCorrectionPageSheetId(state);
+    const corrections = selectCorrectionsBySheetId(sheetId)(state);
+    const index = corrections.findIndex((c) => c.id === correctionId);
+    if (index !== undefined) {
+      dispatch(correctionPageSetIndex(index));
+    }
+  };
+}
