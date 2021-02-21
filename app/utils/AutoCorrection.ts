@@ -2,7 +2,7 @@ import fs from 'fs';
 import * as Path from 'path';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import RatingEntity from '../model/RatingEntity';
-import { ratingsUpdateOne } from '../model/RatingSlice';
+import { ratingsUpdateMany } from '../model/RatingSlice';
 import SingleChoiceTask from '../model/SingleChoiceTask';
 import { getFilesForCorrectionFromWorkspace } from './FileAccess';
 import { getRateableTasksFromIds, isSingleChoiceTask } from './TaskUtil';
@@ -88,12 +88,11 @@ export function autoCorrection(
   ratingIds: string[]
 ) {
   return (dispatch, getState) => {
-    let count = 0;
     const state = getState();
     const ratings: RatingEntity[] = ratingIds.map(
       (id) => state.ratings.entities[id]
     );
-
+    const correctedRatings: { ratingId: string; value: number }[] = [];
     const potentialMissing: { ratingId: string; solution: Solution }[] = [];
 
     tasks.forEach((t) => {
@@ -105,16 +104,10 @@ export function autoCorrection(
             potentialMissing.push({ ratingId: rating.id, solution });
             break;
           case SolutionsStatus.SINGLE_OCCURENCE:
-            dispatch(
-              ratingsUpdateOne({
-                id: rating.id,
-                changes: {
-                  value: determineValue(t, solution.text),
-                  autoCorrected: true,
-                },
-              })
-            );
-            count += 1;
+            correctedRatings.push({
+              ratingId: rating.id,
+              value: determineValue(t, solution.text),
+            });
             break;
           case SolutionsStatus.MULTIPLE_OCCURENCES:
             // @TODO show in UI
@@ -127,20 +120,22 @@ export function autoCorrection(
     // If more than one task can be answered consider the other ones missing
     if (potentialMissing.length !== tasks.length) {
       potentialMissing.forEach((m) => {
-        dispatch(
-          ratingsUpdateOne({
-            id: m.ratingId,
-            changes: {
-              value: 0,
-              autoCorrected: true,
-            },
-          })
-        );
-        count += 1;
+        correctedRatings.push({
+          ratingId: m.ratingId,
+          value: 0,
+        });
       });
     }
 
-    return count;
+    dispatch(
+      ratingsUpdateMany(
+        correctedRatings.map((c) => {
+          return { id: c.ratingId, changes: { value: c.value } };
+        })
+      )
+    );
+
+    return correctedRatings.length;
   };
 }
 
