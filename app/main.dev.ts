@@ -164,6 +164,13 @@ ipcMain.on(IPCConstants.QUIT_AND_INSTALL_UPDATE, () => {
   }
 });
 
+ipcMain.on(IPCConstants.REQUEST_FILE_PATH, (event) => {
+  const { sender } = event;
+  if (process.argv.length >= 3) {
+    sender.send(IPCConstants.RECEIVE_FILE_PATH, process.argv[2]);
+  }
+});
+
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
   // after all windows have been closed
@@ -172,11 +179,29 @@ app.on('window-all-closed', () => {
   }
 });
 
-if (process.env.E2E_BUILD === 'true') {
-  // eslint-disable-next-line promise/catch-or-return
-  app.whenReady().then(createWindow);
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
 } else {
-  app.on('ready', createWindow);
+  app.on('second-instance', (event, argv, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+      if (argv.length >= 3) {
+        mainWindow.webContents.send(IPCConstants.RECEIVE_FILE_PATH, argv[2]);
+      }
+    }
+  });
+
+  // Create myWindow, load the rest of the app, etc...
+  if (process.env.E2E_BUILD === 'true') {
+    // eslint-disable-next-line promise/catch-or-return
+    app.whenReady().then(createWindow);
+  } else {
+    app.on('ready', createWindow);
+  }
 }
 
 app.on('activate', () => {

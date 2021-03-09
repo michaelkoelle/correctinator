@@ -55,6 +55,10 @@
   "build": {
     "productName": "correctinator",
     "appId": "de.koellemichael.correctinator",
+    "fileAssociations": {
+      "ext": "cor",
+      "name": "Correction"
+    },
     "files": [
       "dist/",
       "node_modules/",

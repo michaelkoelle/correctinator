@@ -6,7 +6,6 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { ipcRenderer, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import { UpdateInfo } from 'electron-updater';
-import { Palette } from '@material-ui/icons';
 import routes from './constants/routes.json';
 import App from './containers/App';
 import SchemeGeneratorPage from './containers/SchemeGeneratorPage';
@@ -21,12 +20,13 @@ import UpdaterDialog from './components/UpdaterDialog';
 import {
   CHECK_FOR_UPDATE_PENDING,
   CHECK_FOR_UPDATE_SUCCESS,
+  RECEIVE_FILE_PATH,
+  REQUEST_FILE_PATH,
 } from './constants/ipc';
 import { version as currentAppVersion } from '../package.json';
 
 export default function Routes() {
   const dispatch = useDispatch();
-  // const workspace = useSelector(selectWorkspacePath);
   const unsavedChanges = useSelector(selectUnsavedChanges);
   const [openUpdaterDialog, setOpenUpdaterDialog] = useState<boolean>(false);
   const [showNotAvailiable, setShowNotAvailiable] = useState<boolean>(false);
@@ -47,10 +47,19 @@ export default function Routes() {
         }
       }
     );
+
+    ipcRenderer.on(RECEIVE_FILE_PATH, (_event, data: string[]) => {
+      console.log(data);
+    });
+
     // Check for updates at start
     ipcRenderer.send(CHECK_FOR_UPDATE_PENDING);
+    // Get file path
+    ipcRenderer.send(REQUEST_FILE_PATH);
+
     return () => {
       ipcRenderer.removeAllListeners(CHECK_FOR_UPDATE_SUCCESS);
+      ipcRenderer.removeAllListeners(RECEIVE_FILE_PATH);
     };
   }, []);
 
