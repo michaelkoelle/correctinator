@@ -1,27 +1,37 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { remote } from 'electron';
-import * as Path from 'path';
 
 export interface WorkspaceState {
   path: string;
-}
-
-function getDefaultWorkspaceDir(): string {
-  const userDataPath: string = remote.app.getPath('userData');
-  const subDir: string = Path.join(userDataPath, 'submissions');
-  return subDir;
+  recent: string[];
 }
 
 const workspaceSlice = createSlice({
   name: 'workspace',
-  initialState: { path: getDefaultWorkspaceDir() } as WorkspaceState,
+  initialState: {
+    path: '',
+    recent: [],
+  } as WorkspaceState,
   reducers: {
     workspaceSetPath(state, action: PayloadAction<string>) {
       state.path = action.payload;
+      const temp = state.recent ? state.recent : [];
+      temp.push(action.payload);
+      const temp1 = [...new Set(temp)];
+      state.recent = temp1.slice(Math.max(temp1.length - 5, 0));
+    },
+    workspaceRemoveOnePath(state, action: PayloadAction<string>) {
+      const index = state.recent.indexOf(action.payload);
+      if (index > -1) {
+        state.recent.splice(index, 1);
+      }
     },
   },
 });
 
 export const selectWorkspacePath = (state) => state.workspace.path;
-export const { workspaceSetPath } = workspaceSlice.actions;
+export const selectRecentPaths = (state) => state.workspace.recent;
+export const {
+  workspaceSetPath,
+  workspaceRemoveOnePath,
+} = workspaceSlice.actions;
 export default workspaceSlice.reducer;

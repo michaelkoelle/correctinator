@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import fse from 'fs-extra';
+import fs from 'fs';
 import TitleBar from 'frameless-titlebar';
 import 'setimmediate';
 import * as Path from 'path';
@@ -12,18 +12,27 @@ import {
   DialogActions,
   Button,
   useTheme,
+  Snackbar,
 } from '@material-ui/core';
-import { remote, shell } from 'electron';
+import {
+  OpenDialogReturnValue,
+  remote,
+  SaveDialogReturnValue,
+  shell,
+} from 'electron';
+import { Alert } from '@material-ui/lab';
 import ReleaseNotes from '../components/ReleaseNotes';
 import {
+  createNewCorFile,
   deleteEverythingInDir,
-  exportWorkspace,
-  openDirectory,
   reloadState,
   saveAllCorrections,
+  saveAllCorrectionsAs,
 } from '../utils/FileAccess';
 import {
+  selectRecentPaths,
   selectWorkspacePath,
+  workspaceRemoveOnePath,
   workspaceSetPath,
 } from '../features/workspace/workspaceSlice';
 import { selectUnsavedChanges } from '../model/SaveSlice';
@@ -39,15 +48,13 @@ export default function FramelessTitleBar(props: {
   const { setOpenUpdater } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
+  const recentPaths: string[] = useSelector(selectRecentPaths);
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
-  const [oldPath, setOldPath] = useState<string>(workspace);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
-  const [openMoveFilesDialog, setOpenMoveFilesDialog] = useState<boolean>(
-    false
-  );
   const [openResetConfirmDialog, setOpenResetConfirmDialog] = useState<boolean>(
     false
   );
+  const [openFileError, setOpenFileError] = useState<boolean>(false);
   const [versionInfo, setVersionInfo] = useState({
     releaseNotes: '',
     releaseName: '',
@@ -58,11 +65,6 @@ export default function FramelessTitleBar(props: {
     setOpen(false);
   }
 
-  /*
-  remote.globalShortcut.register('CommandOrControl+S', () => {
-    dispatch(saveAllCorrections());
-  });
-*/
   useEffect(() => {
     const acceleratorListener = (event) => {
       // Save
@@ -103,61 +105,103 @@ export default function FramelessTitleBar(props: {
       label: 'File',
       submenu: [
         {
-          label: 'Workspace',
-          submenu: [
-            {
-              label: 'Open/Change directory',
-              click: async () => {
-                const dir: string = await openDirectory();
-                setOldPath(workspace);
-                dispatch(saveAllCorrections());
-                if (fse.existsSync(workspace)) {
-                  const filesToCopy: string[] = fse.readdirSync(workspace);
-                  if (filesToCopy.length > 0) {
-                    setOpenMoveFilesDialog(true);
-                  }
-                }
-                dispatch(workspaceSetPath(dir));
-                dispatch(reloadState(dir));
-              },
-            },
-            {
-              label: 'Export workspace',
-              click: () => {
-                const defaultPath = 'workspace.zip';
-                const p = remote.dialog.showSaveDialogSync(
-                  remote.getCurrentWindow(),
-                  {
-                    defaultPath,
-                    filters: [{ name: 'Zip', extensions: ['zip'] }],
-                  }
-                );
-                if (p) {
-                  exportWorkspace(p, workspace);
-                }
-              },
-            },
-            {
-              label: `Show Directory in ${
-                process.platform !== 'darwin' ? 'File Explorer' : 'Finder'
-              }`,
-              click: async () => {
-                shell.openPath(workspace);
-              },
-            },
-            {
-              label: 'Reset Workspace',
-              click: async () => {
-                setOpenResetConfirmDialog(true);
-              },
-            },
-          ],
+          label: 'New corrections file',
+          accelerator: 'CommandOrControl+N',
+          click: async () => {
+            const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
+              remote.getCurrentWindow(),
+              {
+                filters: [{ name: 'Correctinator', extensions: ['cor'] }],
+              }
+            );
+
+            if (returnValue.canceled || !returnValue.filePath) {
+              throw new Error('No directory selected');
+            }
+
+            const dir: string = returnValue.filePath;
+            dispatch(saveAllCorrections());
+            createNewCorFile(dir);
+            dispatch(workspaceSetPath(dir));
+            dispatch(reloadState());
+          },
         },
         {
-          label: 'Save',
+          label: 'Open corrections',
+          accelerator: 'CommandOrControl+O',
+          click: async () => {
+            const returnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog(
+              remote.getCurrentWindow(),
+              {
+                filters: [{ name: 'Correctinator', extensions: ['cor'] }],
+                properties: ['openFile'],
+              }
+            );
+
+            if (returnValue.canceled || returnValue.filePaths.length !== 1) {
+              throw new Error('No directory selected');
+            }
+            const dir: string = returnValue.filePaths[0];
+            dispatch(saveAllCorrections());
+            dispatch(workspaceSetPath(dir));
+            dispatch(reloadState());
+          },
+        },
+        {
+          label: 'Open recent corrections',
+          submenu: recentPaths
+            ? recentPaths.map((path) => {
+                return {
+                  label: path,
+                  click: async () => {
+                    if (fs.existsSync(path)) {
+                      dispatch(saveAllCorrections());
+                      dispatch(workspaceSetPath(path));
+                      dispatch(reloadState());
+                    } else {
+                      // Path doesnt exist anymore
+                      setOpenFileError(true);
+                      dispatch(workspaceRemoveOnePath(path));
+                    }
+                  },
+                };
+              })
+            : [],
+        },
+        {
+          label: 'Save corrections',
           accelerator: 'CommandOrControl+S',
           click: () => {
             dispatch(saveAllCorrections());
+          },
+        },
+        {
+          label: 'Save as',
+          accelerator: 'CommandOrControl+Shift+S',
+          click: async () => {
+            const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
+              remote.getCurrentWindow(),
+              {
+                defaultPath: workspace,
+                filters: [{ name: 'Correctinator', extensions: ['cor'] }],
+              }
+            );
+
+            if (returnValue.canceled || !returnValue.filePath) {
+              throw new Error('No directory selected');
+            }
+
+            const dir: string = returnValue.filePath;
+            dispatch(saveAllCorrectionsAs(dir));
+            dispatch(reloadState());
+          },
+        },
+        {
+          label: 'Close correction',
+          click: async () => {
+            dispatch(saveAllCorrections());
+            dispatch(workspaceSetPath(''));
+            dispatch(reloadState());
           },
         },
         {
@@ -227,6 +271,13 @@ export default function FramelessTitleBar(props: {
                     .shouldUseDarkColors
                     ? 'light'
                     : 'dark';
+                },
+              },
+              {
+                label: 'Toggle Developer Tools',
+                accelerator: 'Alt+Ctrl+I',
+                click: () => {
+                  currentWindow.webContents.toggleDevTools();
                 },
               },
             ],
@@ -309,7 +360,9 @@ export default function FramelessTitleBar(props: {
             },
           },
         }}
-        title={`correctinator v${version}${unsavedChanges ? ' •' : ''}`}
+        title={`${
+          workspace.length > 0 ? `${Path.parse(workspace).name} - ` : ''
+        }correctinator v${version}${unsavedChanges ? ' •' : ''}`}
         onClose={() => currentWindow.close()}
         onMinimize={() => currentWindow.minimize()}
         onMaximize={handleMaximize}
@@ -330,52 +383,12 @@ export default function FramelessTitleBar(props: {
         releaseNotes={versionInfo?.releaseNotes}
         handleClose={onCloseReleaseNotes}
       />
-      <Dialog
-        open={openMoveFilesDialog}
-        onClose={() => setOpenMoveFilesDialog(false)}
-      >
-        <DialogTitle>Move old submissions?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Do you want to move your old submissions to the new workspace?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              if (oldPath !== undefined) {
-                const filesToCopy: string[] = fse.readdirSync(oldPath);
-                filesToCopy?.forEach((file) => {
-                  const from = Path.join(oldPath, file);
-                  const to = Path.join(workspace, Path.parse(file).base);
-                  console.log(`${from} --> ${to}`);
-                  fse.moveSync(from, to);
-                });
-                dispatch(reloadState(workspace));
-              }
-              setOpenMoveFilesDialog(false);
-            }}
-            color="primary"
-            autoFocus
-          >
-            Yes
-          </Button>
-          <Button
-            onClick={() => {
-              setOpenMoveFilesDialog(false);
-            }}
-            color="primary"
-          >
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
       <ConfirmDialog
         title="Are you sure?"
         text="Do you really want to reset the workspace, all corrections will be deleted. Make sure you export them first."
         onConfirm={() => {
           deleteEverythingInDir(workspace);
-          dispatch(reloadState(workspace));
+          dispatch(reloadState());
           setOpenResetConfirmDialog(false);
         }}
         onReject={() => {
@@ -384,6 +397,15 @@ export default function FramelessTitleBar(props: {
         open={openResetConfirmDialog}
         setOpen={setOpenResetConfirmDialog}
       />
+      <Snackbar
+        open={openFileError}
+        autoHideDuration={3000}
+        onClose={() => setOpenFileError(false)}
+      >
+        <Alert onClose={() => setOpenFileError(false)} severity="error">
+          File does not exist anymore!
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

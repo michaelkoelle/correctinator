@@ -13,29 +13,22 @@ import Parser from '../parser/Parser';
 import ConditionalComment from '../model/ConditionalComment';
 import { deleteEntities, correctionsImport } from '../model/CorrectionsSlice';
 import { selectAllCorrectionsDenormalized } from '../model/Selectors';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import {
+  selectWorkspacePath,
+  workspaceSetPath,
+} from '../features/workspace/workspaceSlice';
 import { reportSaved } from '../model/SaveSlice';
 
-export function createDirectory(dir: string) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
-  if (!fs.existsSync(dir)) {
-    throw new Error(`Cannot create directory "${dir}"!`);
-  }
+export function createDirectoryInWorkspace(dir: string, workspace) {
+  const zip = new AdmZip(workspace);
+  zip.addFile(dir, Buffer.alloc(0));
+  zip.writeZip();
 }
 
 export async function openDirectory(): Promise<string> {
   const returnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog(
     remote.getCurrentWindow(),
     {
-      /*
-      filters: [
-        { name: 'Zip', extensions: ['zip'] },
-        // { name: 'Correctinator', extensions: ['cor'] },
-      ],
-      */
       properties: ['openDirectory'],
     }
   );
@@ -70,29 +63,93 @@ export function getAllFilesInDirectory(
 }
 
 export function copySubmissionFiles(
-  dir: string,
   files: string[],
-  name: string | undefined = undefined
+  name: string | undefined = undefined,
+  workspace: string
 ) {
-  const filesDir: string = Path.join(dir, 'files');
-  createDirectory(filesDir);
+  const zip = new AdmZip(workspace);
   files.forEach((file, i) => {
-    const { base, ext } = Path.parse(file);
+    const { ext } = Path.parse(file);
     if (name) {
       const fileName = `${name}-${i + 1}${ext}`;
-      fs.copyFileSync(file, Path.join(filesDir, fileName));
-    } else {
-      fs.copyFileSync(file, Path.join(filesDir, base));
+      zip.addLocalFile(file, `${name}/files/`, fileName);
     }
   });
+  zip.writeZip();
+}
+
+export function addFileToWorkspace(
+  name: string,
+  buffer: Buffer,
+  workspace: string
+) {
+  const zip = new AdmZip(workspace);
+  zip.addFile(name, buffer);
+  zip.writeZip();
+}
+
+export function createNewCorFile(path) {
+  const zip = new AdmZip();
+  zip.writeZip(path);
+}
+
+function deleteFolderRecursive(path) {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach((file) => {
+      const curPath = Path.join(path, file);
+      if (fs.lstatSync(curPath).isDirectory()) {
+        deleteFolderRecursive(curPath);
+      } else {
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+}
+
+export function deleteEverythingInDir(dir: string) {
+  if (fs.existsSync(dir)) {
+    fs.readdirSync(dir).forEach((file) => {
+      const path = Path.join(dir, file);
+      if (fs.lstatSync(path).isDirectory()) {
+        deleteFolderRecursive(path);
+      } else {
+        fs.unlinkSync(path);
+      }
+    });
+  }
 }
 
 export function getFilesForCorrectionFromWorkspace(
   submissionName: string,
   workspace: string
 ): string[] {
-  const filesDir: string = Path.join(workspace, submissionName, 'files');
-  return getAllFilesInDirectory(filesDir);
+  if (!fs.existsSync(workspace) || Path.extname(workspace) !== '.cor') {
+    return [];
+  }
+  const tempPaths: string[] = [];
+  const userDataPath: string = remote.app.getPath('userData');
+  const tempDir = Path.join(userDataPath, 'temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+  }
+
+  deleteEverythingInDir(tempDir);
+
+  const zip = new AdmZip(workspace);
+  zip
+    .getEntries()
+    .filter((entry) => {
+      return (
+        Path.dirname(entry.entryName) === Path.join(submissionName, 'files')
+      );
+    })
+    .forEach((entry) => {
+      const path = Path.join(tempDir, entry.name);
+      zip.extractEntryTo(entry, tempDir, false, true);
+      tempPaths.push(path);
+    });
+  return tempPaths;
 }
 
 export function exportCorrections(
@@ -226,63 +283,52 @@ export function exportCorrections1(
   });
 }
 
-function deleteFolderRecursive(path) {
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file) => {
-      const curPath = Path.join(path, file);
-      if (fs.lstatSync(curPath).isDirectory()) {
-        deleteFolderRecursive(curPath);
-      } else {
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(path);
-  }
-}
-
 export function deleteCorrectionFromWorkspace(
   correction: Correction,
   workspace: string
 ) {
-  deleteFolderRecursive(Path.join(workspace, correction.submission.name));
-}
-
-export function saveCorrectionToWorkspace(
-  correction: Correction,
-  workspace: string
-) {
-  const correctionDir: string = Path.join(
-    workspace,
-    correction.submission.name
-  );
-  const { entities } = normalize(correction, CorrectionSchema);
-  try {
-    fs.writeFileSync(
-      Path.join(correctionDir, 'config.json'),
-      JSON.stringify(entities)
-    );
-  } catch (e) {
-    console.log(e);
-  }
+  const zip = new AdmZip(workspace);
+  zip
+    .getEntries()
+    .filter((entry) => entry.entryName.includes(correction.submission.name))
+    .forEach((entry) => zip.deleteFile(entry));
+  zip.writeZip();
 }
 
 export function existsInWorkspace(name: string, workspace: string): boolean {
-  const appPath = Path.join(workspace, name);
-  return fs.existsSync(appPath);
+  const zip = new AdmZip(workspace);
+  const entry = zip.getEntry(`${name}/config.json`);
+  return entry !== null;
 }
 
-export function reloadState(workspace: string) {
+export function reloadState() {
   return (dispatch, getState) => {
     // Delete old entities
     dispatch(deleteEntities());
-    // Load new entities
-    getAllFilesInDirectory(workspace)
-      .filter((file) => Path.parse(file).base === 'config.json')
-      .forEach((file) => {
-        const entities = JSON.parse(fs.readFileSync(file, 'utf8'));
+    // Load from .cor
+    const workspace = selectWorkspacePath(getState());
+    const zip = new AdmZip(workspace);
+    zip
+      .getEntries()
+      .filter((entry) => Path.parse(entry.entryName).base === 'config.json')
+      .forEach((entry) => {
+        const entities = JSON.parse(zip.readAsText(entry, 'utf8'));
         dispatch(correctionsImport(entities));
       });
   };
+}
+
+export function saveCorrectionToWorkspace(c: Correction, workspace: string) {
+  if (Path.extname(workspace) === '.cor') {
+    const zip = new AdmZip(workspace);
+    const correctionDir: string = Path.join(
+      c.submission.name,
+      'config.json'
+    ).replaceAll('\\', '/');
+    const { entities } = normalize(c, CorrectionSchema);
+    zip.updateFile(correctionDir, Buffer.from(JSON.stringify(entities)));
+    zip.writeZip();
+  }
 }
 
 export function saveAllCorrections() {
@@ -290,8 +336,34 @@ export function saveAllCorrections() {
     const state = getState();
     const corrections: Correction[] = selectAllCorrectionsDenormalized(state);
     const workspace: string = selectWorkspacePath(state);
-    corrections.forEach((c) => saveCorrectionToWorkspace(c, workspace));
-    dispatch(reportSaved());
+    console.log(workspace);
+    if (Path.extname(workspace) === '.cor' && fs.existsSync(workspace)) {
+      const zip = new AdmZip(workspace);
+      corrections.forEach((c) => {
+        const correctionDir: string = Path.join(
+          c.submission.name,
+          'config.json'
+        ).replaceAll('\\', '/');
+
+        const entry = zip.getEntry(correctionDir);
+        const { entities } = normalize(c, CorrectionSchema);
+        if (!entry) {
+          zip.addFile(correctionDir, Buffer.from(JSON.stringify(entities)));
+        } else {
+          zip.updateFile(entry, Buffer.from(JSON.stringify(entities)));
+        }
+      });
+      zip.writeZip();
+      dispatch(reportSaved());
+    }
+  };
+}
+
+export function saveAllCorrectionsAs(path) {
+  return (dispatch, getState) => {
+    createNewCorFile(path);
+    dispatch(workspaceSetPath(path));
+    dispatch(saveAllCorrections());
   };
 }
 
@@ -299,12 +371,4 @@ export function exportWorkspace(zipPath: string, workspace: string) {
   const zip = new AdmZip();
   zip.addLocalFolder(workspace);
   zip.writeZip(zipPath);
-}
-
-export function deleteEverythingInDir(dir: string) {
-  if (fs.existsSync(dir)) {
-    fs.readdirSync(dir).forEach((file) => {
-      deleteFolderRecursive(Path.join(dir, file));
-    });
-  }
 }

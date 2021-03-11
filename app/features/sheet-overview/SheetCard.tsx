@@ -131,7 +131,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     dispatch(schemaClearSelectedSheetWithId(sheet.id));
     dispatch(overviewClearSelectedSheetWithId(sheet.id));
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
-    dispatch(reloadState(workspace));
+    dispatch(reloadState());
   }
 
   function onAutoCorrectSingleChoiceTasks() {

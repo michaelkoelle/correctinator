@@ -189,7 +189,7 @@ if (!gotTheLock) {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
-      if (argv.length >= 3) {
+      if (argv.length >= 3 && path.extname(argv[2]) === '.cor') {
         mainWindow.webContents.send(IPCConstants.RECEIVE_FILE_PATH, argv[2]);
       }
     }

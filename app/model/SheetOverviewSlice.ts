@@ -1,9 +1,4 @@
-import {
-  createAction,
-  createAsyncThunk,
-  createSlice,
-  PayloadAction,
-} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import fs from 'fs';
 import * as Path from 'path';
 import AdmZip from 'adm-zip';
@@ -15,11 +10,13 @@ import { CorrectionSchema } from './NormalizationSchema';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import Parser, { ParserType } from '../parser/Parser';
 import {
-  createDirectory,
   getAllFilesInDirectory,
   copySubmissionFiles,
   existsInWorkspace,
   reloadState,
+  createDirectoryInWorkspace,
+  saveAllCorrections,
+  addFileToWorkspace,
 } from '../utils/FileAccess';
 
 /*
@@ -55,22 +52,22 @@ function ingestCorrectionFromFolder(
   workspace: string
 ) {
   const submissionName = correction.submission.name;
-  const correctionDir = Path.join(workspace, submissionName);
 
   // Create correction directory in workspace
-  createDirectory(correctionDir);
+  createDirectoryInWorkspace(`${submissionName}/`, workspace);
 
   // Create file folder and copy submission files
+  createDirectoryInWorkspace(`${submissionName}/files/`, workspace);
   // This is not really modular, other parsers could use a different folder structure -> need to add new parser method
   const files: string[] = getAllFilesInDirectory(Path.dirname(path)).filter(
     (file) => !file.match(parser.configFilePattern)
   );
-  copySubmissionFiles(correctionDir, files, submissionName);
+  copySubmissionFiles(files, submissionName, workspace);
 
   // Save config file
   const { entities } = normalize(correction, CorrectionSchema);
   fs.writeFileSync(
-    Path.join(correctionDir, 'config.json'),
+    Path.join(submissionName, 'config.json'),
     JSON.stringify(entities)
   );
 
@@ -83,14 +80,13 @@ function ingestCorrectionFromZip(
   correction: Correction,
   path: string,
   parser: Parser,
-  zip: any,
+  zip: AdmZip,
   workspace: string
 ) {
   const submissionName = correction.submission.name;
-  const correctionDir = Path.join(workspace, submissionName);
 
   // Create correction directory in workspace
-  createDirectory(correctionDir);
+  createDirectoryInWorkspace(`${submissionName}/`, workspace);
   const zipEntries = zip.getEntries();
   const files: string[] = zipEntries
     .filter(
@@ -100,19 +96,24 @@ function ingestCorrectionFromZip(
         entry.entryName.includes(Path.dirname(path))
     )
     .map((entry) => entry.entryName);
+
+  createDirectoryInWorkspace(`${submissionName}/files/`, workspace);
   files.forEach((file, i) => {
-    const filesDir: string = Path.join(correctionDir, 'files');
-    createDirectory(filesDir);
+    const filesDir: string = Path.join(submissionName, 'files');
     const { ext } = Path.parse(file);
     const fileName = `${submissionName}-${i + 1}${ext}`;
-    zip.extractEntryTo(file, filesDir, false, true, fileName);
+    const buffer: Buffer | null = zip.readFile(file);
+    if (buffer != null) {
+      addFileToWorkspace(`${filesDir}/${fileName}`, buffer, workspace);
+    }
   });
 
   // Save config file
   const { entities } = normalize(correction, CorrectionSchema);
-  fs.writeFileSync(
-    Path.join(correctionDir, 'config.json'),
-    JSON.stringify(entities)
+  addFileToWorkspace(
+    `${submissionName}/config.json`,
+    Buffer.from(JSON.stringify(entities), 'utf8'),
+    workspace
   );
 
   // Update state
@@ -231,12 +232,14 @@ export const importCorrections = createAsyncThunk<
     if (fileStats.isDirectory()) {
       // Import from folder
       importCorrectionsFromFolderToWorkspace(dispatch, parser, path, workspace);
+      dispatch(saveAllCorrections());
       return true;
     }
 
     if (fileStats.isFile() && Path.parse(path).ext.toLowerCase() === '.zip') {
       // Import from zip
       importCorrectionsFromZipToWorkspace(dispatch, parser, path, workspace);
+      dispatch(saveAllCorrections());
       return true;
     }
 
@@ -270,7 +273,7 @@ export const overwriteConflictedCorrections = createAsyncThunk<void, void>(
           workspace
         );
       });
-      dispatch(reloadState(workspace));
+      dispatch(reloadState());
     } else {
       // Import from folder
       importConflicts.conflicts.forEach((c) => {
@@ -288,7 +291,7 @@ export const overwriteConflictedCorrections = createAsyncThunk<void, void>(
           workspace
         );
       });
-      dispatch(reloadState(workspace));
+      dispatch(reloadState());
     }
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     dispatch(resetImportConflicts());

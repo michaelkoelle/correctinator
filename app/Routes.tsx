@@ -6,6 +6,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { ipcRenderer, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import { UpdateInfo } from 'electron-updater';
+import * as Path from 'path';
 import routes from './constants/routes.json';
 import App from './containers/App';
 import SchemeGeneratorPage from './containers/SchemeGeneratorPage';
@@ -14,7 +15,7 @@ import CorrectionViewPage from './containers/CorrectionViewPage';
 import SheetOverviewPage from './containers/SheetOverviewPage';
 import NewHomePage from './containers/NewHomePage';
 import FramelessTitleBar from './containers/FramelessTitleBar';
-import { saveAllCorrections } from './utils/FileAccess';
+import { reloadState, saveAllCorrections } from './utils/FileAccess';
 import { selectUnsavedChanges } from './model/SaveSlice';
 import UpdaterDialog from './components/UpdaterDialog';
 import {
@@ -24,6 +25,7 @@ import {
   REQUEST_FILE_PATH,
 } from './constants/ipc';
 import { version as currentAppVersion } from '../package.json';
+import { workspaceSetPath } from './features/workspace/workspaceSlice';
 
 export default function Routes() {
   const dispatch = useDispatch();
@@ -48,8 +50,13 @@ export default function Routes() {
       }
     );
 
-    ipcRenderer.on(RECEIVE_FILE_PATH, (_event, data: string[]) => {
+    ipcRenderer.on(RECEIVE_FILE_PATH, (_event, data: string) => {
       console.log(data);
+      if (Path.extname(data) === '.cor') {
+        dispatch(saveAllCorrections());
+        dispatch(workspaceSetPath(data));
+        dispatch(reloadState());
+      }
     });
 
     // Check for updates at start
