@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { OpenDialogReturnValue, remote, SaveDialogReturnValue } from 'electron';
+import { OpenDialogReturnValue, remote } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
 import 'setimmediate';
@@ -264,12 +264,11 @@ export function exportCorrections1(
       );
 
       // Add submission files folder
-      fs.readdirSync(Path.join(workspace, c.submission.name, 'files')).forEach(
+      getFilesForCorrectionFromWorkspace(c.submission.name, workspace).forEach(
         (f) => {
-          const path = Path.join(workspace, c.submission.name, 'files', f);
-          const fBuffer = fs.readFileSync(path);
+          const fBuffer = fs.readFileSync(f);
           archive.append(fBuffer, {
-            name: Path.join(c.submission.name, 'files', f),
+            name: Path.join(c.submission.name, 'files', Path.parse(f).base),
           });
         }
       );
