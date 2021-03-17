@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { workspaceSetPath } from '../features/workspace/workspaceSlice';
 
 export interface SaveState {
   unsavedChanges: boolean;
@@ -17,6 +18,11 @@ const saveSlice = createSlice({
       if (state.unsavedChanges) {
         state.unsavedChanges = false;
       }
+    },
+  },
+  extraReducers: {
+    [workspaceSetPath.type]: (state) => {
+      state.unsavedChanges = false;
     },
   },
 });
