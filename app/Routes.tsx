@@ -205,7 +205,7 @@ export default function Routes() {
           open={openSaveDialogExit}
           setOpen={setOpenSaveDialogExit}
           title="Unsaved changes"
-          text="Do you want to save your changes before quitting?"
+          text="Do you want to save your changes before quitting? Click reload to discard your changes."
           onConfirm={() => {
             dispatch(save());
             setQuitAnyways(false);
