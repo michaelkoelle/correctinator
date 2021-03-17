@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { OpenDialogReturnValue, remote } from 'electron';
+import { OpenDialogReturnValue, remote, SaveDialogReturnValue } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
 import 'setimmediate';
@@ -332,11 +332,12 @@ export function saveCorrectionToWorkspace(c: Correction, workspace: string) {
 }
 
 export function saveAllCorrections() {
+  console.log('SAVING');
   return (dispatch, getState) => {
     const state = getState();
     const corrections: Correction[] = selectAllCorrectionsDenormalized(state);
     const workspace: string = selectWorkspacePath(state);
-    console.log(workspace);
+
     if (Path.extname(workspace) === '.cor' && fs.existsSync(workspace)) {
       const zip = new AdmZip(workspace);
       corrections.forEach((c) => {
@@ -359,11 +360,35 @@ export function saveAllCorrections() {
   };
 }
 
-export function saveAllCorrectionsAs(path) {
-  return (dispatch, getState) => {
+export async function saveAllCorrectionsAs() {
+  const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
+    remote.getCurrentWindow(),
+    {
+      filters: [{ name: 'Correctinator', extensions: ['cor'] }],
+    }
+  );
+
+  if (returnValue.canceled || !returnValue.filePath) {
+    throw new Error('No directory selected');
+  }
+
+  const path: string = returnValue.filePath;
+
+  return (dispatch) => {
     createNewCorFile(path);
     dispatch(workspaceSetPath(path));
     dispatch(saveAllCorrections());
+  };
+}
+
+export function save() {
+  return (dispatch, getState) => {
+    const workspace: string = selectWorkspacePath(getState());
+    if (workspace && Path.extname(workspace) === '.cor') {
+      dispatch(saveAllCorrections());
+    } else {
+      dispatch(saveAllCorrectionsAs());
+    }
   };
 }
 

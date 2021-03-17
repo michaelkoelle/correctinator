@@ -22,6 +22,7 @@ import correctionPageReducer from './model/CorrectionPageSlice';
 import saveReducer from './model/SaveSlice';
 import sheetOverviewReducer from './model/SheetOverviewSlice';
 import overviewReducer from './model/OverviewSlice';
+import settingsReducer from './model/SettingsSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
@@ -46,5 +47,6 @@ export default function createRootReducer(history: History) {
     save: saveReducer,
     sheetOverview: sheetOverviewReducer,
     overview: overviewReducer,
+    settings: settingsReducer,
   });
 }

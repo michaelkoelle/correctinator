@@ -4,16 +4,7 @@ import TitleBar from 'frameless-titlebar';
 import 'setimmediate';
 import * as Path from 'path';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-  useTheme,
-  Snackbar,
-} from '@material-ui/core';
+import { useTheme, Snackbar } from '@material-ui/core';
 import {
   OpenDialogReturnValue,
   remote,
@@ -26,28 +17,33 @@ import {
   createNewCorFile,
   deleteEverythingInDir,
   reloadState,
-  saveAllCorrections,
+  save,
   saveAllCorrectionsAs,
 } from '../utils/FileAccess';
 import {
   selectRecentPaths,
   selectWorkspacePath,
   workspaceRemoveOnePath,
-  workspaceSetPath,
 } from '../features/workspace/workspaceSlice';
 import { selectUnsavedChanges } from '../model/SaveSlice';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { version } from '../package.json';
+import {
+  selectSettingsAutosave,
+  settingsSetAutosave,
+} from '../model/SettingsSlice';
 
 const currentWindow = remote.getCurrentWindow();
 
 export default function FramelessTitleBar(props: {
   setOpenUpdater: (boolean) => void;
+  unsavedChangesDialog: (string) => void;
 }) {
   const dispatch = useDispatch();
-  const { setOpenUpdater } = props;
+  const { setOpenUpdater, unsavedChangesDialog } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
+  const autosave: boolean = useSelector(selectSettingsAutosave);
   const recentPaths: string[] = useSelector(selectRecentPaths);
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
@@ -59,17 +55,13 @@ export default function FramelessTitleBar(props: {
     releaseNotes: '',
     releaseName: '',
   });
-  const [open, setOpen] = useState(false);
-
-  function onCloseReleaseNotes() {
-    setOpen(false);
-  }
+  const [openReleaseNotes, setOpenReleaseNotes] = useState(false);
 
   useEffect(() => {
     const acceleratorListener = (event) => {
       // Save
       if ((event.metaKey || event.ctrlKey) && event.key === 's') {
-        dispatch(saveAllCorrections());
+        dispatch(save());
       }
     };
     window.addEventListener('keydown', acceleratorListener, true);
@@ -119,11 +111,9 @@ export default function FramelessTitleBar(props: {
               throw new Error('No directory selected');
             }
 
-            const dir: string = returnValue.filePath;
-            dispatch(saveAllCorrections());
-            createNewCorFile(dir);
-            dispatch(workspaceSetPath(dir));
-            dispatch(reloadState());
+            const path: string = returnValue.filePath;
+            createNewCorFile(path);
+            unsavedChangesDialog(path);
           },
         },
         {
@@ -141,10 +131,8 @@ export default function FramelessTitleBar(props: {
             if (returnValue.canceled || returnValue.filePaths.length !== 1) {
               throw new Error('No directory selected');
             }
-            const dir: string = returnValue.filePaths[0];
-            dispatch(saveAllCorrections());
-            dispatch(workspaceSetPath(dir));
-            dispatch(reloadState());
+            const path: string = returnValue.filePaths[0];
+            unsavedChangesDialog(path);
           },
         },
         {
@@ -155,9 +143,7 @@ export default function FramelessTitleBar(props: {
                   label: path,
                   click: async () => {
                     if (fs.existsSync(path)) {
-                      dispatch(saveAllCorrections());
-                      dispatch(workspaceSetPath(path));
-                      dispatch(reloadState());
+                      unsavedChangesDialog(path);
                     } else {
                       // Path doesnt exist anymore
                       setOpenFileError(true);
@@ -172,36 +158,20 @@ export default function FramelessTitleBar(props: {
           label: 'Save corrections',
           accelerator: 'CommandOrControl+S',
           click: () => {
-            dispatch(saveAllCorrections());
+            dispatch(save());
           },
         },
         {
           label: 'Save as',
           accelerator: 'CommandOrControl+Shift+S',
           click: async () => {
-            const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
-              remote.getCurrentWindow(),
-              {
-                defaultPath: workspace,
-                filters: [{ name: 'Correctinator', extensions: ['cor'] }],
-              }
-            );
-
-            if (returnValue.canceled || !returnValue.filePath) {
-              throw new Error('No directory selected');
-            }
-
-            const dir: string = returnValue.filePath;
-            dispatch(saveAllCorrectionsAs(dir));
-            dispatch(reloadState());
+            dispatch(saveAllCorrectionsAs());
           },
         },
         {
           label: 'Close correction',
           click: async () => {
-            dispatch(saveAllCorrections());
-            dispatch(workspaceSetPath(''));
-            dispatch(reloadState());
+            unsavedChangesDialog('');
           },
         },
         {
@@ -294,12 +264,12 @@ export default function FramelessTitleBar(props: {
         {
           label: 'View Release Notes',
           async click() {
-            setOpen(true);
+            setOpenReleaseNotes(true);
             const info = await remote
               .require('electron-updater')
               .autoUpdater.checkForUpdates();
             if (info === undefined) {
-              setOpen(false);
+              setOpenReleaseNotes(false);
             }
             setVersionInfo(info.versionInfo);
           },
@@ -318,6 +288,14 @@ export default function FramelessTitleBar(props: {
             shell.openExternal(
               'https://github.com/koellemichael/correctinator/issues'
             );
+          },
+        },
+        {
+          label: 'Autosave',
+          type: 'checkbox',
+          checked: autosave,
+          click: () => {
+            dispatch(settingsSetAutosave(!autosave));
           },
         },
       ],
@@ -378,10 +356,10 @@ export default function FramelessTitleBar(props: {
         {/* custom titlebar items */}
       </TitleBar>
       <ReleaseNotes
-        open={open}
+        open={openReleaseNotes}
         title={versionInfo?.releaseName}
         releaseNotes={versionInfo?.releaseNotes}
-        handleClose={onCloseReleaseNotes}
+        handleClose={() => setOpenReleaseNotes(false)}
       />
       <ConfirmDialog
         title="Are you sure?"

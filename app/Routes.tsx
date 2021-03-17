@@ -15,7 +15,7 @@ import CorrectionViewPage from './containers/CorrectionViewPage';
 import SheetOverviewPage from './containers/SheetOverviewPage';
 import NewHomePage from './containers/NewHomePage';
 import FramelessTitleBar from './containers/FramelessTitleBar';
-import { reloadState, saveAllCorrections } from './utils/FileAccess';
+import { reloadState, save } from './utils/FileAccess';
 import { selectUnsavedChanges } from './model/SaveSlice';
 import UpdaterDialog from './components/UpdaterDialog';
 import {
@@ -26,16 +26,32 @@ import {
 } from './constants/ipc';
 import { version as currentAppVersion } from '../package.json';
 import { workspaceSetPath } from './features/workspace/workspaceSlice';
+import ConfirmDialog from './components/ConfirmDialog';
 
 export default function Routes() {
   const dispatch = useDispatch();
   const unsavedChanges = useSelector(selectUnsavedChanges);
   const [openUpdaterDialog, setOpenUpdaterDialog] = useState<boolean>(false);
   const [showNotAvailiable, setShowNotAvailiable] = useState<boolean>(false);
+  const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
+  const [openSaveDialogNewFile, setOpenSaveDialogNewFile] = useState<boolean>(
+    false
+  );
+  const [newFilePath, setNewFilePath] = useState<string>();
 
   function updaterDialog(show: boolean) {
     setShowNotAvailiable(show);
     setOpenUpdaterDialog(true);
+  }
+
+  function unsavedChangesDialog(path: string) {
+    setNewFilePath(path);
+    if (unsavedChanges) {
+      setOpenSaveDialogNewFile(true);
+    } else {
+      dispatch(workspaceSetPath(path));
+      dispatch(reloadState());
+    }
   }
 
   useEffect(() => {
@@ -51,11 +67,14 @@ export default function Routes() {
     );
 
     ipcRenderer.on(RECEIVE_FILE_PATH, (_event, data: string) => {
-      console.log(data);
       if (Path.extname(data) === '.cor') {
-        dispatch(saveAllCorrections());
-        dispatch(workspaceSetPath(data));
-        dispatch(reloadState());
+        setNewFilePath(data);
+        if (unsavedChanges) {
+          setOpenSaveDialogNewFile(true);
+        } else {
+          dispatch(workspaceSetPath(data));
+          dispatch(reloadState());
+        }
       }
     });
 
@@ -68,13 +87,12 @@ export default function Routes() {
       ipcRenderer.removeAllListeners(CHECK_FOR_UPDATE_SUCCESS);
       ipcRenderer.removeAllListeners(RECEIVE_FILE_PATH);
     };
-  }, []);
+  }, [dispatch, unsavedChanges]);
 
   useEffect(() => {
     const beforeQuit = () => {
       if (unsavedChanges) {
-        // e.returnValue = false;
-        dispatch(saveAllCorrections());
+        setOpenSaveDialog(true);
       }
     };
     window.addEventListener('beforeunload', beforeQuit, true);
@@ -128,7 +146,10 @@ export default function Routes() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <App>
-        <FramelessTitleBar setOpenUpdater={updaterDialog} />
+        <FramelessTitleBar
+          setOpenUpdater={updaterDialog}
+          unsavedChangesDialog={unsavedChangesDialog}
+        />
         <Switch>
           <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
           <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
@@ -143,6 +164,38 @@ export default function Routes() {
           open={openUpdaterDialog}
           setOpen={setOpenUpdaterDialog}
           showNotAvailiable={showNotAvailiable}
+        />
+        <ConfirmDialog
+          open={openSaveDialog}
+          setOpen={setOpenSaveDialog}
+          title="Unsaved changes"
+          text="Do you want to save your changes?"
+          onConfirm={() => {
+            dispatch(save());
+            setOpenSaveDialog(false);
+          }}
+          onReject={() => setOpenSaveDialog(false)}
+        />
+        <ConfirmDialog
+          open={openSaveDialogNewFile}
+          setOpen={setOpenSaveDialogNewFile}
+          title="Unsaved changes"
+          text="Do you want to save your changes, before loading the new file?"
+          onConfirm={() => {
+            dispatch(save());
+            setOpenSaveDialogNewFile(false);
+            if (newFilePath) {
+              dispatch(workspaceSetPath(newFilePath));
+              dispatch(reloadState());
+            }
+          }}
+          onReject={() => {
+            setOpenSaveDialogNewFile(false);
+            if (newFilePath) {
+              dispatch(workspaceSetPath(newFilePath));
+              dispatch(reloadState());
+            }
+          }}
         />
       </App>
     </ThemeProvider>

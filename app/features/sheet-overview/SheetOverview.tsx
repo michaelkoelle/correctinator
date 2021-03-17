@@ -14,11 +14,9 @@ import {
 } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { remote } from 'electron';
-import { unwrapResult } from '@reduxjs/toolkit';
-import { openDirectory, reloadState } from '../../utils/FileAccess';
-import { selectWorkspacePath } from '../workspace/workspaceSlice';
+import { openDirectory, reloadState, save } from '../../utils/FileAccess';
 import SheetCardList from './SheetCardList';
 import {
   ImportConflicts,
@@ -30,10 +28,11 @@ import {
 } from '../../model/SheetOverviewSlice';
 import { ParserType } from '../../parser/Parser';
 import { useAppDispatch } from '../../store';
+import { selectSettingsAutosave } from '../../model/SettingsSlice';
 
 export default function SheetOverview() {
   const dispatch = useAppDispatch();
-  const workspace = useSelector(selectWorkspacePath);
+  const autosave = useSelector(selectSettingsAutosave);
   const loading = useSelector(selectSheetOverviewLoading);
   const conflicts: ImportConflicts | undefined = useSelector(
     selectsheetOverviewConflicts
@@ -51,6 +50,9 @@ export default function SheetOverview() {
   async function onImportSubmissionsFolder() {
     const path: string = await openDirectory();
     dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }));
+    if (autosave) {
+      dispatch(save());
+    }
   }
 
   async function onImportSubmissionsZip() {
@@ -61,6 +63,9 @@ export default function SheetOverview() {
     const path = dialogReturnValue.filePaths[0];
     if (path) {
       dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }));
+      if (autosave) {
+        dispatch(save());
+      }
     }
   }
 
@@ -108,10 +113,7 @@ export default function SheetOverview() {
               </ButtonGroup>
             </Grid>
             <Grid item>
-              <IconButton
-                onClick={() => dispatch(reloadState(workspace))}
-                size="small"
-              >
+              <IconButton onClick={() => dispatch(reloadState())} size="small">
                 <RefreshIcon />
               </IconButton>
             </Grid>

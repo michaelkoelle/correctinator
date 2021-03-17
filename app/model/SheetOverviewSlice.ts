@@ -15,7 +15,6 @@ import {
   existsInWorkspace,
   reloadState,
   createDirectoryInWorkspace,
-  saveAllCorrections,
   addFileToWorkspace,
 } from '../utils/FileAccess';
 
@@ -232,14 +231,12 @@ export const importCorrections = createAsyncThunk<
     if (fileStats.isDirectory()) {
       // Import from folder
       importCorrectionsFromFolderToWorkspace(dispatch, parser, path, workspace);
-      dispatch(saveAllCorrections());
       return true;
     }
 
     if (fileStats.isFile() && Path.parse(path).ext.toLowerCase() === '.zip') {
       // Import from zip
       importCorrectionsFromZipToWorkspace(dispatch, parser, path, workspace);
-      dispatch(saveAllCorrections());
       return true;
     }
 
