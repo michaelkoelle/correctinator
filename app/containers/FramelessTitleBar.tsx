@@ -29,10 +29,7 @@ import {
 import { selectUnsavedChanges } from '../model/SaveSlice';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { version } from '../package.json';
-import {
-  selectSettingsAutosave,
-  settingsSetAutosave,
-} from '../model/SettingsSlice';
+import { selectSettingsAutosave } from '../model/SettingsSlice';
 import { importCorrections } from '../model/SheetOverviewSlice';
 import { ParserType } from '../parser/Parser';
 import { selectAllSheets } from '../model/SheetSlice';
@@ -44,9 +41,10 @@ const currentWindow = remote.getCurrentWindow();
 export default function FramelessTitleBar(props: {
   setOpenUpdater: (boolean) => void;
   unsavedChangesDialog: (string) => void;
+  setReload: (boolean) => void;
 }) {
   const dispatch = useDispatch();
-  const { setOpenUpdater, unsavedChangesDialog } = props;
+  const { setOpenUpdater, unsavedChangesDialog, setReload } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
   const autosave: boolean = useSelector(selectSettingsAutosave);
@@ -254,6 +252,7 @@ export default function FramelessTitleBar(props: {
                 label: 'Reload',
                 accelerator: 'Ctrl+R',
                 click: () => {
+                  setReload(true);
                   currentWindow.webContents.reload();
                 },
               },

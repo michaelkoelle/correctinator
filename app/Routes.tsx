@@ -37,6 +37,9 @@ export default function Routes() {
   const [openSaveDialogNewFile, setOpenSaveDialogNewFile] = useState<boolean>(
     false
   );
+  const [openSaveDialogExit, setOpenSaveDialogExit] = useState<boolean>(false);
+  const [quitAnyways, setQuitAnyways] = useState<boolean>(false);
+  const [reload, setReload] = useState<boolean>(false);
   const [newFilePath, setNewFilePath] = useState<string>('');
 
   function updaterDialog(show: boolean) {
@@ -90,16 +93,20 @@ export default function Routes() {
   }, [dispatch, unsavedChanges]);
 
   useEffect(() => {
-    const beforeQuit = () => {
-      if (unsavedChanges) {
-        setOpenSaveDialog(true);
+    const beforeQuit = (e: BeforeUnloadEvent) => {
+      if (reload) {
+        setReload(false);
+      } else if (unsavedChanges && !quitAnyways) {
+        e.returnValue = false;
+        e.preventDefault();
+        setOpenSaveDialogExit(true);
       }
     };
     window.addEventListener('beforeunload', beforeQuit, true);
     return () => {
       window.removeEventListener('beforeunload', beforeQuit, true);
     };
-  }, [dispatch, unsavedChanges]);
+  }, [dispatch, quitAnyways, reload, unsavedChanges]);
 
   const [shouldUseDarkColors, setShouldUseDarkColors] = useState(
     remote.nativeTheme.shouldUseDarkColors
@@ -149,6 +156,7 @@ export default function Routes() {
         <FramelessTitleBar
           setOpenUpdater={updaterDialog}
           unsavedChangesDialog={unsavedChangesDialog}
+          setReload={setReload}
         />
         <Switch>
           <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
@@ -180,7 +188,7 @@ export default function Routes() {
           open={openSaveDialogNewFile}
           setOpen={setOpenSaveDialogNewFile}
           title="Unsaved changes"
-          text="Do you want to save your changes, before loading the new file?"
+          text="Do you want to save your changes before loading the new file?"
           onConfirm={() => {
             dispatch(save());
             setOpenSaveDialogNewFile(false);
@@ -191,6 +199,24 @@ export default function Routes() {
             setOpenSaveDialogNewFile(false);
             dispatch(workspaceSetPath(newFilePath));
             dispatch(reloadState());
+          }}
+        />
+        <ConfirmDialog
+          open={openSaveDialogExit}
+          setOpen={setOpenSaveDialogExit}
+          title="Unsaved changes"
+          text="Do you want to save your changes before quitting?"
+          onConfirm={() => {
+            dispatch(save());
+            setQuitAnyways(false);
+            remote.getCurrentWindow().close();
+          }}
+          onReject={() => {
+            setQuitAnyways(true);
+            remote.getCurrentWindow().close();
+          }}
+          onCancel={() => {
+            setQuitAnyways(false);
           }}
         />
       </App>
