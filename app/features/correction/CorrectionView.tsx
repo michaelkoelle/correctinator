@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FindInPageIcon from '@material-ui/icons/FindInPage';
@@ -32,6 +32,7 @@ import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import { saveCorrectionToWorkspace } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import { selectSettingsAutosave } from '../../model/SettingsSlice';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 type CorrectionViewProps = {
   corrections: Correction[];
@@ -47,8 +48,9 @@ export default function CorrectionView(props: CorrectionViewProps) {
   const autosave: boolean = useSelector(selectSettingsAutosave);
   const corr = corrections[index];
   // Dialogs
-  const [open, setOpen] = React.useState(false);
-  const [openExportDialog, setOpenExportDialog] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [openExportDialog, setOpenExportDialog] = useState(false);
+  const [openUnreadFilesDialog, setOpenUnreadFilesDialog] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -104,7 +106,16 @@ export default function CorrectionView(props: CorrectionViewProps) {
     }
   }
 
-  function onNext() {
+  function onNext(continueAnyways = false) {
+    if (
+      corrections[index].submission.files &&
+      corrections[index].submission.files?.find((f) => f.unread) !==
+        undefined &&
+      !continueAnyways
+    ) {
+      setOpenUnreadFilesDialog(true);
+      return;
+    }
     setStatusDone();
 
     if (index + 1 < corrections.length) {
@@ -282,7 +293,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
                     ? 'secondary'
                     : 'primary'
                 }
-                onClick={onNext}
+                onClick={() => onNext()}
                 variant="contained"
               >
                 {index + 1 === corrections.length &&
@@ -334,6 +345,16 @@ export default function CorrectionView(props: CorrectionViewProps) {
         open={openExportDialog}
         handleClose={onCloseExportDialog}
         correctionsToExport={corrections}
+      />
+      <ConfirmDialog
+        open={openUnreadFilesDialog}
+        setOpen={setOpenUnreadFilesDialog}
+        title="Unread files"
+        text="There are still unread files for this submission. Are you sure you want to go to the next submission?"
+        onConfirm={() => {
+          onNext(true);
+        }}
+        onReject={() => {}}
       />
     </div>
   );

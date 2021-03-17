@@ -19,28 +19,34 @@ import CropFreeIcon from '@material-ui/icons/CropFree';
 import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import React, { useEffect, useState } from 'react';
 import { shell } from 'electron';
+import * as Path from 'path';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import mime from 'mime-types';
 import fs from 'fs';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PDFViewer from './PDFViewer';
 import clamp from '../../utils/MathUtil';
 import ImageViewer from './ImageViewer';
 import TextViewer from './TextViewer';
-import { getFilesForCorrectionFromWorkspace } from '../../utils/FileAccess';
+import { loadFilesFromWorkspace } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
+import { submissionsUpdateOne } from '../../model/SubmissionSlice';
+import File from '../../model/File';
 
 type MediaViewerProps = {
+  submissionId: string;
   submissionName: string;
+  submissionFiles: File[];
 };
 
 export default function MediaViewer(props: MediaViewerProps) {
+  const dispatch = useDispatch();
   const [files, setFiles] = useState<string[]>([]);
   const [fileIndex, setFileIndex] = useState(0);
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const workspace = useSelector(selectWorkspacePath);
-  const { submissionName } = props;
+  const { submissionId, submissionName, submissionFiles } = props;
 
   const ZOOMSTEP = 20 / 100;
   const ZOOMMIN = 40 / 100;
@@ -104,13 +110,45 @@ export default function MediaViewer(props: MediaViewerProps) {
 
   useEffect(() => {
     if (submissionName) {
-      setFiles(getFilesForCorrectionFromWorkspace(submissionName, workspace));
+      setFiles(loadFilesFromWorkspace(submissionName, workspace));
     } else {
       setFiles([]);
     }
     resetScaleAndRotation();
     setFileIndex(0);
   }, [submissionName, workspace]);
+
+  useEffect(() => {
+    if (
+      files.length > 0 &&
+      fs.existsSync(files[fileIndex]) &&
+      submissionFiles &&
+      submissionFiles.length > 0
+    ) {
+      // Declare as read
+      const fTemp = [...submissionFiles];
+      if (fTemp && fTemp.length > 0) {
+        const i: number | undefined = fTemp.findIndex(
+          (f) =>
+            Path.parse(f.path).base === Path.parse(files[fileIndex]).base &&
+            f.unread
+        );
+        if (i !== undefined && fTemp[i] !== undefined) {
+          const temp = { ...fTemp[i] };
+          temp.unread = false;
+          fTemp[i] = temp;
+          dispatch(
+            submissionsUpdateOne({
+              id: submissionId,
+              changes: {
+                files: fTemp,
+              },
+            })
+          );
+        }
+      }
+    }
+  }, [dispatch, fileIndex, files, submissionFiles, submissionId]);
 
   if (files.length === 0 || !fs.existsSync(files[fileIndex])) {
     return (

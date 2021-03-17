@@ -66,7 +66,11 @@ function ingestCorrectionFromFolder(
   const files: string[] = getAllFilesInDirectory(Path.dirname(path)).filter(
     (file) => !file.match(parser.configFilePattern)
   );
-  copySubmissionFiles(files, submissionName, workspace);
+  const targetFiles = copySubmissionFiles(files, submissionName, workspace);
+
+  correction.submission.files = targetFiles.map((f) => {
+    return { path: Path.parse(f).base, unread: true };
+  });
 
   // Save config file
   const { entities } = normalize(correction, CorrectionSchema);
@@ -103,6 +107,7 @@ function ingestCorrectionFromZip(
     .map((entry) => entry.entryName);
 
   createDirectoryInWorkspace(`${submissionName}/files/`, workspace);
+  const targetFiles: string[] = [];
   files.forEach((file, i) => {
     const filesDir: string = Path.join(submissionName, 'files');
     const { ext } = Path.parse(file);
@@ -110,7 +115,12 @@ function ingestCorrectionFromZip(
     const buffer: Buffer | null = zip.readFile(file);
     if (buffer != null) {
       addFileToWorkspace(`${filesDir}/${fileName}`, buffer, workspace);
+      targetFiles.push(`${filesDir}/${fileName}`);
     }
+  });
+
+  correction.submission.files = targetFiles.map((f) => {
+    return { path: Path.parse(f).base, unread: true };
   });
 
   // Save config file

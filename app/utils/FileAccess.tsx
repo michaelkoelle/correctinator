@@ -66,21 +66,26 @@ export function copySubmissionFiles(
   files: string[],
   name: string | undefined = undefined,
   workspace: string
-) {
+): string[] {
   const zip = new AdmZip(workspace);
+  const targetFiles: string[] = [];
   files.forEach((file, i) => {
     const { ext } = Path.parse(file);
     if (name) {
       const fileName = `${name}-${i + 1}${ext}`;
-      if (zip.getEntry(`${name}/files/${fileName}`) === null) {
-        zip.addLocalFile(file, `${name}/files/`, fileName);
+      const fileDir = `${name}/files/`;
+      const fullPath = `${fileDir}/${fileName}`;
+      if (zip.getEntry(fullPath) === null) {
+        zip.addLocalFile(file, fileDir, fileName);
       } else {
-        zip.deleteFile(`${name}/files/${fileName}`);
-        zip.addLocalFile(file, `${name}/files/`, fileName);
+        zip.deleteFile(fullPath);
+        zip.addLocalFile(file, fileDir, fileName);
       }
+      targetFiles.push(fullPath);
     }
   });
   zip.writeZip();
+  return targetFiles;
 }
 
 export function addFileToWorkspace(
@@ -130,7 +135,7 @@ export function deleteEverythingInDir(dir: string) {
   }
 }
 
-export function getFilesForCorrectionFromWorkspace(
+export function loadFilesFromWorkspace(
   submissionName: string,
   workspace: string
 ): string[] {
@@ -274,14 +279,12 @@ export function exportCorrections1(
       );
 
       // Add submission files folder
-      getFilesForCorrectionFromWorkspace(c.submission.name, workspace).forEach(
-        (f) => {
-          const fBuffer = fs.readFileSync(f);
-          archive.append(fBuffer, {
-            name: Path.join(c.submission.name, 'files', Path.parse(f).base),
-          });
-        }
-      );
+      loadFilesFromWorkspace(c.submission.name, workspace).forEach((f) => {
+        const fBuffer = fs.readFileSync(f);
+        archive.append(fBuffer, {
+          name: Path.join(c.submission.name, 'files', Path.parse(f).base),
+        });
+      });
 
       // Add rating file
       archive.append(Buffer.from(content), {

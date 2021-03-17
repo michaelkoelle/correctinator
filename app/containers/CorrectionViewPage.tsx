@@ -110,7 +110,11 @@ export default function CorrectionViewPage() {
           />
         </div>
         <div style={{ height: '100%', margin: '0 5px 0 0' }}>
-          <MediaViewer submissionName={corrections[index]?.submission?.name} />
+          <MediaViewer
+            submissionName={corrections[index]?.submission?.name}
+            submissionId={corrections[index]?.submission?.id}
+            submissionFiles={corrections[index]?.submission?.files}
+          />
         </div>
       </SplitPane>
       {sheets.filter((s) => isInitialized(s)).length > 0 ? (
