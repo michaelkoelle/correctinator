@@ -21,6 +21,7 @@ import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
 import CorrectionViewPage from '../containers/CorrectionViewPage';
 import InfoDialog from './InfoDialog';
 import OverviewPage from '../containers/OverviewPage';
+import SettingsDialog from './SettingsDialog';
 
 const useStyle = makeStyles({
   indicator: {
@@ -32,6 +33,7 @@ export default function Navigation(): JSX.Element {
   const dispatch = useDispatch();
   const tabIndex = useSelector(selectTabIndex);
   const [openInfo, setOpenInfo] = useState<boolean>(false);
+  const [openSettings, setOpenSettings] = useState<boolean>(false);
   const classes = useStyle();
 
   function setTab(newValue) {
@@ -107,7 +109,7 @@ export default function Navigation(): JSX.Element {
                 width: '60px',
                 borderRadius: '0',
               }}
-              disabled
+              onClick={() => setOpenSettings(true)}
             >
               <SettingsIcon />
             </IconButton>
@@ -151,6 +153,10 @@ export default function Navigation(): JSX.Element {
         </Grid>
       </TabContext>
       <InfoDialog open={openInfo} setOpen={setOpenInfo} />
+      <SettingsDialog
+        open={openSettings}
+        handleClose={() => setOpenSettings(false)}
+      />
     </Grid>
   );
 }

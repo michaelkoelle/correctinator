@@ -17,5 +17,6 @@ const settingsSlice = createSlice({
 });
 
 export const selectSettingsAutosave = (state) => state.settings.autosave;
+export const selectSettings = (state) => state.settings;
 export const { settingsSetAutosave } = settingsSlice.actions;
 export default settingsSlice.reducer;
