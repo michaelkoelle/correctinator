@@ -16,6 +16,7 @@ import ReleaseNotes from '../components/ReleaseNotes';
 import {
   createNewCorFile,
   deleteEverythingInDir,
+  openDirectory,
   reloadState,
   save,
   saveAllCorrectionsAs,
@@ -32,6 +33,11 @@ import {
   selectSettingsAutosave,
   settingsSetAutosave,
 } from '../model/SettingsSlice';
+import { importCorrections } from '../model/SheetOverviewSlice';
+import { ParserType } from '../parser/Parser';
+import { selectAllSheets } from '../model/SheetSlice';
+import { selectCorrectionsBySheetId } from '../model/Selectors';
+import ExportDialog from '../components/ExportDialog';
 
 const currentWindow = remote.getCurrentWindow();
 
@@ -45,12 +51,16 @@ export default function FramelessTitleBar(props: {
   const workspace: string = useSelector(selectWorkspacePath);
   const autosave: boolean = useSelector(selectSettingsAutosave);
   const recentPaths: string[] = useSelector(selectRecentPaths);
+  const sheets = useSelector(selectAllSheets);
+  const [exportSheetId, setExportSheetId] = useState<string>();
+  const corrections = useSelector(selectCorrectionsBySheetId(exportSheetId));
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
   const [openResetConfirmDialog, setOpenResetConfirmDialog] = useState<boolean>(
     false
   );
   const [openFileError, setOpenFileError] = useState<boolean>(false);
+  const [openExportDialog, setOpenExportDialog] = useState<boolean>(false);
   const [versionInfo, setVersionInfo] = useState({
     releaseNotes: '',
     releaseName: '',
@@ -97,7 +107,7 @@ export default function FramelessTitleBar(props: {
       label: 'File',
       submenu: [
         {
-          label: 'New corrections file',
+          label: 'New file',
           accelerator: 'CommandOrControl+N',
           click: async () => {
             const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
@@ -117,7 +127,7 @@ export default function FramelessTitleBar(props: {
           },
         },
         {
-          label: 'Open corrections',
+          label: 'Open file',
           accelerator: 'CommandOrControl+O',
           click: async () => {
             const returnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog(
@@ -136,7 +146,7 @@ export default function FramelessTitleBar(props: {
           },
         },
         {
-          label: 'Open recent corrections',
+          label: 'Open recent files',
           submenu: recentPaths
             ? recentPaths.map((path) => {
                 return {
@@ -155,7 +165,7 @@ export default function FramelessTitleBar(props: {
             : [],
         },
         {
-          label: 'Save corrections',
+          label: 'Save',
           accelerator: 'CommandOrControl+S',
           click: () => {
             dispatch(save());
@@ -169,11 +179,62 @@ export default function FramelessTitleBar(props: {
           },
         },
         {
-          label: 'Close correction',
+          label: 'Close file',
           click: async () => {
             unsavedChangesDialog('');
           },
         },
+        { type: 'separator' },
+        {
+          label: 'Import Submissions',
+          submenu: [
+            {
+              label: 'From ZIP',
+              accelerator: 'CmdOrCtrl+I',
+              click: async () => {
+                const dialogReturnValue = await remote.dialog.showOpenDialog({
+                  filters: [{ name: 'Zip', extensions: ['zip'] }],
+                  properties: ['openFile'],
+                });
+                const path = dialogReturnValue.filePaths[0];
+                if (path) {
+                  dispatch(
+                    importCorrections({ path, parserType: ParserType.Uni2Work })
+                  );
+                  if (autosave) {
+                    dispatch(save());
+                  }
+                }
+              },
+            },
+            {
+              label: 'From Folder',
+              accelerator: 'CmdOrCtrl+Shift+I',
+              click: async () => {
+                const path: string = await openDirectory();
+                dispatch(
+                  importCorrections({ path, parserType: ParserType.Uni2Work })
+                );
+                if (autosave) {
+                  dispatch(save());
+                }
+              },
+            },
+          ],
+        },
+        {
+          label: 'Export Corrections',
+          submenu: sheets.map((s) => {
+            return {
+              label: s.name,
+              click: async () => {
+                setOpenExportDialog(true);
+                setExportSheetId(s.id);
+              },
+            };
+          }),
+        },
+        { type: 'separator' },
         {
           label: 'Exit',
           accelerator: 'CmdOrCtrl+W',
@@ -374,6 +435,14 @@ export default function FramelessTitleBar(props: {
         }}
         open={openResetConfirmDialog}
         setOpen={setOpenResetConfirmDialog}
+      />
+      <ExportDialog
+        open={openExportDialog}
+        handleClose={() => {
+          setOpenExportDialog(false);
+          setExportSheetId(undefined);
+        }}
+        correctionsToExport={corrections}
       />
       <Snackbar
         open={openFileError}
