@@ -390,6 +390,9 @@ export default function FramelessTitleBar(props: {
             overlay: {
               opacity: 0.0,
             },
+            separator: {
+              color: theme.palette.divider,
+            },
           },
         }}
         title={`${
