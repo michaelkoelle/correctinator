@@ -27,6 +27,7 @@ import {
 } from '../model/Selectors';
 
 import Sheet from '../model/Sheet';
+import { sheetsUpsertOne } from '../model/SheetSlice';
 import { serializeTerm } from '../utils/Formatter';
 import './SplitPane.css';
 
@@ -78,11 +79,15 @@ export default function CorrectionViewPage() {
     setOpenDialog(false);
   }
 
+  const targetSheet = sheets.find((s) => s.id === sheetId);
   if (sheetId === undefined) {
     if (openDialog !== true) {
       setOpenDialog(true);
     }
-  } else if (!sheets.map((s) => s.id).includes(sheetId)) {
+  } else if (
+    !sheets.map((s) => s.id).includes(sheetId) ||
+    (targetSheet && !isInitialized(targetSheet))
+  ) {
     dispatch(correctionPageSetSheetId(undefined));
     if (openDialog !== true) {
       setOpenDialog(true);
