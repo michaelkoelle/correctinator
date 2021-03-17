@@ -7,7 +7,7 @@ export interface SettingsState {
 const settingsSlice = createSlice({
   name: 'settings',
   initialState: {
-    autosave: false,
+    autosave: true,
   } as SettingsState,
   reducers: {
     settingsSetAutosave(state, action: PayloadAction<boolean>) {
