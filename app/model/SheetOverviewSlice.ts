@@ -151,6 +151,7 @@ export function importCorrectionsFromFolderToWorkspace(
         path: importPath,
         parser: parser.getType(),
       });
+      return;
     }
 
     ingestCorrectionFromFolder(

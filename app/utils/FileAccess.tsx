@@ -72,7 +72,12 @@ export function copySubmissionFiles(
     const { ext } = Path.parse(file);
     if (name) {
       const fileName = `${name}-${i + 1}${ext}`;
-      zip.addLocalFile(file, `${name}/files/`, fileName);
+      if (zip.getEntry(`${name}/files/${fileName}`) === null) {
+        zip.addLocalFile(file, `${name}/files/`, fileName);
+      } else {
+        zip.deleteFile(`${name}/files/${fileName}`);
+        zip.addLocalFile(file, `${name}/files/`, fileName);
+      }
     }
   });
   zip.writeZip();
@@ -84,7 +89,12 @@ export function addFileToWorkspace(
   workspace: string
 ) {
   const zip = new AdmZip(workspace);
-  zip.addFile(name, buffer);
+  const entry = zip.getEntry(name);
+  if (entry === null) {
+    zip.addFile(name, buffer);
+  } else {
+    zip.updateFile(entry, buffer);
+  }
   zip.writeZip();
 }
 
