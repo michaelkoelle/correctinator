@@ -37,7 +37,7 @@ export default function Routes() {
   const [openSaveDialogNewFile, setOpenSaveDialogNewFile] = useState<boolean>(
     false
   );
-  const [newFilePath, setNewFilePath] = useState<string>();
+  const [newFilePath, setNewFilePath] = useState<string>('');
 
   function updaterDialog(show: boolean) {
     setShowNotAvailiable(show);
@@ -184,17 +184,13 @@ export default function Routes() {
           onConfirm={() => {
             dispatch(save());
             setOpenSaveDialogNewFile(false);
-            if (newFilePath) {
-              dispatch(workspaceSetPath(newFilePath));
-              dispatch(reloadState());
-            }
+            dispatch(workspaceSetPath(newFilePath));
+            dispatch(reloadState());
           }}
           onReject={() => {
             setOpenSaveDialogNewFile(false);
-            if (newFilePath) {
-              dispatch(workspaceSetPath(newFilePath));
-              dispatch(reloadState());
-            }
+            dispatch(workspaceSetPath(newFilePath));
+            dispatch(reloadState());
           }}
         />
       </App>

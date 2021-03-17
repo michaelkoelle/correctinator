@@ -319,6 +319,7 @@ export function reloadState() {
 }
 
 export function saveCorrectionToWorkspace(c: Correction, workspace: string) {
+  console.log('Save', c.submission.name);
   if (Path.extname(workspace) === '.cor') {
     const zip = new AdmZip(workspace);
     const correctionDir: string = Path.join(
@@ -360,19 +361,17 @@ export function saveAllCorrections() {
   };
 }
 
-export async function saveAllCorrectionsAs() {
-  const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
+export function saveAllCorrectionsAs() {
+  const path: string | undefined = remote.dialog.showSaveDialogSync(
     remote.getCurrentWindow(),
     {
       filters: [{ name: 'Correctinator', extensions: ['cor'] }],
     }
   );
 
-  if (returnValue.canceled || !returnValue.filePath) {
+  if (!path) {
     throw new Error('No directory selected');
   }
-
-  const path: string = returnValue.filePath;
 
   return (dispatch) => {
     createNewCorFile(path);

@@ -31,6 +31,7 @@ import TaskView from './TaskView';
 import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import { saveCorrectionToWorkspace } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
+import { selectSettingsAutosave } from '../../model/SettingsSlice';
 
 type CorrectionViewProps = {
   corrections: Correction[];
@@ -43,6 +44,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
 
   const dispatch = useDispatch();
   const workspace = useSelector(selectWorkspacePath);
+  const autosave: boolean = useSelector(selectSettingsAutosave);
   const corr = corrections[index];
   // Dialogs
   const [open, setOpen] = React.useState(false);
@@ -50,11 +52,11 @@ export default function CorrectionView(props: CorrectionViewProps) {
 
   useEffect(() => {
     return () => {
-      if (corr) {
+      if (corr && autosave) {
         saveCorrectionToWorkspace(corr, workspace);
       }
     };
-  }, [corr, workspace]);
+  }, [autosave, corr, workspace]);
 
   function onExport() {
     setOpen(false);

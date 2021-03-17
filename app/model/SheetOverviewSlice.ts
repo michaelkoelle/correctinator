@@ -3,11 +3,15 @@ import fs from 'fs';
 import * as Path from 'path';
 import AdmZip from 'adm-zip';
 import { normalize } from 'normalizr';
+import { remote } from 'electron';
 import Correction from './Correction';
 import Uni2WorkParser from '../parser/Uni2WorkParser';
 import { correctionsImport } from './CorrectionsSlice';
 import { CorrectionSchema } from './NormalizationSchema';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import {
+  selectWorkspacePath,
+  workspaceSetPath,
+} from '../features/workspace/workspaceSlice';
 import Parser, { ParserType } from '../parser/Parser';
 import {
   getAllFilesInDirectory,
@@ -16,6 +20,7 @@ import {
   reloadState,
   createDirectoryInWorkspace,
   addFileToWorkspace,
+  createNewCorFile,
 } from '../utils/FileAccess';
 
 /*
@@ -65,9 +70,10 @@ function ingestCorrectionFromFolder(
 
   // Save config file
   const { entities } = normalize(correction, CorrectionSchema);
-  fs.writeFileSync(
-    Path.join(submissionName, 'config.json'),
-    JSON.stringify(entities)
+  addFileToWorkspace(
+    `${submissionName}/config.json`,
+    Buffer.from(JSON.stringify(entities), 'utf8'),
+    workspace
   );
 
   // Update state
@@ -223,7 +229,22 @@ export const importCorrections = createAsyncThunk<
   'corrections/import',
   async ({ path, parserType }, { getState, dispatch, rejectWithValue }) => {
     const parser: Parser = getParser(parserType);
-    const workspace = selectWorkspacePath(getState());
+    let workspace = selectWorkspacePath(getState());
+
+    if (workspace.length === 0) {
+      const p: string | undefined = remote.dialog.showSaveDialogSync(
+        remote.getCurrentWindow(),
+        {
+          filters: [{ name: 'Correctinator', extensions: ['cor'] }],
+        }
+      );
+      if (!p) {
+        return rejectWithValue('File not created');
+      }
+      createNewCorFile(p);
+      dispatch(workspaceSetPath(p));
+      workspace = p;
+    }
 
     // Import from zip file or folder?
     const fileStats = fs.statSync(path);

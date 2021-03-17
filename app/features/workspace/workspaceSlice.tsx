@@ -15,9 +15,11 @@ const workspaceSlice = createSlice({
     workspaceSetPath(state, action: PayloadAction<string>) {
       state.path = action.payload;
       const temp = state.recent ? state.recent : [];
-      temp.push(action.payload);
-      const temp1 = [...new Set(temp)];
-      state.recent = temp1.slice(Math.max(temp1.length - 5, 0));
+      if (action.payload.length > 0) {
+        temp.push(action.payload);
+        const temp1 = [...new Set(temp)];
+        state.recent = temp1.slice(Math.max(temp1.length - 5, 0));
+      }
     },
     workspaceRemoveOnePath(state, action: PayloadAction<string>) {
       const index = state.recent.indexOf(action.payload);
