@@ -141,7 +141,8 @@ export function getFilesForCorrectionFromWorkspace(
     .getEntries()
     .filter((entry) => {
       return (
-        Path.dirname(entry.entryName) === Path.join(submissionName, 'files')
+        Path.dirname(entry.entryName) ===
+        Path.join(submissionName, 'files').replaceAll('\\', '/')
       );
     })
     .forEach((entry) => {
@@ -319,7 +320,6 @@ export function reloadState() {
 }
 
 export function saveCorrectionToWorkspace(c: Correction, workspace: string) {
-  console.log('Save', c.submission.name);
   if (Path.extname(workspace) === '.cor') {
     const zip = new AdmZip(workspace);
     const correctionDir: string = Path.join(
@@ -333,7 +333,6 @@ export function saveCorrectionToWorkspace(c: Correction, workspace: string) {
 }
 
 export function saveAllCorrections() {
-  console.log('SAVING');
   return (dispatch, getState) => {
     const state = getState();
     const corrections: Correction[] = selectAllCorrectionsDenormalized(state);
