@@ -391,7 +391,11 @@ export function saveAllCorrectionsAs() {
 export function save() {
   return (dispatch, getState) => {
     const workspace: string = selectWorkspacePath(getState());
-    if (workspace && Path.extname(workspace) === '.cor') {
+    if (
+      workspace &&
+      Path.extname(workspace) === '.cor' &&
+      fs.existsSync(workspace)
+    ) {
       dispatch(saveAllCorrections());
     } else {
       dispatch(saveAllCorrectionsAs());
