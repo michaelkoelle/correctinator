@@ -13,6 +13,7 @@ import {
   Switch,
 } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
+import { remote } from 'electron';
 import {
   selectSettings,
   settingsSetAutosave,
@@ -36,7 +37,28 @@ export default function SettingsDialog(props: SettingsDialogProps) {
       <DialogContent dividers>
         <List>
           <ListItem>
-            <ListItemText>Autosave</ListItemText>
+            <ListItemText
+              primary="Dark Theme"
+              secondary="Choose between light/dark theme"
+            />
+            <ListItemSecondaryAction>
+              <Switch
+                edge="end"
+                onChange={() => {
+                  remote.nativeTheme.themeSource = remote.nativeTheme
+                    .shouldUseDarkColors
+                    ? 'light'
+                    : 'dark';
+                }}
+                checked={remote?.nativeTheme?.shouldUseDarkColors}
+              />
+            </ListItemSecondaryAction>
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary="Autosave"
+              secondary="Automatically saves on actions e.g. clicking Next"
+            />
             <ListItemSecondaryAction>
               <Switch
                 edge="end"

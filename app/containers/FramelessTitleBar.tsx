@@ -335,6 +335,7 @@ export default function FramelessTitleBar(props: {
             setVersionInfo(info.versionInfo);
           },
         },
+        { type: 'separator' },
         {
           label: 'Documentation',
           click() {
@@ -349,14 +350,6 @@ export default function FramelessTitleBar(props: {
             shell.openExternal(
               'https://github.com/koellemichael/correctinator/issues'
             );
-          },
-        },
-        {
-          label: 'Autosave',
-          type: 'checkbox',
-          checked: autosave,
-          click: () => {
-            dispatch(settingsSetAutosave(!autosave));
           },
         },
       ],
