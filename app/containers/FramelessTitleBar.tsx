@@ -177,6 +177,13 @@ export default function FramelessTitleBar(props: {
           },
         },
         {
+          label: 'Discard changes',
+          accelerator: 'CommandOrControl+Shift+D',
+          click: async () => {
+            dispatch(reloadState());
+          },
+        },
+        {
           label: 'Close file',
           click: async () => {
             unsavedChangesDialog('');
