@@ -6,7 +6,7 @@ import { normalize } from 'normalizr';
 import { remote } from 'electron';
 import Correction from './Correction';
 import Uni2WorkParser from '../parser/Uni2WorkParser';
-import { correctionsImport } from './CorrectionsSlice';
+import { loadCorrections } from './CorrectionsSlice';
 import { CorrectionSchema } from './NormalizationSchema';
 import {
   selectWorkspacePath,
@@ -81,7 +81,7 @@ function ingestCorrectionFromFolder(
   );
 
   // Update state
-  dispatch(correctionsImport(entities));
+  dispatch(loadCorrections(entities));
 }
 
 function ingestCorrectionFromZip(
@@ -132,7 +132,7 @@ function ingestCorrectionFromZip(
   );
 
   // Update state
-  dispatch(correctionsImport(entities));
+  dispatch(loadCorrections(entities));
 }
 
 export function importCorrectionsFromFolderToWorkspace(

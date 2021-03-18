@@ -5,7 +5,7 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import Annotation from './Annotation';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 
 const adapter = createEntityAdapter<Annotation>();
 
@@ -24,7 +24,7 @@ const slice = createSlice({
     annotationsUpsertMany: adapter.upsertMany,
   },
   extraReducers: {
-    [correctionsImport.type]: (state, action) => {
+    [loadCorrections.type]: (state, action) => {
       if (action.payload.annotations !== undefined) {
         adapter.upsertMany(state, action.payload.annotations);
       }

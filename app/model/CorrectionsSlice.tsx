@@ -9,7 +9,7 @@ import Correction from './Correction';
 import CorrectionEntity from './CorrectionEntity';
 import { CorrectionsSchema } from './NormalizationSchema';
 
-export const correctionsImport = createAction<unknown>('correctionsImport');
+export const loadCorrections = createAction<unknown>('loadCorrections');
 export const deleteEntities = createAction<void>('deleteEntities');
 
 const adapter = createEntityAdapter<CorrectionEntity>();
@@ -29,7 +29,7 @@ const slice = createSlice({
     correctionsUpsertMany: adapter.upsertMany,
   },
   extraReducers: {
-    [correctionsImport.type]: (state, action) => {
+    [loadCorrections.type]: (state, action) => {
       adapter.upsertMany(state, action.payload.corrections);
     },
     [deleteEntities.type]: (state) => {
@@ -61,7 +61,7 @@ export const {
 export function upsertCorrection(correction: Correction) {
   return (dispatch) => {
     dispatch(
-      correctionsImport(normalize([correction], CorrectionsSchema).entities)
+      loadCorrections(normalize([correction], CorrectionsSchema).entities)
     );
   };
 }

@@ -5,7 +5,7 @@ import {
   EntityState,
   PayloadAction,
 } from '@reduxjs/toolkit';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import RatingEntity from './RatingEntity';
 
 const adapter = createEntityAdapter<RatingEntity>({
@@ -27,7 +27,7 @@ const slice = createSlice({
     ratingsUpsertMany: adapter.upsertMany,
   },
   extraReducers: {
-    [correctionsImport.type]: (state, action) => {
+    [loadCorrections.type]: (state, action) => {
       if (action.payload.ratings !== undefined) {
         adapter.upsertMany(state, action.payload.ratings);
       }

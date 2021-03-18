@@ -4,7 +4,7 @@ import {
   createSlice,
   PayloadAction,
 } from '@reduxjs/toolkit';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import TaskEntity from './TaskEntity';
 
 const adapter = createEntityAdapter<TaskEntity>();
@@ -46,7 +46,7 @@ const slice = createSlice({
     }, */
   },
   extraReducers: {
-    [correctionsImport.type]: (state: any, action) => {
+    [loadCorrections.type]: (state: any, action) => {
       if (action.payload.tasks !== undefined) {
         adapter.upsertMany(state, action.payload.tasks);
       }

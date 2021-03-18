@@ -4,7 +4,7 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import Location from './Location';
 
 const adapter = createEntityAdapter<Location>({
@@ -26,7 +26,7 @@ const slice = createSlice({
     locationsUpsertMany: adapter.upsertMany,
   },
   extraReducers: {
-    [correctionsImport.type]: (state, action) => {
+    [loadCorrections.type]: (state, action) => {
       if (action.payload.locations !== undefined) {
         adapter.upsertMany(state, action.payload.locations);
       }

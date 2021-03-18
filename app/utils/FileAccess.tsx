@@ -11,7 +11,7 @@ import Correction from '../model/Correction';
 import { CorrectionSchema } from '../model/NormalizationSchema';
 import Parser from '../parser/Parser';
 import ConditionalComment from '../model/ConditionalComment';
-import { deleteEntities, correctionsImport } from '../model/CorrectionsSlice';
+import { deleteEntities, loadCorrections } from '../model/CorrectionsSlice';
 import { selectAllCorrectionsDenormalized } from '../model/Selectors';
 import {
   selectWorkspacePath,
@@ -326,7 +326,7 @@ export function reloadState() {
       .filter((entry) => Path.parse(entry.entryName).base === 'config.json')
       .forEach((entry) => {
         const entities = JSON.parse(zip.readAsText(entry, 'utf8'));
-        dispatch(correctionsImport(entities));
+        dispatch(loadCorrections(entities));
       });
   };
 }
