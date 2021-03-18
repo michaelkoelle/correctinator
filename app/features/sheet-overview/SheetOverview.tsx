@@ -16,6 +16,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { remote } from 'electron';
+import { unwrapResult } from '@reduxjs/toolkit';
 import { openDirectory, reloadState, save } from '../../utils/FileAccess';
 import SheetCardList from './SheetCardList';
 import {
@@ -49,10 +50,17 @@ export default function SheetOverview() {
 
   async function onImportSubmissionsFolder() {
     const path: string = await openDirectory();
-    dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }));
-    if (autosave) {
-      dispatch(save());
-    }
+    dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }))
+      .then(unwrapResult)
+      .then((originalPromiseResult) => {
+        if (autosave) {
+          dispatch(save());
+        }
+        return originalPromiseResult;
+      })
+      .catch((rejectedValueOrSerializedError) => {
+        console.log(rejectedValueOrSerializedError);
+      });
   }
 
   async function onImportSubmissionsZip() {
@@ -62,10 +70,17 @@ export default function SheetOverview() {
     });
     const path = dialogReturnValue.filePaths[0];
     if (path) {
-      dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }));
-      if (autosave) {
-        dispatch(save());
-      }
+      dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }))
+        .then(unwrapResult)
+        .then((originalPromiseResult) => {
+          if (autosave) {
+            dispatch(save());
+          }
+          return originalPromiseResult;
+        })
+        .catch((rejectedValueOrSerializedError) => {
+          console.log(rejectedValueOrSerializedError);
+        });
     }
   }
 

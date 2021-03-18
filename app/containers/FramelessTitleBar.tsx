@@ -12,6 +12,7 @@ import {
   shell,
 } from 'electron';
 import { Alert } from '@material-ui/lab';
+import { unwrapResult } from '@reduxjs/toolkit';
 import ReleaseNotes from '../components/ReleaseNotes';
 import {
   createNewCorFile,
@@ -35,6 +36,7 @@ import { ParserType } from '../parser/Parser';
 import { selectAllSheets } from '../model/SheetSlice';
 import { selectCorrectionsBySheetId } from '../model/Selectors';
 import ExportDialog from '../components/ExportDialog';
+import { useAppDispatch } from '../store';
 
 const currentWindow = remote.getCurrentWindow();
 
@@ -43,7 +45,7 @@ export default function FramelessTitleBar(props: {
   unsavedChangesDialog: (string) => void;
   setReload: (boolean) => void;
 }) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { setOpenUpdater, unsavedChangesDialog, setReload } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
@@ -205,10 +207,17 @@ export default function FramelessTitleBar(props: {
                 if (path) {
                   dispatch(
                     importCorrections({ path, parserType: ParserType.Uni2Work })
-                  );
-                  if (autosave) {
-                    dispatch(save());
-                  }
+                  )
+                    .then(unwrapResult)
+                    .then((originalPromiseResult) => {
+                      if (autosave) {
+                        dispatch(save());
+                      }
+                      return originalPromiseResult;
+                    })
+                    .catch((rejectedValueOrSerializedError) => {
+                      console.log(rejectedValueOrSerializedError);
+                    });
                 }
               },
             },
@@ -219,10 +228,17 @@ export default function FramelessTitleBar(props: {
                 const path: string = await openDirectory();
                 dispatch(
                   importCorrections({ path, parserType: ParserType.Uni2Work })
-                );
-                if (autosave) {
-                  dispatch(save());
-                }
+                )
+                  .then(unwrapResult)
+                  .then((originalPromiseResult) => {
+                    if (autosave) {
+                      dispatch(save());
+                    }
+                    return originalPromiseResult;
+                  })
+                  .catch((rejectedValueOrSerializedError) => {
+                    console.log(rejectedValueOrSerializedError);
+                  });
               },
             },
           ],
