@@ -15,9 +15,11 @@ import {
 } from '@material-ui/core';
 import { ipcRenderer, shell } from 'electron';
 import { UpdateInfo } from 'electron-updater';
+import { useDispatch } from 'react-redux';
 import { version as currentAppVersion } from '../package.json';
 import * as IPCConstants from '../constants/ipc';
 import CircularProgressWithLabel from './CircularProgressWithLabel';
+import { saveAllCorrections } from '../utils/FileAccess';
 
 type UpdaterDialogProps = {
   open: boolean;
@@ -41,6 +43,7 @@ enum UpdaterState {
 function UpdaterDialog(props: UpdaterDialogProps) {
   const { open, setOpen, showNotAvailiable } = props;
   const theme = useTheme();
+  const dispatch = useDispatch();
   const [updaterState, setUpdaterState] = useState<UpdaterState>(
     UpdaterState.CHECKING_FOR_UPDATE
   );
@@ -88,6 +91,8 @@ function UpdaterDialog(props: UpdaterDialogProps) {
     ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_SUCCESS, () => {
       // Update state for download complete
       setUpdaterState(UpdaterState.UPDATE_DOWNLOADED);
+      // TODO: for now we just save before installing
+      dispatch(saveAllCorrections());
       setTimeout(() => {
         ipcRenderer.send(IPCConstants.QUIT_AND_INSTALL_UPDATE);
         setOpen(false);
@@ -106,7 +111,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_FAILURE);
       ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_PROGRESS);
     };
-  }, [setOpen, showNotAvailiable]);
+  }, [dispatch, setOpen, showNotAvailiable]);
 
   function onDownloadUpdate() {
     setUpdaterState(UpdaterState.DOWNLOADING_UPDATE);
