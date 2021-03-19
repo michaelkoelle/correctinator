@@ -4,12 +4,12 @@ import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import RatingEntity from '../model/RatingEntity';
 import { ratingsUpdateMany } from '../model/RatingSlice';
 import SingleChoiceTask from '../model/SingleChoiceTask';
-import { getFilesForCorrectionFromWorkspace } from './FileAccess';
 import { getRateableTasksFromIds, isSingleChoiceTask } from './TaskUtil';
 import SheetEntity from '../model/SheetEntity';
 import CorrectionEntity from '../model/CorrectionEntity';
 import { correctionsUpdateOne } from '../model/CorrectionsSlice';
 import Status from '../model/Status';
+import { loadFilesFromWorkspace } from './FileAccess';
 
 enum SolutionsStatus {
   NO_OCCURENCE,
@@ -159,7 +159,7 @@ export function autoCorrectSingleChoiceTasksOfSheet(sheetId: string) {
     // Get all .txt files of the current submission
     corrections.forEach((c) => {
       const submission = state.submissions.entities[c.submission];
-      const txtFiles = getFilesForCorrectionFromWorkspace(
+      const txtFiles = loadFilesFromWorkspace(
         submission.name,
         workspace
       ).filter((f) => Path.extname(f) === '.txt');

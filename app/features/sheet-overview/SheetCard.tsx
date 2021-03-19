@@ -39,7 +39,7 @@ import {
 import {
   deleteCorrectionFromWorkspace,
   reloadState,
-  saveAllCorrections,
+  save,
 } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import SheetEntity from '../../model/SheetEntity';
@@ -51,11 +51,13 @@ import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection'
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
 import { overviewClearSelectedSheetWithId } from '../../model/OverviewSlice';
+import { selectSettingsAutosave } from '../../model/SettingsSlice';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
   const theme = useTheme();
   const workspace = useSelector(selectWorkspacePath);
+  const autosave: boolean = useSelector(selectSettingsAutosave);
   const entities = useSelector(selectAllEntities);
   const sheet: Sheet = denormalize(props.sheet, SheetSchema, entities);
   const corrections: Correction[] = useSelector(
@@ -127,11 +129,13 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
 
   function onDeleteSheet() {
     onCloseConfirmDialog();
-    dispatch(saveAllCorrections());
     dispatch(schemaClearSelectedSheetWithId(sheet.id));
     dispatch(overviewClearSelectedSheetWithId(sheet.id));
     corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
-    dispatch(reloadState(workspace));
+    dispatch(reloadState());
+    if (autosave) {
+      dispatch(save());
+    }
   }
 
   function onAutoCorrectSingleChoiceTasks() {

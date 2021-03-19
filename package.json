@@ -55,6 +55,10 @@
   "build": {
     "productName": "correctinator",
     "appId": "de.koellemichael.correctinator",
+    "fileAssociations": {
+      "ext": "cor",
+      "name": "Correction"
+    },
     "files": [
       "dist/",
       "node_modules/",
@@ -277,7 +281,7 @@
     "jschardet": "^2.2.1",
     "lodash": "^4.17.20",
     "mime-types": "^2.1.27",
-    "mui-datatables": "^3.5.0",
+    "mui-datatables": "^3.7.6",
     "normalizr": "^3.6.1",
     "react": "^16.13.1",
     "react-ace": "^9.1.4",

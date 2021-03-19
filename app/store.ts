@@ -47,9 +47,16 @@ const defMiddleware = (mid) =>
 const middleware = [...defMiddleware(getDefaultMiddleware), router];
 
 const changeMiddleware = (store: MiddlewareAPI) => (next) => (action) => {
-  if (action.type !== 'save/reportChange') {
-    if (!store.getState().save.unsavedChanges) {
-      store.dispatch(reportChange());
+  const t: string = action.type;
+  if (t) {
+    if (
+      t.includes('ratings') ||
+      t.includes('corrections') ||
+      t.includes('tasks')
+    ) {
+      if (!store.getState().save.unsavedChanges) {
+        store.dispatch(reportChange());
+      }
     }
   }
 

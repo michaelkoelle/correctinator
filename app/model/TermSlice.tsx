@@ -4,7 +4,7 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import Term from './Term';
 
 const adapter = createEntityAdapter<Term>({
@@ -26,7 +26,7 @@ const slice = createSlice({
     termsUpsertMany: adapter.upsertMany,
   },
   extraReducers: {
-    [correctionsImport.type]: (state, action) => {
+    [loadCorrections.type]: (state, action) => {
       adapter.upsertMany(state, action.payload.terms);
     },
     [deleteEntities.type]: (state, action) => {

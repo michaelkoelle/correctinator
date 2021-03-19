@@ -13,10 +13,15 @@ type ConfirmDialogProps = {
   setOpen: (v: boolean) => unknown;
   onConfirm: () => unknown;
   onReject: () => unknown;
+  onCancel?: undefined | (() => unknown);
+};
+
+const defaultProps: Partial<ConfirmDialogProps> = {
+  onCancel: undefined,
 };
 
 const ConfirmDialog = (props: ConfirmDialogProps) => {
-  const { title, text, open, setOpen, onConfirm, onReject } = props;
+  const { title, text, open, setOpen, onConfirm, onReject, onCancel } = props;
   return (
     <Dialog
       open={open}
@@ -48,8 +53,23 @@ const ConfirmDialog = (props: ConfirmDialogProps) => {
         >
           No
         </Button>
+        {onCancel ? (
+          <Button
+            onClick={() => {
+              setOpen(false);
+              onCancel();
+            }}
+            color="default"
+          >
+            Cancel
+          </Button>
+        ) : (
+          <></>
+        )}
       </DialogActions>
     </Dialog>
   );
 };
+
+ConfirmDialog.defaultProps = defaultProps;
 export default ConfirmDialog;

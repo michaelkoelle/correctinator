@@ -90,7 +90,7 @@ export default function TimeCurve(props: TimeCurveProps) {
             title: { fill: theme.palette.text.primary },
             text: { fill: theme.palette.text.primary },
           }}
-          title="Score in %"
+          title="Corrections"
           tickValues={getTickValues(15, times.length)}
         />
         <YAxis

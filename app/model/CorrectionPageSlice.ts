@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { workspaceSetPath } from '../features/workspace/workspaceSlice';
 import { selectCorrectionsBySheetId } from './Selectors';
 
 export interface CorrectionPageState {
@@ -24,6 +25,13 @@ const correctionPageSlice = createSlice({
     },
     correctionPageSetTimeStart(state, action: PayloadAction<string>) {
       state.timeStart = action.payload;
+    },
+  },
+  extraReducers: {
+    [workspaceSetPath.type]: (state) => {
+      state.sheetId = undefined;
+      state.index = 0;
+      state.timeStart = undefined;
     },
   },
 });

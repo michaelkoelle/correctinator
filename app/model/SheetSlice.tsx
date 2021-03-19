@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import SheetEntity from './SheetEntity';
 
 const adapter = createEntityAdapter<SheetEntity>({
@@ -22,7 +22,7 @@ const slice = createSlice({
     sheetsUpsertMany: adapter.upsertMany,
   },
   extraReducers: {
-    [correctionsImport.type]: (state, action) => {
+    [loadCorrections.type]: (state, action) => {
       adapter.upsertMany(state, action.payload.sheets);
     },
     [deleteEntities.type]: (state) => {

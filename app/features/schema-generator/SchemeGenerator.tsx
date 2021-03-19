@@ -72,9 +72,10 @@ import { correctionsUpsertMany } from '../../model/CorrectionsSlice';
 import { commentsUpsertMany } from '../../model/CommentSlice';
 import CorrectionEntity from '../../model/CorrectionEntity';
 import { ratingsUpsertMany } from '../../model/RatingSlice';
-import { saveAllCorrections } from '../../utils/FileAccess';
+import { save } from '../../utils/FileAccess';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 import SchemaTaskList from './SchemaTaskList';
+import { selectSettingsAutosave } from '../../model/SettingsSlice';
 
 function initializeSheet(
   sheetId: string,
@@ -129,12 +130,12 @@ function initializeSheet(
     dispatch(commentsUpsertMany(allComments));
     dispatch(ratingsUpsertMany(allRatings));
     dispatch(correctionsUpsertMany(allCorrections));
-    dispatch(saveAllCorrections());
   };
 }
 
 export default function SchemeGenerator() {
   const dispatch = useDispatch();
+  const autosave = useSelector(selectSettingsAutosave);
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
   const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
   const tasksEntity: TaskEntity[] = useSelector(selectSchemaTasks);
@@ -211,6 +212,10 @@ export default function SchemeGenerator() {
         getTopLevelTasks(tasks).map((t) => t.id)
       )
     );
+
+    if (autosave) {
+      dispatch(save());
+    }
     setCorrectionDialog(true);
   }
 

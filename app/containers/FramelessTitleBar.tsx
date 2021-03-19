@@ -1,73 +1,77 @@
 import React, { useEffect, useState } from 'react';
-import fse from 'fs-extra';
+import fs from 'fs';
 import TitleBar from 'frameless-titlebar';
 import 'setimmediate';
 import * as Path from 'path';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTheme, Snackbar } from '@material-ui/core';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-  useTheme,
-} from '@material-ui/core';
-import { remote, shell } from 'electron';
+  OpenDialogReturnValue,
+  remote,
+  SaveDialogReturnValue,
+  shell,
+} from 'electron';
+import { Alert } from '@material-ui/lab';
+import { unwrapResult } from '@reduxjs/toolkit';
 import ReleaseNotes from '../components/ReleaseNotes';
 import {
+  createNewCorFile,
   deleteEverythingInDir,
-  exportWorkspace,
   openDirectory,
   reloadState,
-  saveAllCorrections,
+  save,
+  saveAllCorrectionsAs,
 } from '../utils/FileAccess';
 import {
+  selectRecentPaths,
   selectWorkspacePath,
-  workspaceSetPath,
+  workspaceRemoveOnePath,
 } from '../features/workspace/workspaceSlice';
 import { selectUnsavedChanges } from '../model/SaveSlice';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { version } from '../package.json';
+import { selectSettingsAutosave } from '../model/SettingsSlice';
+import { importCorrections } from '../model/SheetOverviewSlice';
+import { ParserType } from '../parser/Parser';
+import { selectAllSheets } from '../model/SheetSlice';
+import { selectCorrectionsBySheetId } from '../model/Selectors';
+import ExportDialog from '../components/ExportDialog';
+import { useAppDispatch } from '../store';
 
 const currentWindow = remote.getCurrentWindow();
 
 export default function FramelessTitleBar(props: {
   setOpenUpdater: (boolean) => void;
+  unsavedChangesDialog: (string) => void;
+  setReload: (boolean) => void;
 }) {
-  const dispatch = useDispatch();
-  const { setOpenUpdater } = props;
+  const dispatch = useAppDispatch();
+  const { setOpenUpdater, unsavedChangesDialog, setReload } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
+  const autosave: boolean = useSelector(selectSettingsAutosave);
+  const recentPaths: string[] = useSelector(selectRecentPaths);
+  const sheets = useSelector(selectAllSheets);
+  const [exportSheetId, setExportSheetId] = useState<string>();
+  const corrections = useSelector(selectCorrectionsBySheetId(exportSheetId));
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
-  const [oldPath, setOldPath] = useState<string>(workspace);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
-  const [openMoveFilesDialog, setOpenMoveFilesDialog] = useState<boolean>(
-    false
-  );
   const [openResetConfirmDialog, setOpenResetConfirmDialog] = useState<boolean>(
     false
   );
+  const [openFileError, setOpenFileError] = useState<boolean>(false);
+  const [openExportDialog, setOpenExportDialog] = useState<boolean>(false);
   const [versionInfo, setVersionInfo] = useState({
     releaseNotes: '',
     releaseName: '',
   });
-  const [open, setOpen] = useState(false);
+  const [openReleaseNotes, setOpenReleaseNotes] = useState(false);
 
-  function onCloseReleaseNotes() {
-    setOpen(false);
-  }
-
-  /*
-  remote.globalShortcut.register('CommandOrControl+S', () => {
-    dispatch(saveAllCorrections());
-  });
-*/
   useEffect(() => {
     const acceleratorListener = (event) => {
       // Save
       if ((event.metaKey || event.ctrlKey) && event.key === 's') {
-        dispatch(saveAllCorrections());
+        dispatch(save());
       }
     };
     window.addEventListener('keydown', acceleratorListener, true);
@@ -103,63 +107,155 @@ export default function FramelessTitleBar(props: {
       label: 'File',
       submenu: [
         {
-          label: 'Workspace',
-          submenu: [
-            {
-              label: 'Open/Change directory',
-              click: async () => {
-                const dir: string = await openDirectory();
-                setOldPath(workspace);
-                dispatch(saveAllCorrections());
-                if (fse.existsSync(workspace)) {
-                  const filesToCopy: string[] = fse.readdirSync(workspace);
-                  if (filesToCopy.length > 0) {
-                    setOpenMoveFilesDialog(true);
-                  }
-                }
-                dispatch(workspaceSetPath(dir));
-                dispatch(reloadState(dir));
-              },
-            },
-            {
-              label: 'Export workspace',
-              click: () => {
-                const defaultPath = 'workspace.zip';
-                const p = remote.dialog.showSaveDialogSync(
-                  remote.getCurrentWindow(),
-                  {
-                    defaultPath,
-                    filters: [{ name: 'Zip', extensions: ['zip'] }],
-                  }
-                );
-                if (p) {
-                  exportWorkspace(p, workspace);
-                }
-              },
-            },
-            {
-              label: `Show Directory in ${
-                process.platform !== 'darwin' ? 'File Explorer' : 'Finder'
-              }`,
-              click: async () => {
-                shell.openPath(workspace);
-              },
-            },
-            {
-              label: 'Reset Workspace',
-              click: async () => {
-                setOpenResetConfirmDialog(true);
-              },
-            },
-          ],
+          label: 'New file',
+          accelerator: 'CommandOrControl+N',
+          click: async () => {
+            const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
+              remote.getCurrentWindow(),
+              {
+                filters: [{ name: 'Correctinator', extensions: ['cor'] }],
+              }
+            );
+
+            if (returnValue.canceled || !returnValue.filePath) {
+              throw new Error('No directory selected');
+            }
+
+            const path: string = returnValue.filePath;
+            createNewCorFile(path);
+            unsavedChangesDialog(path);
+          },
+        },
+        {
+          label: 'Open file',
+          accelerator: 'CommandOrControl+O',
+          click: async () => {
+            const returnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog(
+              remote.getCurrentWindow(),
+              {
+                filters: [{ name: 'Correctinator', extensions: ['cor'] }],
+                properties: ['openFile'],
+              }
+            );
+
+            if (returnValue.canceled || returnValue.filePaths.length !== 1) {
+              throw new Error('No directory selected');
+            }
+            const path: string = returnValue.filePaths[0];
+            unsavedChangesDialog(path);
+          },
+        },
+        {
+          label: 'Open recent files',
+          submenu: recentPaths
+            ? recentPaths.map((path) => {
+                return {
+                  label: path,
+                  click: async () => {
+                    if (fs.existsSync(path)) {
+                      unsavedChangesDialog(path);
+                    } else {
+                      // Path doesnt exist anymore
+                      setOpenFileError(true);
+                      dispatch(workspaceRemoveOnePath(path));
+                    }
+                  },
+                };
+              })
+            : [],
         },
         {
           label: 'Save',
           accelerator: 'CommandOrControl+S',
           click: () => {
-            dispatch(saveAllCorrections());
+            dispatch(save());
           },
         },
+        {
+          label: 'Save as',
+          accelerator: 'CommandOrControl+Shift+S',
+          click: async () => {
+            dispatch(saveAllCorrectionsAs());
+          },
+        },
+        {
+          label: 'Discard changes',
+          accelerator: 'CommandOrControl+Shift+D',
+          click: async () => {
+            dispatch(reloadState());
+          },
+        },
+        {
+          label: 'Close file',
+          click: async () => {
+            unsavedChangesDialog('');
+          },
+        },
+        { type: 'separator' },
+        {
+          label: 'Import Submissions',
+          submenu: [
+            {
+              label: 'From ZIP',
+              accelerator: 'CmdOrCtrl+I',
+              click: async () => {
+                const dialogReturnValue = await remote.dialog.showOpenDialog({
+                  filters: [{ name: 'Zip', extensions: ['zip'] }],
+                  properties: ['openFile'],
+                });
+                const path = dialogReturnValue.filePaths[0];
+                if (path) {
+                  dispatch(
+                    importCorrections({ path, parserType: ParserType.Uni2Work })
+                  )
+                    .then(unwrapResult)
+                    .then((originalPromiseResult) => {
+                      if (autosave) {
+                        dispatch(save());
+                      }
+                      return originalPromiseResult;
+                    })
+                    .catch((rejectedValueOrSerializedError) => {
+                      console.log(rejectedValueOrSerializedError);
+                    });
+                }
+              },
+            },
+            {
+              label: 'From Folder',
+              accelerator: 'CmdOrCtrl+Shift+I',
+              click: async () => {
+                const path: string = await openDirectory();
+                dispatch(
+                  importCorrections({ path, parserType: ParserType.Uni2Work })
+                )
+                  .then(unwrapResult)
+                  .then((originalPromiseResult) => {
+                    if (autosave) {
+                      dispatch(save());
+                    }
+                    return originalPromiseResult;
+                  })
+                  .catch((rejectedValueOrSerializedError) => {
+                    console.log(rejectedValueOrSerializedError);
+                  });
+              },
+            },
+          ],
+        },
+        {
+          label: 'Export Corrections',
+          submenu: sheets.map((s) => {
+            return {
+              label: s.name,
+              click: async () => {
+                setOpenExportDialog(true);
+                setExportSheetId(s.id);
+              },
+            };
+          }),
+        },
+        { type: 'separator' },
         {
           label: 'Exit',
           accelerator: 'CmdOrCtrl+W',
@@ -179,6 +275,7 @@ export default function FramelessTitleBar(props: {
                 label: 'Reload',
                 accelerator: 'Ctrl+R',
                 click: () => {
+                  setReload(true);
                   currentWindow.webContents.reload();
                 },
               },
@@ -229,6 +326,13 @@ export default function FramelessTitleBar(props: {
                     : 'dark';
                 },
               },
+              {
+                label: 'Toggle Developer Tools',
+                accelerator: 'Alt+Ctrl+I',
+                click: () => {
+                  currentWindow.webContents.toggleDevTools();
+                },
+              },
             ],
     },
     {
@@ -243,16 +347,17 @@ export default function FramelessTitleBar(props: {
         {
           label: 'View Release Notes',
           async click() {
-            setOpen(true);
+            setOpenReleaseNotes(true);
             const info = await remote
               .require('electron-updater')
               .autoUpdater.checkForUpdates();
             if (info === undefined) {
-              setOpen(false);
+              setOpenReleaseNotes(false);
             }
             setVersionInfo(info.versionInfo);
           },
         },
+        { type: 'separator' },
         {
           label: 'Documentation',
           click() {
@@ -307,9 +412,14 @@ export default function FramelessTitleBar(props: {
             overlay: {
               opacity: 0.0,
             },
+            separator: {
+              color: theme.palette.divider,
+            },
           },
         }}
-        title={`correctinator v${version}${unsavedChanges ? ' •' : ''}`}
+        title={`${
+          workspace.length > 0 ? `${Path.parse(workspace).name} - ` : ''
+        }correctinator v${version}${unsavedChanges ? ' •' : ''}`}
         onClose={() => currentWindow.close()}
         onMinimize={() => currentWindow.minimize()}
         onMaximize={handleMaximize}
@@ -325,57 +435,17 @@ export default function FramelessTitleBar(props: {
         {/* custom titlebar items */}
       </TitleBar>
       <ReleaseNotes
-        open={open}
+        open={openReleaseNotes}
         title={versionInfo?.releaseName}
         releaseNotes={versionInfo?.releaseNotes}
-        handleClose={onCloseReleaseNotes}
+        handleClose={() => setOpenReleaseNotes(false)}
       />
-      <Dialog
-        open={openMoveFilesDialog}
-        onClose={() => setOpenMoveFilesDialog(false)}
-      >
-        <DialogTitle>Move old submissions?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Do you want to move your old submissions to the new workspace?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              if (oldPath !== undefined) {
-                const filesToCopy: string[] = fse.readdirSync(oldPath);
-                filesToCopy?.forEach((file) => {
-                  const from = Path.join(oldPath, file);
-                  const to = Path.join(workspace, Path.parse(file).base);
-                  console.log(`${from} --> ${to}`);
-                  fse.moveSync(from, to);
-                });
-                dispatch(reloadState(workspace));
-              }
-              setOpenMoveFilesDialog(false);
-            }}
-            color="primary"
-            autoFocus
-          >
-            Yes
-          </Button>
-          <Button
-            onClick={() => {
-              setOpenMoveFilesDialog(false);
-            }}
-            color="primary"
-          >
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
       <ConfirmDialog
         title="Are you sure?"
         text="Do you really want to reset the workspace, all corrections will be deleted. Make sure you export them first."
         onConfirm={() => {
           deleteEverythingInDir(workspace);
-          dispatch(reloadState(workspace));
+          dispatch(reloadState());
           setOpenResetConfirmDialog(false);
         }}
         onReject={() => {
@@ -384,6 +454,23 @@ export default function FramelessTitleBar(props: {
         open={openResetConfirmDialog}
         setOpen={setOpenResetConfirmDialog}
       />
+      <ExportDialog
+        open={openExportDialog}
+        handleClose={() => {
+          setOpenExportDialog(false);
+          setExportSheetId(undefined);
+        }}
+        correctionsToExport={corrections}
+      />
+      <Snackbar
+        open={openFileError}
+        autoHideDuration={3000}
+        onClose={() => setOpenFileError(false)}
+      >
+        <Alert onClose={() => setOpenFileError(false)} severity="error">
+          File does not exist anymore!
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

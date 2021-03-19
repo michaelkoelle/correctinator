@@ -1,7 +1,7 @@
 /* eslint-disable import/no-cycle */
 import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 import CommentEntity from './CommentEntity';
-import { correctionsImport, deleteEntities } from './CorrectionsSlice';
+import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 
 const adapter = createEntityAdapter<CommentEntity>();
 
@@ -20,7 +20,7 @@ const slice = createSlice({
     commentsUpsertMany: adapter.upsertMany,
   },
   extraReducers: {
-    [correctionsImport.type]: (state, action) => {
+    [loadCorrections.type]: (state, action) => {
       if (action.payload.comments !== undefined) {
         adapter.upsertMany(state, action.payload.comments);
       }

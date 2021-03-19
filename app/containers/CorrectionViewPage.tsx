@@ -27,6 +27,7 @@ import {
 } from '../model/Selectors';
 
 import Sheet from '../model/Sheet';
+import { sheetsUpsertOne } from '../model/SheetSlice';
 import { serializeTerm } from '../utils/Formatter';
 import './SplitPane.css';
 
@@ -78,11 +79,15 @@ export default function CorrectionViewPage() {
     setOpenDialog(false);
   }
 
+  const targetSheet = sheets.find((s) => s.id === sheetId);
   if (sheetId === undefined) {
     if (openDialog !== true) {
       setOpenDialog(true);
     }
-  } else if (!sheets.map((s) => s.id).includes(sheetId)) {
+  } else if (
+    !sheets.map((s) => s.id).includes(sheetId) ||
+    (targetSheet && !isInitialized(targetSheet))
+  ) {
     dispatch(correctionPageSetSheetId(undefined));
     if (openDialog !== true) {
       setOpenDialog(true);
@@ -110,7 +115,11 @@ export default function CorrectionViewPage() {
           />
         </div>
         <div style={{ height: '100%', margin: '0 5px 0 0' }}>
-          <MediaViewer submissionName={corrections[index]?.submission?.name} />
+          <MediaViewer
+            submissionName={corrections[index]?.submission?.name}
+            submissionId={corrections[index]?.submission?.id}
+            submissionFiles={corrections[index]?.submission?.files}
+          />
         </div>
       </SplitPane>
       {sheets.filter((s) => isInitialized(s)).length > 0 ? (

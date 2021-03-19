@@ -14,7 +14,6 @@ import Correction from '../../model/Correction';
 import { getTotalValueOfRatings } from '../../utils/Formatter';
 import Histogram from './Histogram';
 import TimeCurve from './TimeCurve';
-import CorrectionTable from './CorrectionTable';
 import {
   overviewSetSheetId,
   selectOverviewSheetId,
@@ -22,6 +21,7 @@ import {
 import { groupBy, zipCorrectionsAndMapToTime } from '../../utils/ArrayUtil';
 import { selectAllSheets } from '../../model/SheetSlice';
 import SheetEntity from '../../model/SheetEntity';
+import CorrectionTable from './CorrectionTable';
 
 export default function Overview() {
   const dispatch = useDispatch();
@@ -108,7 +108,12 @@ export default function Overview() {
             padding: '10px 10px 20px 10px',
           }}
         >
-          <CorrectionTable corrections={corrections} />
+          <CorrectionTable
+            corrections={corrections}
+            title={
+              sheets.find((s) => s.id === selectedSheetId)?.name || 'All sheets'
+            }
+          />
         </Grid>
       </Grid>
       <Grid
