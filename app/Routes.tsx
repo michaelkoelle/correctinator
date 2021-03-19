@@ -58,17 +58,6 @@ export default function Routes() {
   }
 
   useEffect(() => {
-    ipcRenderer.on(
-      CHECK_FOR_UPDATE_SUCCESS,
-      (_event, info: UpdateInfo | undefined) => {
-        const version = info && info.version;
-        if (version && version !== currentAppVersion) {
-          // Show updater dialog
-          updaterDialog(false);
-        }
-      }
-    );
-
     ipcRenderer.on(RECEIVE_FILE_PATH, (_event, data: string) => {
       if (Path.extname(data) === '.cor') {
         setNewFilePath(data);
@@ -81,16 +70,33 @@ export default function Routes() {
       }
     });
 
-    // Check for updates at start
-    ipcRenderer.send(CHECK_FOR_UPDATE_PENDING);
     // Get file path
     ipcRenderer.send(REQUEST_FILE_PATH);
 
     return () => {
-      ipcRenderer.removeAllListeners(CHECK_FOR_UPDATE_SUCCESS);
       ipcRenderer.removeAllListeners(RECEIVE_FILE_PATH);
     };
   }, [dispatch, unsavedChanges]);
+
+  useEffect(() => {
+    ipcRenderer.on(
+      CHECK_FOR_UPDATE_SUCCESS,
+      (_event, info: UpdateInfo | undefined) => {
+        const version = info && info.version;
+        if (version && version !== currentAppVersion) {
+          // Show updater dialog
+          updaterDialog(false);
+        }
+      }
+    );
+
+    // Check for updates at start
+    ipcRenderer.send(CHECK_FOR_UPDATE_PENDING);
+
+    return () => {
+      ipcRenderer.removeAllListeners(CHECK_FOR_UPDATE_SUCCESS);
+    };
+  }, []);
 
   useEffect(() => {
     const beforeQuit = (e: BeforeUnloadEvent) => {
