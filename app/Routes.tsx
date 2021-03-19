@@ -70,9 +70,6 @@ export default function Routes() {
       }
     });
 
-    // Get file path
-    ipcRenderer.send(REQUEST_FILE_PATH);
-
     return () => {
       ipcRenderer.removeAllListeners(RECEIVE_FILE_PATH);
     };
@@ -92,6 +89,8 @@ export default function Routes() {
 
     // Check for updates at start
     ipcRenderer.send(CHECK_FOR_UPDATE_PENDING);
+    // Get file path
+    ipcRenderer.send(REQUEST_FILE_PATH);
 
     return () => {
       ipcRenderer.removeAllListeners(CHECK_FOR_UPDATE_SUCCESS);

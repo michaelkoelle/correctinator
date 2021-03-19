@@ -166,8 +166,12 @@ ipcMain.on(IPCConstants.QUIT_AND_INSTALL_UPDATE, () => {
 
 ipcMain.on(IPCConstants.REQUEST_FILE_PATH, (event) => {
   const { sender } = event;
-  if (process.argv.length >= 3) {
-    sender.send(IPCConstants.RECEIVE_FILE_PATH, process.argv[2]);
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+    if (process.argv.length >= 2 && path.extname(process.argv[1]) === '.cor') {
+      sender.send(IPCConstants.RECEIVE_FILE_PATH, process.argv[1]);
+    }
   }
 });
 
