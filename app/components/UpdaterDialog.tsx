@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import React, { useEffect, useState } from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -8,6 +9,7 @@ import {
   CircularProgress,
   Grid,
   IconButton,
+  Paper,
   Typography,
   useTheme,
 } from '@material-ui/core';
@@ -158,6 +160,18 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       );
       break;
     case UpdaterState.UPDATE_AVAILIABLE:
+      let releaseNotes = '';
+      const temp = updateInfo?.releaseNotes?.toString().split('\n');
+      if (temp) {
+        const tempRest = temp.slice(1);
+        releaseNotes = tempRest
+          .join('\n')
+          .replaceAll(
+            '<a href',
+            `<span style='color:${theme.palette.text.disabled};' id`
+          )
+          .replaceAll('</a>', '</span>');
+      }
       content = (
         <Grid
           item
@@ -168,11 +182,36 @@ function UpdaterDialog(props: UpdaterDialogProps) {
           spacing={2}
         >
           <Grid item>
-            <Typography gutterBottom>
+            <Typography gutterBottom align="center">
               {`Version ${
                 updateInfo ? `v${updateInfo.version}` : ''
               } is now availiable!`}
             </Typography>
+          </Grid>
+          <Grid item>
+            <Paper
+              variant="outlined"
+              style={{ padding: '0px', margin: '12px 0px 12px 0px' }}
+            >
+              <Typography
+                gutterBottom
+                align="center"
+                style={{ margin: '16px 16px 0px 16px' }}
+              >
+                Changelog
+              </Typography>
+              <div
+                style={{
+                  padding: '0px 16px 16px 16px',
+                  maxHeight: '300px',
+                  overflow: 'auto',
+                }}
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: releaseNotes,
+                }}
+              />
+            </Paper>
           </Grid>
           {process.platform !== 'darwin' ? (
             <Grid
@@ -341,7 +380,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)} disableBackdropClick>
-      <DialogContent style={{ overflow: 'hidden' }}>
+      <DialogContent style={{ overflow: 'auto' }}>
         <Grid
           container
           direction="column"
