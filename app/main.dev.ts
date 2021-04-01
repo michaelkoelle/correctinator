@@ -104,6 +104,18 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
+const openWithFileHandler = (argv: string[]) => {
+  const arg: string | undefined = argv.find((a) => path.extname(a) === '.cor');
+
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+    if (arg) {
+      mainWindow.webContents.send(IPCConstants.RECEIVE_FILE_PATH, arg);
+    }
+  }
+};
+
 /**
  * Add event listeners...
  */
@@ -164,16 +176,9 @@ ipcMain.on(IPCConstants.QUIT_AND_INSTALL_UPDATE, () => {
   }
 });
 
-ipcMain.on(IPCConstants.REQUEST_FILE_PATH, (event) => {
-  const { sender } = event;
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-    if (process.argv.length >= 2 && path.extname(process.argv[1]) === '.cor') {
-      sender.send(IPCConstants.RECEIVE_FILE_PATH, process.argv[1]);
-    }
-  }
-});
+ipcMain.on(IPCConstants.REQUEST_FILE_PATH, () =>
+  openWithFileHandler(process.argv)
+);
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
@@ -188,16 +193,9 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, argv, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-      if (argv.length >= 3 && path.extname(argv[2]) === '.cor') {
-        mainWindow.webContents.send(IPCConstants.RECEIVE_FILE_PATH, argv[2]);
-      }
-    }
-  });
+  app.on('second-instance', (event, argv, workingDirectory) =>
+    openWithFileHandler(argv)
+  );
 
   // Create myWindow, load the rest of the app, etc...
   if (process.env.E2E_BUILD === 'true') {
