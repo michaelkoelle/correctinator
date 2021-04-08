@@ -4,26 +4,24 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import { CircularProgress, Typography } from '@material-ui/core';
+import ViewerProps from './ViewerProps';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-export default function PDFViewer(props: any) {
-  const [numPages, setNumPages] = useState(null);
-  const [filePath, setFilePath] = useState(null);
-  const { file, scale, rotation } = props;
+export default function PDFViewer(props: ViewerProps) {
+  const { filePath, scale, rotation } = props;
 
-  if (file !== filePath) {
+  const [numPages, setNumPages] = useState<unknown>(null);
+  const [file1, setFilePath] = useState<string>();
+
+  if (filePath !== file1) {
     // New file
-    setFilePath(file);
+    setFilePath(filePath);
     setNumPages(null);
   }
 
-  function onDocumentLoadSuccess(doc: any) {
+  function onDocumentLoadSuccess(doc: { numPages: unknown }) {
     setNumPages(doc?.numPages);
-  }
-
-  function onError(error) {
-    console.log(error);
   }
 
   function removeTextLayerOffset() {
@@ -42,10 +40,8 @@ export default function PDFViewer(props: any) {
     <AutoSizer disableHeight>
       {({ width }) => (
         <Document
-          file={file}
+          file={filePath}
           onLoadSuccess={onDocumentLoadSuccess}
-          onLoadError={onError}
-          onSourceError={onError}
           error={
             <Typography variant="h6">File could not be loaded!</Typography>
           }

@@ -6,11 +6,12 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import Modelist from 'ace-builds/src-noconflict/ext-modelist';
 import 'ace-builds/webpack-resolver';
 import { remote } from 'electron';
+import ViewerProps from './ViewerProps';
 
-export default function TextViewer(props: any) {
-  const { file, scale } = props;
-  const data = fs.readFileSync(file, 'UTF-8') + '\n'.repeat(6);
-  const mode = Modelist.getModeForPath(file);
+export default function TextViewer(props: ViewerProps) {
+  const { filePath, scale } = props;
+  const data = fs.readFileSync(filePath, 'UTF-8') + '\n'.repeat(6);
+  const mode = Modelist.getModeForPath(filePath);
 
   return (
     <AutoSizer>
