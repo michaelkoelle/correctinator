@@ -24,6 +24,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let file = '';
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -176,9 +177,19 @@ ipcMain.on(IPCConstants.QUIT_AND_INSTALL_UPDATE, () => {
   }
 });
 
-ipcMain.on(IPCConstants.REQUEST_FILE_PATH, () =>
-  openWithFileHandler(process.argv)
-);
+ipcMain.on(IPCConstants.REQUEST_FILE_PATH, () => {
+  if (process.platform === 'win32') {
+    openWithFileHandler(process.argv);
+  } else {
+    openWithFileHandler([file]);
+  }
+});
+
+app.on('open-file', (_event, filePath) => {
+  if (mainWindow === null) createWindow();
+  file = filePath;
+  openWithFileHandler([filePath]);
+});
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
@@ -193,9 +204,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, argv, workingDirectory) =>
-    openWithFileHandler(argv)
-  );
+  app.on('second-instance', (_event, argv) => openWithFileHandler(argv));
 
   // Create myWindow, load the rest of the app, etc...
   if (process.env.E2E_BUILD === 'true') {
