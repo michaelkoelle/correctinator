@@ -12,7 +12,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SplitPane from 'react-split-pane';
 import CorrectionView from '../features/correction/CorrectionView';
-import MediaViewer from '../features/correction/MediaViewer';
+import MediaViewer from '../features/media-viewer/MediaViewer';
 import {
   correctionPageSetSheetId,
   correctionPageSetTimeStart,

@@ -24,6 +24,7 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let file = '';
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -104,6 +105,18 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
+const openWithFileHandler = (argv: string[]) => {
+  const arg: string | undefined = argv.find((a) => path.extname(a) === '.cor');
+
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+    if (arg) {
+      mainWindow.webContents.send(IPCConstants.RECEIVE_FILE_PATH, arg);
+    }
+  }
+};
+
 /**
  * Add event listeners...
  */
@@ -164,14 +177,19 @@ ipcMain.on(IPCConstants.QUIT_AND_INSTALL_UPDATE, () => {
   }
 });
 
-ipcMain.on(IPCConstants.REQUEST_FILE_PATH, (event) => {
-  const { sender } = event;
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.focus();
-    if (process.argv.length >= 2 && path.extname(process.argv[1]) === '.cor') {
-      sender.send(IPCConstants.RECEIVE_FILE_PATH, process.argv[1]);
-    }
+ipcMain.on(IPCConstants.REQUEST_FILE_PATH, () => {
+  if (process.platform === 'win32') {
+    openWithFileHandler(process.argv);
+  } else {
+    openWithFileHandler([file]);
+  }
+});
+
+app.on('open-file', (_event, filePath) => {
+  if (mainWindow === null) createWindow();
+  if (process.platform !== 'win32') {
+    file = filePath;
+    openWithFileHandler([filePath]);
   }
 });
 
@@ -188,16 +206,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, argv, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
-      if (argv.length >= 3 && path.extname(argv[2]) === '.cor') {
-        mainWindow.webContents.send(IPCConstants.RECEIVE_FILE_PATH, argv[2]);
-      }
-    }
-  });
+  app.on('second-instance', (_event, argv) => openWithFileHandler(argv));
 
   // Create myWindow, load the rest of the app, etc...
   if (process.env.E2E_BUILD === 'true') {

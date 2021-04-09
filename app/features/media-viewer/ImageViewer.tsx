@@ -1,17 +1,16 @@
-/* eslint-disable import/no-cycle */
 import React from 'react';
 import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import ViewerProps from './ViewerProps';
 
-export default function ImageViewer(props: any) {
-  const { file, scale, rotation } = props;
+export default function ImageViewer(props: ViewerProps) {
+  const { filePath, scale, rotation } = props;
 
   return (
     <AutoSizer disableHeight>
       {({ width }) => (
         <img
-          src={file}
-          alt={file}
+          src={filePath}
+          alt={filePath}
           style={{
             width: width - 20,
             transform: `rotate(${rotation}deg) scale(${scale})`,
