@@ -187,8 +187,10 @@ ipcMain.on(IPCConstants.REQUEST_FILE_PATH, () => {
 
 app.on('open-file', (_event, filePath) => {
   if (mainWindow === null) createWindow();
-  file = filePath;
-  openWithFileHandler([filePath]);
+  if (process.platform !== 'win32') {
+    file = filePath;
+    openWithFileHandler([filePath]);
+  }
 });
 
 app.on('window-all-closed', () => {
