@@ -3,7 +3,7 @@ import fs from 'fs';
 import TitleBar from 'frameless-titlebar';
 import 'setimmediate';
 import * as Path from 'path';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useTheme, Snackbar } from '@material-ui/core';
 import {
   OpenDialogReturnValue,
@@ -30,13 +30,18 @@ import {
 import { selectUnsavedChanges } from '../model/SaveSlice';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { version } from '../package.json';
-import { selectSettingsAutosave } from '../model/SettingsSlice';
+import {
+  selectSettings,
+  settingsSetTheme,
+  SettingsState,
+} from '../model/SettingsSlice';
 import { importCorrections } from '../model/SheetOverviewSlice';
 import { ParserType } from '../parser/Parser';
 import { selectAllSheets } from '../model/SheetSlice';
 import { selectCorrectionsBySheetId } from '../model/Selectors';
 import ExportDialog from '../components/ExportDialog';
 import { useAppDispatch } from '../store';
+import { shouldUseDarkColors, Theme } from '../model/Theme';
 
 const currentWindow = remote.getCurrentWindow();
 
@@ -49,7 +54,7 @@ export default function FramelessTitleBar(props: {
   const { setOpenUpdater, unsavedChangesDialog, setReload } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
-  const autosave: boolean = useSelector(selectSettingsAutosave);
+  const settings: SettingsState = useSelector(selectSettings);
   const recentPaths: string[] = useSelector(selectRecentPaths);
   const sheets = useSelector(selectAllSheets);
   const [exportSheetId, setExportSheetId] = useState<string>();
@@ -210,7 +215,7 @@ export default function FramelessTitleBar(props: {
                   )
                     .then(unwrapResult)
                     .then((originalPromiseResult) => {
-                      if (autosave) {
+                      if (settings.autosave) {
                         dispatch(save());
                       }
                       return originalPromiseResult;
@@ -231,7 +236,7 @@ export default function FramelessTitleBar(props: {
                 )
                   .then(unwrapResult)
                   .then((originalPromiseResult) => {
-                    if (autosave) {
+                    if (settings.autosave) {
                       dispatch(save());
                     }
                     return originalPromiseResult;
@@ -294,16 +299,33 @@ export default function FramelessTitleBar(props: {
                 },
               },
               {
-                label: 'Dark Mode',
-                accelerator: 'F12',
-                type: 'checkbox',
-                checked: remote?.nativeTheme?.shouldUseDarkColors,
-                click: () => {
-                  remote.nativeTheme.themeSource = remote.nativeTheme
-                    .shouldUseDarkColors
-                    ? 'light'
-                    : 'dark';
-                },
+                label: 'Theme',
+                submenu: [
+                  {
+                    label: 'Dark',
+                    type: 'checkbox',
+                    checked: settings.theme === Theme.DARK,
+                    click: () => {
+                      dispatch(settingsSetTheme(Theme.DARK));
+                    },
+                  },
+                  {
+                    label: 'Light',
+                    type: 'checkbox',
+                    checked: settings.theme === Theme.LIGHT,
+                    click: () => {
+                      dispatch(settingsSetTheme(Theme.LIGHT));
+                    },
+                  },
+                  {
+                    label: 'System',
+                    type: 'checkbox',
+                    checked: settings.theme === Theme.SYSTEM,
+                    click: () => {
+                      dispatch(settingsSetTheme(Theme.SYSTEM));
+                    },
+                  },
+                ],
               },
             ]
           : [
@@ -401,7 +423,7 @@ export default function FramelessTitleBar(props: {
           },
           ...theme,
           menu: {
-            palette: remote.nativeTheme.shouldUseDarkColors ? 'dark' : 'light',
+            palette: shouldUseDarkColors(settings.theme) ? 'dark' : 'light',
             overlay: {
               opacity: 0.0,
             },

@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/no-danger */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
@@ -6,19 +7,22 @@ import Typography from '@material-ui/core/Typography';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import {
+  FormControlLabel,
   List,
   ListItem,
   ListItemSecondaryAction,
   ListItemText,
+  Radio,
   Switch,
 } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
-import { remote } from 'electron';
 import {
   selectSettings,
   settingsSetAutosave,
+  settingsSetTheme,
   SettingsState,
 } from '../model/SettingsSlice';
+import { Theme } from '../model/Theme';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -29,6 +33,15 @@ export default function SettingsDialog(props: SettingsDialogProps) {
   const { open, handleClose } = props;
   const dispatch = useDispatch();
   const settings: SettingsState = useSelector(selectSettings);
+
+  const handleThemeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const option: Theme = parseInt(
+      (event.target as HTMLInputElement).value,
+      10
+    ) as Theme;
+    dispatch(settingsSetTheme(option));
+  };
+
   return (
     <Dialog onClose={handleClose} open={open} fullWidth>
       <DialogTitle disableTypography>
@@ -38,19 +51,43 @@ export default function SettingsDialog(props: SettingsDialogProps) {
         <List>
           <ListItem>
             <ListItemText
-              primary="Dark Theme"
-              secondary="Choose between light/dark theme"
+              primary="Themes"
+              secondary="Choose your preferred theme"
             />
             <ListItemSecondaryAction>
-              <Switch
-                edge="end"
-                onChange={() => {
-                  remote.nativeTheme.themeSource = remote.nativeTheme
-                    .shouldUseDarkColors
-                    ? 'light'
-                    : 'dark';
-                }}
-                checked={remote?.nativeTheme?.shouldUseDarkColors}
+              <FormControlLabel
+                control={
+                  <Radio
+                    checked={settings.theme === Theme.DARK}
+                    onChange={handleThemeChange}
+                    value={Theme.DARK}
+                  />
+                }
+                label="Dark"
+                labelPlacement="start"
+              />
+              <FormControlLabel
+                control={
+                  <Radio
+                    checked={settings.theme === Theme.LIGHT}
+                    onChange={handleThemeChange}
+                    value={Theme.LIGHT}
+                    size="small"
+                  />
+                }
+                label="Light"
+                labelPlacement="start"
+              />
+              <FormControlLabel
+                control={
+                  <Radio
+                    checked={settings.theme === Theme.SYSTEM}
+                    onChange={handleThemeChange}
+                    value={Theme.SYSTEM}
+                  />
+                }
+                label="System"
+                labelPlacement="start"
               />
             </ListItemSecondaryAction>
           </ListItem>

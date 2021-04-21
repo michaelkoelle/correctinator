@@ -27,10 +27,44 @@ import {
 import { version as currentAppVersion } from '../package.json';
 import { workspaceSetPath } from './features/workspace/workspaceSlice';
 import ConfirmDialog from './components/ConfirmDialog';
+import { selectSettingsTheme } from './model/SettingsSlice';
+import { shouldUseDarkColors, themeToPaletteType } from './model/Theme';
+
+const createTheme = (appTheme) =>
+  createMuiTheme({
+    palette: {
+      type: themeToPaletteType(appTheme),
+    },
+    overrides: {
+      MuiCssBaseline: {
+        '@global': {
+          '*::-webkit-scrollbar': {
+            width: '0.5em',
+            height: '0.5em',
+          },
+          '*::-webkit-scrollbar-track': {
+            '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)',
+          },
+          '*::-webkit-scrollbar-thumb': {
+            backgroundColor: shouldUseDarkColors(appTheme)
+              ? 'rgba(255,255,255,.2)'
+              : 'rgba(0,0,0,.2)',
+            outline: '1px solid slategrey',
+            borderRadius: '5px',
+          },
+          '*::-webkit-scrollbar-corner': {
+            opacity: 0,
+          },
+        },
+      },
+    },
+  });
 
 export default function Routes() {
   const dispatch = useDispatch();
   const unsavedChanges = useSelector(selectUnsavedChanges);
+  const appTheme = useSelector(selectSettingsTheme);
+  const [, setMuiTheme] = useState(createTheme(appTheme));
   const [openUpdaterDialog, setOpenUpdaterDialog] = useState<boolean>(false);
   const [showNotAvailiable, setShowNotAvailiable] = useState<boolean>(false);
   const [openSaveDialog, setOpenSaveDialog] = useState<boolean>(false);
@@ -113,49 +147,19 @@ export default function Routes() {
     };
   }, [dispatch, quitAnyways, reload, unsavedChanges]);
 
-  const [shouldUseDarkColors, setShouldUseDarkColors] = useState(
-    remote.nativeTheme.shouldUseDarkColors
-  );
-
-  remote.nativeTheme.on('updated', () =>
-    setShouldUseDarkColors(remote.nativeTheme.shouldUseDarkColors)
-  );
-
-  const theme = React.useMemo(
-    () =>
-      createMuiTheme({
-        palette: {
-          type: shouldUseDarkColors ? 'dark' : 'light',
-        },
-        overrides: {
-          MuiCssBaseline: {
-            '@global': {
-              '*::-webkit-scrollbar': {
-                width: '0.5em',
-                height: '0.5em',
-              },
-              '*::-webkit-scrollbar-track': {
-                '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)',
-              },
-              '*::-webkit-scrollbar-thumb': {
-                backgroundColor: shouldUseDarkColors
-                  ? 'rgba(255,255,255,.2)'
-                  : 'rgba(0,0,0,.2)',
-                outline: '1px solid slategrey',
-                borderRadius: '5px',
-              },
-              '*::-webkit-scrollbar-corner': {
-                opacity: 0,
-              },
-            },
-          },
-        },
-      }),
-    [shouldUseDarkColors]
-  );
+  useEffect(() => {
+    const setTheme = () => {
+      // Does nothing but required for force reload
+      setMuiTheme(createTheme(appTheme));
+    };
+    remote.nativeTheme.on('updated', setTheme);
+    return () => {
+      remote.nativeTheme.removeListener('updated', setTheme);
+    };
+  }, [appTheme]);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={createTheme(appTheme)}>
       <CssBaseline />
       <App>
         <FramelessTitleBar
