@@ -337,16 +337,33 @@ export default function FramelessTitleBar(props: {
                 },
               },
               {
-                label: 'Dark Mode',
-                accelerator: 'F12',
-                type: 'checkbox',
-                checked: remote?.nativeTheme?.shouldUseDarkColors,
-                click: () => {
-                  remote.nativeTheme.themeSource = remote.nativeTheme
-                    .shouldUseDarkColors
-                    ? 'light'
-                    : 'dark';
-                },
+                label: 'Theme',
+                submenu: [
+                  {
+                    label: 'Dark',
+                    type: 'checkbox',
+                    checked: settings.theme === Theme.DARK,
+                    click: () => {
+                      dispatch(settingsSetTheme(Theme.DARK));
+                    },
+                  },
+                  {
+                    label: 'Light',
+                    type: 'checkbox',
+                    checked: settings.theme === Theme.LIGHT,
+                    click: () => {
+                      dispatch(settingsSetTheme(Theme.LIGHT));
+                    },
+                  },
+                  {
+                    label: 'System',
+                    type: 'checkbox',
+                    checked: settings.theme === Theme.SYSTEM,
+                    click: () => {
+                      dispatch(settingsSetTheme(Theme.SYSTEM));
+                    },
+                  },
+                ],
               },
             ],
     },
