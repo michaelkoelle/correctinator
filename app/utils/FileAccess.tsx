@@ -156,7 +156,7 @@ export function loadFilesFromWorkspace(
     .getEntries()
     .filter((entry) => {
       return (
-        Path.dirname(entry.entryName) ===
+        Path.dirname(entry.entryName).replaceAll('\\', '/') ===
         Path.join(submissionName, 'files').replaceAll('\\', '/')
       );
     })
