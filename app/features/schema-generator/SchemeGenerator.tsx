@@ -28,7 +28,7 @@ import {
 
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
-import { clipboard, remote } from 'electron';
+import { clipboard } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
 import {
@@ -75,7 +75,11 @@ import { ratingsUpsertMany } from '../../model/RatingSlice';
 import { save } from '../../utils/FileAccess';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 import SchemaTaskList from './SchemaTaskList';
-import { selectSettingsAutosave } from '../../model/SettingsSlice';
+import {
+  selectSettingsAutosave,
+  selectSettingsTheme,
+} from '../../model/SettingsSlice';
+import { shouldUseDarkColors } from '../../model/Theme';
 
 function initializeSheet(
   sheetId: string,
@@ -136,6 +140,7 @@ function initializeSheet(
 export default function SchemeGenerator() {
   const dispatch = useDispatch();
   const autosave = useSelector(selectSettingsAutosave);
+  const theme = useSelector(selectSettingsTheme);
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
   const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
   const tasksEntity: TaskEntity[] = useSelector(selectSchemaTasks);
@@ -604,9 +609,7 @@ export default function SchemeGenerator() {
           >
             <AceEditor
               mode="yaml"
-              theme={
-                remote.nativeTheme.shouldUseDarkColors ? 'twilight' : 'textmate'
-              }
+              theme={shouldUseDarkColors(theme) ? 'twilight' : 'textmate'}
               width="100%"
               height="100%"
               maxLines={Infinity}

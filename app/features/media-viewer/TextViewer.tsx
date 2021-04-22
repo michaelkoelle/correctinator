@@ -5,11 +5,14 @@ import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import Modelist from 'ace-builds/src-noconflict/ext-modelist';
 import 'ace-builds/webpack-resolver';
-import { remote } from 'electron';
+import { useSelector } from 'react-redux';
 import ViewerProps from './ViewerProps';
+import { selectSettingsTheme } from '../../model/SettingsSlice';
+import { shouldUseDarkColors } from '../../model/Theme';
 
 export default function TextViewer(props: ViewerProps) {
   const { filePath, scale } = props;
+  const theme = useSelector(selectSettingsTheme);
   const data = fs.readFileSync(filePath, 'UTF-8') + '\n'.repeat(6);
   const mode = Modelist.getModeForPath(filePath);
 
@@ -21,9 +24,7 @@ export default function TextViewer(props: ViewerProps) {
           readOnly
           showPrintMargin={false}
           mode={mode.name}
-          theme={
-            remote.nativeTheme.shouldUseDarkColors ? 'twilight' : 'textmate'
-          }
+          theme={shouldUseDarkColors(theme) ? 'twilight' : 'textmate'}
           width={`${width - 20}px`}
           maxLines={Infinity}
           style={{ minHeight: height }}
