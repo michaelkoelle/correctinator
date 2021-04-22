@@ -1,8 +1,8 @@
 {
   "name": "correctinator",
   "productName": "correctinator",
-  "version": "1.3.5",
-  "description": "Ein Korrekturprogramm mit Media Viewer für Uni2Work Bewertungsdateien.",
+  "version": "1.3.6",
+  "description": "A correction program with media viewer for Uni2Work rating files",
   "main": "./main.prod.js",
   "author": {
     "name": "Michael Kölle",
