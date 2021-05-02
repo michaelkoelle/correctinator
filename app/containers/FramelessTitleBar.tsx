@@ -428,7 +428,7 @@ export default function FramelessTitleBar(props: {
         }}
       />
       <TitleBar
-        iconSrc="../resources/icon.ico" // app icon
+        iconSrc="../resources/titlebar.png" // app icon
         currentWindow={currentWindow} // electron window instance
         // platform={process.platform} // win32, darwin, linux
         menu={templateDefault}
@@ -437,6 +437,10 @@ export default function FramelessTitleBar(props: {
             color: theme.palette.text.primary,
             background: theme.palette.background.paper,
             borderBottom: 'none',
+            icon: {
+              width: 35,
+              height: 35,
+            },
           },
           ...theme,
           menu: {

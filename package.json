@@ -57,7 +57,8 @@
     "appId": "de.koellemichael.correctinator",
     "fileAssociations": {
       "ext": "cor",
-      "name": "Correction"
+      "name": "Correction",
+      "icon": "./cor.ico"
     },
     "files": [
       "dist/",
