@@ -1,17 +1,25 @@
 /* eslint-disable import/no-cycle */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { denormalize } from 'normalizr';
+import { getMaxValueForTasks } from '../utils/Formatter';
 import {
   generateComment,
   generateRating,
   generateSimpleTask,
   generateSingleChoiceTask,
 } from '../utils/Generator';
-import { isParentTaskEntity } from '../utils/TaskUtil';
+import {
+  isParentTaskEntity,
+  isRateableTask,
+  isSingleChoiceTask,
+} from '../utils/TaskUtil';
 import CommentEntity from './CommentEntity';
+import { TasksSchema } from './NormalizationSchema';
 import ParentTaskEntity from './ParentTaskEntity';
 import RateableTask from './RateableTask';
 import RatingEntity from './RatingEntity';
 import SingleChoiceTask from './SingleChoiceTask';
+import Task from './Task';
 import TaskEntity from './TaskEntity';
 import TaskType from './TaskType';
 
@@ -211,7 +219,9 @@ export default slice.reducer;
 
 export function convertToRateableTask(
   task: TaskEntity,
-  newTask: RateableTask | SingleChoiceTask
+  newTask: RateableTask | SingleChoiceTask,
+  ratingValue?: number | undefined,
+  commentText?: string | undefined
 ) {
   return (dispatch, getState) => {
     const state = getState();
@@ -219,6 +229,10 @@ export function convertToRateableTask(
       // Create new rating and comment for rateable task
       const comment = generateComment(newTask);
       const rating = generateRating(newTask, comment);
+
+      // Overwrite default parameter
+      rating.value = ratingValue || rating.value;
+      comment.text = commentText || comment.text;
 
       dispatch(schemaUpsertComment(comment));
       dispatch(schemaUpsertRating(rating));
@@ -335,7 +349,7 @@ export function schemaAddSubtask(
         dispatch(schemaUpsertTask(temp));
         // tasks.set(parent.id, parent);
       } else {
-        // Carry over max points, value and comment to subtask
+        // Carry over max points, step, value and comment to subtask
         task.max = (parent as RateableTask).max;
         task.step = (parent as RateableTask).step;
         const oldRating = Object.values<RatingEntity>(
@@ -399,7 +413,43 @@ export function removeSchemaTaskById(id: string) {
           temp.tasks = t.tasks.filter((tId) => tId !== id);
           // If this was the only subtask, convert parent task to simple task
           if (temp.tasks.length <= 0) {
-            dispatch(convertTask(temp, TaskType.Simple));
+            const template = generateSimpleTask();
+            const oldRatingValue = Object.values(state.ratings).find(
+              (r) => r.task === task.id
+            )?.value;
+            const oldCommentText = Object.values(state.comments).find(
+              (c) => c.task === task.id
+            )?.text;
+
+            let { max } = template;
+            if (isRateableTask(task)) {
+              max = task.max;
+            } else if (isSingleChoiceTask(task)) {
+              max = task.answer.value;
+            } else if (isParentTaskEntity(task)) {
+              const ts: Task[] = denormalize(
+                task.tasks,
+                TasksSchema,
+                selectSchemaEntities(getState())
+              );
+              max = getMaxValueForTasks(ts);
+            }
+
+            const simpleTask: RateableTask = {
+              id: temp.id,
+              name: temp.name,
+              max,
+              step: isRateableTask(task) ? task.step : template.step,
+              delimiter: temp.delimiter,
+            };
+            dispatch(
+              convertToRateableTask(
+                temp,
+                simpleTask,
+                oldRatingValue,
+                oldCommentText
+              )
+            );
           } else {
             // Update parent task
             dispatch(schemaUpsertTask(temp));
