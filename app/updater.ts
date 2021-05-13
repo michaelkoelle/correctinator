@@ -37,7 +37,6 @@ export default class AppUpdater {
       result
         .then((checkResult: UpdateCheckResult) => {
           const { updateInfo } = checkResult;
-          console.log(updateInfo);
           sender.send(IPCConstants.CHECK_FOR_UPDATE_SUCCESS, updateInfo);
           return checkResult;
         })
