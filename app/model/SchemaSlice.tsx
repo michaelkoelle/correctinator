@@ -337,6 +337,7 @@ export function schemaAddSubtask(
       } else {
         // Carry over max points, value and comment to subtask
         task.max = (parent as RateableTask).max;
+        task.step = (parent as RateableTask).step;
         const oldRating = Object.values<RatingEntity>(
           state.schema.ratings
         ).find((r) => r.task === parent.id);
