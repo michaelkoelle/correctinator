@@ -44,7 +44,7 @@ import {
   schemaSetClipboard,
   schemaAddSimpleTask,
 } from '../../model/SchemaSlice';
-import { tasksUpsertMany } from '../../model/TaskSlice';
+import { tasksRemoveMany, tasksUpsertMany } from '../../model/TaskSlice';
 import { selectAllSheets, sheetsUpsertOne } from '../../model/SheetSlice';
 import RateableTask from '../../model/RateableTask';
 import CommentEntity from '../../model/CommentEntity';
@@ -59,6 +59,7 @@ import {
 import { RatingsSchema, TasksSchema } from '../../model/NormalizationSchema';
 import TaskEntity from '../../model/TaskEntity';
 import {
+  flatMapTasksFromSheetEntity,
   getTopLevelTasks,
   hasTasksWithZeroMax,
   isParentTaskEntity,
@@ -69,9 +70,12 @@ import Rating from '../../model/Rating';
 import Task from '../../model/Task';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { correctionsUpsertMany } from '../../model/CorrectionsSlice';
-import { commentsUpsertMany } from '../../model/CommentSlice';
+import {
+  commentsRemoveOne,
+  commentsUpsertMany,
+} from '../../model/CommentSlice';
 import CorrectionEntity from '../../model/CorrectionEntity';
-import { ratingsUpsertMany } from '../../model/RatingSlice';
+import { ratingsRemoveOne, ratingsUpsertMany } from '../../model/RatingSlice';
 import { save } from '../../utils/FileAccess';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 import SchemaTaskList from './SchemaTaskList';
@@ -90,23 +94,50 @@ function initializeSheet(
 ) {
   return (dispatch, getState) => {
     const state = getState();
+    const sheet: SheetEntity = state.sheets.entities[sheetId];
+    const tasksOfSheet: TaskEntity[] = flatMapTasksFromSheetEntity(
+      sheet,
+      state
+    );
+    const correctionsOfSheet = Object.values<CorrectionEntity>(
+      state.corrections.entities
+    ).filter((c) => state.submissions.entities[c.submission].sheet === sheetId);
+
+    // Delete all unused tasks and tasks that were previously a parent task
+    dispatch(
+      tasksRemoveMany(
+        tasksOfSheet
+          .filter((t) => {
+            const updatedTask = tasks.find((tsk) => tsk.id === t.id);
+            // Unused tasks
+            const unusedTask = updatedTask === undefined;
+            // Tasks that were previously a parent task
+            const previouslyParent =
+              updatedTask !== undefined &&
+              isParentTaskEntity(t) &&
+              !isParentTaskEntity(updatedTask);
+            return unusedTask || previouslyParent;
+          })
+          .map((t) => t.id)
+      )
+    );
+
+    // Delete all unused ratings and comments
+    correctionsOfSheet.forEach((c) =>
+      c.ratings?.forEach((r) => {
+        const rating: RatingEntity = state.ratings.entities[r];
+        dispatch(ratingsRemoveOne(rating.id));
+        dispatch(commentsRemoveOne(rating.comment));
+      })
+    );
 
     dispatch(tasksUpsertMany(tasks));
 
-    const sheet = state.sheets.entities[sheetId];
     if (sheet) {
       const temp = { ...sheet };
       temp.tasks = topLevelTaskIds;
       dispatch(sheetsUpsertOne(temp));
     }
-
-    const correctionsOfSheet = Object.entries<CorrectionEntity>(
-      state.corrections.entities
-    )
-      .map(([, v]) => v)
-      .filter(
-        (c) => state.submissions.entities[c.submission].sheet === sheetId
-      );
 
     const allComments: CommentEntity[] = [];
     const allRatings: RatingEntity[] = [];

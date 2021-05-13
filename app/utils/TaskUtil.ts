@@ -1,6 +1,7 @@
 import ParentTask from '../model/ParentTask';
 import ParentTaskEntity from '../model/ParentTaskEntity';
 import RateableTask from '../model/RateableTask';
+import SheetEntity from '../model/SheetEntity';
 import SingleChoiceTask from '../model/SingleChoiceTask';
 import Task from '../model/Task';
 import TaskEntity from '../model/TaskEntity';
@@ -113,6 +114,21 @@ export function flatMapTaskEntity(
       list.push(t);
     }
   });
+  return list;
+}
+
+export function flatMapTasksFromSheetEntity(sheet: SheetEntity, state) {
+  const list: TaskEntity[] = [];
+  if (sheet.tasks) {
+    sheet.tasks.forEach((tId) => {
+      const t = state.tasks.entities[tId];
+      if (isParentTaskEntity(t)) {
+        list.push(...flatMapTaskEntity(t, state));
+      } else {
+        list.push(t);
+      }
+    });
+  }
   return list;
 }
 
