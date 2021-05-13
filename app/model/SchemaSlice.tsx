@@ -314,12 +314,18 @@ export function convertTask(
   };
 }
 
-export function schemaAddSubtask(parentId: string, task: TaskEntity) {
+export function schemaAddSubtask(
+  parentId: string,
+  task: RateableTask,
+  comment: CommentEntity,
+  rating: RatingEntity
+) {
   return (dispatch, getState) => {
     const state = getState();
     const tasks = new Map<string, TaskEntity>(
       Object.entries(state.schema.tasks)
     );
+
     const parent = tasks.get(parentId);
     if (parent) {
       if (isParentTaskEntity(parent)) {
@@ -329,10 +335,28 @@ export function schemaAddSubtask(parentId: string, task: TaskEntity) {
         dispatch(schemaUpsertTask(temp));
         // tasks.set(parent.id, parent);
       } else {
+        // Carry over max points, value and comment to subtask
+        task.max = (parent as RateableTask).max;
+        const oldRating = Object.values<RatingEntity>(
+          state.schema.ratings
+        ).find((r) => r.task === parent.id);
+
+        if (oldRating) {
+          rating.value =
+            oldRating.value <= task.max ? oldRating.value : task.max;
+          const oldComment = Object.values<CommentEntity>(
+            state.schema.comments
+          ).find((c) => c.id === oldRating.comment);
+          if (oldComment) {
+            comment.text = oldComment.text;
+          }
+        }
         // Convert Rateable Task to Parent Task
         dispatch(convertTask(parent, TaskType.Parent, task));
       }
       dispatch(schemaUpsertTask(task));
+      dispatch(schemaUpsertComment(comment));
+      dispatch(schemaUpsertRating(rating));
     }
   };
 }
@@ -342,9 +366,7 @@ export function schemaAddSimpleSubtask(parentId: string) {
     const task = generateSimpleTask();
     const comment = generateComment(task);
     const rating = generateRating(task, comment);
-    dispatch(schemaUpsertComment(comment));
-    dispatch(schemaUpsertRating(rating));
-    dispatch(schemaAddSubtask(parentId, task));
+    dispatch(schemaAddSubtask(parentId, task, comment, rating));
   };
 }
 
