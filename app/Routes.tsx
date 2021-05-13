@@ -25,10 +25,17 @@ import {
   REQUEST_FILE_PATH,
 } from './constants/ipc';
 import { version as currentAppVersion } from '../package.json';
-import { workspaceSetPath } from './features/workspace/workspaceSlice';
+import {
+  selectWorkspacePath,
+  workspaceSetPath,
+} from './features/workspace/workspaceSlice';
 import ConfirmDialog from './components/ConfirmDialog';
-import { selectSettingsTheme } from './model/SettingsSlice';
+import {
+  selectSettingsBackup,
+  selectSettingsTheme,
+} from './model/SettingsSlice';
 import { shouldUseDarkColors, themeToPaletteType } from './model/Theme';
+import { BACKUP_START, BACKUP_STOP } from './constants/BackupIPC';
 
 const createTheme = (appTheme) =>
   createMuiTheme({
@@ -64,6 +71,8 @@ export default function Routes() {
   const dispatch = useDispatch();
   const unsavedChanges = useSelector(selectUnsavedChanges);
   const appTheme = useSelector(selectSettingsTheme);
+  const saveBackups = useSelector(selectSettingsBackup);
+  const workspacePath = useSelector(selectWorkspacePath);
   const [, setMuiTheme] = useState(createTheme(appTheme));
   const [openUpdaterDialog, setOpenUpdaterDialog] = useState<boolean>(false);
   const [showNotAvailiable, setShowNotAvailiable] = useState<boolean>(false);
@@ -130,6 +139,18 @@ export default function Routes() {
       ipcRenderer.removeAllListeners(CHECK_FOR_UPDATE_SUCCESS);
     };
   }, []);
+
+  useEffect(() => {
+    // Start Backup
+    if (workspacePath.length > 0 && saveBackups) {
+      ipcRenderer.send(BACKUP_START, workspacePath);
+    }
+
+    return () => {
+      // Stop Backup
+      ipcRenderer.send(BACKUP_STOP);
+    };
+  }, [saveBackups, workspacePath]);
 
   useEffect(() => {
     const beforeQuit = (e: BeforeUnloadEvent) => {

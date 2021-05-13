@@ -6,6 +6,7 @@ import * as Path from 'path';
 import { useSelector } from 'react-redux';
 import { useTheme, Snackbar } from '@material-ui/core';
 import {
+  ipcRenderer,
   OpenDialogReturnValue,
   remote,
   SaveDialogReturnValue,
@@ -42,6 +43,7 @@ import { selectCorrectionsBySheetId } from '../model/Selectors';
 import ExportDialog from '../components/ExportDialog';
 import { useAppDispatch } from '../store';
 import { shouldUseDarkColors, Theme } from '../model/Theme';
+import { BACKUP_SUCCESSFUL } from '../constants/BackupIPC';
 
 const currentWindow = remote.getCurrentWindow();
 
@@ -64,6 +66,10 @@ export default function FramelessTitleBar(props: {
   const [openResetConfirmDialog, setOpenResetConfirmDialog] = useState<boolean>(
     false
   );
+  const [
+    openRestoreBackupDialog,
+    setOpenRestoreBackupDialog,
+  ] = useState<boolean>(false);
   const [openFileError, setOpenFileError] = useState<boolean>(false);
   const [openExportDialog, setOpenExportDialog] = useState<boolean>(false);
   const [versionInfo, setVersionInfo] = useState({
@@ -71,6 +77,8 @@ export default function FramelessTitleBar(props: {
     releaseName: '',
   });
   const [openReleaseNotes, setOpenReleaseNotes] = useState(false);
+  const [backupPath, setBackupPath] = useState('');
+  const [backupPaths, setBackupPaths] = useState<string[]>([]);
 
   useEffect(() => {
     const acceleratorListener = (event) => {
@@ -80,7 +88,17 @@ export default function FramelessTitleBar(props: {
       }
     };
     window.addEventListener('keydown', acceleratorListener, true);
+
+    const setBackupFilePaths = () => {
+      const paths = fs
+        .readdirSync(Path.join(remote.app.getPath('userData'), 'Backup'))
+        .filter((p) => p.includes(Path.basename(workspace)));
+      setBackupPaths(paths);
+    };
+
+    ipcRenderer.on(BACKUP_SUCCESSFUL, setBackupFilePaths);
     return () => {
+      ipcRenderer.removeListener(BACKUP_SUCCESSFUL, setBackupFilePaths);
       window.removeEventListener('keydown', acceleratorListener, true);
     };
   }, []);
@@ -189,6 +207,26 @@ export default function FramelessTitleBar(props: {
           click: async () => {
             dispatch(reloadState());
           },
+        },
+        {
+          label: 'Restore Backup',
+          submenu: backupPaths.map((path) => {
+            return {
+              label: path,
+              click: async () => {
+                if (
+                  fs.existsSync(
+                    Path.join(remote.app.getPath('userData'), 'Backup', path)
+                  )
+                ) {
+                  setBackupPath(
+                    Path.join(remote.app.getPath('userData'), 'Backup', path)
+                  );
+                  setOpenRestoreBackupDialog(true);
+                }
+              },
+            };
+          }),
         },
         {
           label: 'Close file',
@@ -391,6 +429,15 @@ export default function FramelessTitleBar(props: {
         },
         { type: 'separator' },
         {
+          label: 'Show All Backups',
+          click: async () => {
+            remote.shell.openPath(
+              Path.join(remote.app.getPath('userData'), 'Backup')
+            );
+          },
+        },
+        { type: 'separator' },
+        {
           label: 'Documentation',
           click() {
             shell.openExternal(
@@ -489,6 +536,21 @@ export default function FramelessTitleBar(props: {
         }}
         open={openResetConfirmDialog}
         setOpen={setOpenResetConfirmDialog}
+      />
+      <ConfirmDialog
+        title="Restore Backup"
+        text={`Do you really want to restore backup "${Path.basename(
+          backupPath
+        )}"?`}
+        onConfirm={() => {
+          fs.renameSync(backupPath, workspace);
+          dispatch(reloadState());
+        }}
+        onReject={() => {
+          setOpenRestoreBackupDialog(false);
+        }}
+        open={openRestoreBackupDialog}
+        setOpen={setOpenRestoreBackupDialog}
       />
       <ExportDialog
         open={openExportDialog}

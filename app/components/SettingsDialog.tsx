@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   selectSettings,
   settingsSetAutosave,
+  settingsSetBackup,
   settingsSetTheme,
   SettingsState,
 } from '../model/SettingsSlice';
@@ -104,6 +105,22 @@ export default function SettingsDialog(props: SettingsDialogProps) {
                   // eslint-disable-next-line react/jsx-curly-newline
                 }
                 checked={settings.autosave}
+              />
+            </ListItemSecondaryAction>
+          </ListItem>
+          <ListItem>
+            <ListItemText
+              primary="Backup"
+              secondary="Save backups of the current file every 5 minutes"
+            />
+            <ListItemSecondaryAction>
+              <Switch
+                edge="end"
+                onChange={
+                  () => dispatch(settingsSetBackup(!settings.backup))
+                  // eslint-disable-next-line react/jsx-curly-newline
+                }
+                checked={settings.backup}
               />
             </ListItemSecondaryAction>
           </ListItem>
