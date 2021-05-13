@@ -262,7 +262,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
                     );
                   }}
                 >
-                  Manual Download
+                  Download
                 </Button>
               </Grid>
               <Grid item>
