@@ -6,7 +6,7 @@ import * as BackupIPC from './constants/BackupIPC';
 export default class Backup {
   static backupDir: string = Path.join(app.getPath('userData'), 'Backup');
 
-  private interval: number = 0.5 * 60 * 1000;
+  private interval: number = 5 * 60 * 1000;
 
   private retention: number = 30 * 24 * 60 * 60 * 1000;
 
