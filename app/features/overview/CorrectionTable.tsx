@@ -130,7 +130,7 @@ export default function CorrectionTable(props: CorrectionTableProps) {
     },
     {
       name: 'note',
-      label: 'Note',
+      label: 'Notes',
     },
     {
       name: '',
