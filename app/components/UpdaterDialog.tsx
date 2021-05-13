@@ -13,7 +13,7 @@ import {
   Typography,
   useTheme,
 } from '@material-ui/core';
-import { ipcRenderer, shell } from 'electron';
+import { ipcRenderer, remote, shell } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { useDispatch } from 'react-redux';
 import { version as currentAppVersion } from '../package.json';
@@ -260,6 +260,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
                     shell.openExternal(
                       `https://github.com/koellemichael/correctinator/releases/download/v${updateInfo?.version}/${updateInfo?.files[1].url}`
                     );
+                    remote.app.quit();
                   }}
                 >
                   Download
