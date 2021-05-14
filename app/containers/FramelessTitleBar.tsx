@@ -210,6 +210,7 @@ export default function FramelessTitleBar(props: {
         },
         {
           label: 'Restore Backup',
+          disabled: backupPaths.length <= 0,
           submenu: backupPaths.map((path) => {
             return {
               label: path,
@@ -429,7 +430,7 @@ export default function FramelessTitleBar(props: {
         },
         { type: 'separator' },
         {
-          label: 'Show All Backups',
+          label: 'Show Backups Folder',
           click: async () => {
             remote.shell.openPath(
               Path.join(remote.app.getPath('userData'), 'Backup')
