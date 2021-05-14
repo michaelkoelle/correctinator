@@ -36,6 +36,8 @@ import {
 } from './model/SettingsSlice';
 import { shouldUseDarkColors, themeToPaletteType } from './model/Theme';
 import { BACKUP_START, BACKUP_STOP } from './constants/BackupIPC';
+import DialogProvider from './dialogs/DialogProvider';
+import ModalProvider from './dialogs/ModalProvider';
 
 const createTheme = (appTheme) =>
   createMuiTheme({
@@ -183,72 +185,82 @@ export default function Routes() {
     <ThemeProvider theme={createTheme(appTheme)}>
       <CssBaseline />
       <App>
-        <FramelessTitleBar
-          setOpenUpdater={updaterDialog}
-          unsavedChangesDialog={unsavedChangesDialog}
-          setReload={setReload}
-        />
-        <Switch>
-          <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
-          <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
-          <Route path={routes.OVERVIEW} component={OverviewPage} />
-          <Route
-            path={routes.SCHEMAGENERATOR}
-            component={SchemeGeneratorPage}
-          />
-          <Route path={routes.HOME} component={NewHomePage} />
-        </Switch>
-        <UpdaterDialog
-          open={openUpdaterDialog}
-          setOpen={setOpenUpdaterDialog}
-          showNotAvailiable={showNotAvailiable}
-        />
-        <ConfirmDialog
-          open={openSaveDialog}
-          setOpen={setOpenSaveDialog}
-          title="Unsaved changes"
-          text="Do you want to save your changes?"
-          onConfirm={() => {
-            dispatch(save());
-            setOpenSaveDialog(false);
-          }}
-          onReject={() => setOpenSaveDialog(false)}
-        />
-        <ConfirmDialog
-          open={openSaveDialogNewFile}
-          setOpen={setOpenSaveDialogNewFile}
-          title="Unsaved changes"
-          text="Do you want to save your changes before loading the new file?"
-          onConfirm={() => {
-            dispatch(save());
-            setOpenSaveDialogNewFile(false);
-            dispatch(workspaceSetPath(newFilePath));
-            dispatch(reloadState());
-          }}
-          onReject={() => {
-            setOpenSaveDialogNewFile(false);
-            dispatch(workspaceSetPath(newFilePath));
-            dispatch(reloadState());
-          }}
-        />
-        <ConfirmDialog
-          open={openSaveDialogExit}
-          setOpen={setOpenSaveDialogExit}
-          title="Unsaved changes"
-          text="Do you want to save your changes before quitting? Click reload to discard your changes."
-          onConfirm={() => {
-            dispatch(save());
-            setQuitAnyways(false);
-            remote.getCurrentWindow().close();
-          }}
-          onReject={() => {
-            setQuitAnyways(true);
-            remote.getCurrentWindow().close();
-          }}
-          onCancel={() => {
-            setQuitAnyways(false);
-          }}
-        />
+        <DialogProvider>
+          <ModalProvider>
+            <FramelessTitleBar
+              setOpenUpdater={updaterDialog}
+              unsavedChangesDialog={unsavedChangesDialog}
+              setReload={setReload}
+            />
+            <Switch>
+              <Route
+                path={routes.SHEETOVERVIEW}
+                component={SheetOverviewPage}
+              />
+              <Route
+                path={routes.CORRECTIONVIEW}
+                component={CorrectionViewPage}
+              />
+              <Route path={routes.OVERVIEW} component={OverviewPage} />
+              <Route
+                path={routes.SCHEMAGENERATOR}
+                component={SchemeGeneratorPage}
+              />
+              <Route path={routes.HOME} component={NewHomePage} />
+            </Switch>
+            <UpdaterDialog
+              open={openUpdaterDialog}
+              setOpen={setOpenUpdaterDialog}
+              showNotAvailiable={showNotAvailiable}
+            />
+            <ConfirmDialog
+              open={openSaveDialog}
+              setOpen={setOpenSaveDialog}
+              title="Unsaved changes"
+              text="Do you want to save your changes?"
+              onConfirm={() => {
+                dispatch(save());
+                setOpenSaveDialog(false);
+              }}
+              onReject={() => setOpenSaveDialog(false)}
+            />
+            <ConfirmDialog
+              open={openSaveDialogNewFile}
+              setOpen={setOpenSaveDialogNewFile}
+              title="Unsaved changes"
+              text="Do you want to save your changes before loading the new file?"
+              onConfirm={() => {
+                dispatch(save());
+                setOpenSaveDialogNewFile(false);
+                dispatch(workspaceSetPath(newFilePath));
+                dispatch(reloadState());
+              }}
+              onReject={() => {
+                setOpenSaveDialogNewFile(false);
+                dispatch(workspaceSetPath(newFilePath));
+                dispatch(reloadState());
+              }}
+            />
+            <ConfirmDialog
+              open={openSaveDialogExit}
+              setOpen={setOpenSaveDialogExit}
+              title="Unsaved changes"
+              text="Do you want to save your changes before quitting? Click reload to discard your changes."
+              onConfirm={() => {
+                dispatch(save());
+                setQuitAnyways(false);
+                remote.getCurrentWindow().close();
+              }}
+              onReject={() => {
+                setQuitAnyways(true);
+                remote.getCurrentWindow().close();
+              }}
+              onCancel={() => {
+                setQuitAnyways(false);
+              }}
+            />
+          </ModalProvider>
+        </DialogProvider>
       </App>
     </ThemeProvider>
   );
