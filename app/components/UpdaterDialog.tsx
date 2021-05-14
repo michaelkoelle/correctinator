@@ -256,8 +256,8 @@ function UpdaterDialog(props: UpdaterDialogProps) {
                 <Button
                   variant="outlined"
                   size="small"
-                  onClick={() => {
-                    shell.openExternal(
+                  onClick={async () => {
+                    await shell.openExternal(
                       `https://github.com/koellemichael/correctinator/releases/download/v${updateInfo?.version}/${updateInfo?.files[1].url}`
                     );
                     remote.app.quit();
