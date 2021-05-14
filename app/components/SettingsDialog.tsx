@@ -33,19 +33,8 @@ import {
 } from '../model/SettingsSlice';
 import { Theme } from '../model/Theme';
 import { ModalProps, useModal } from '../dialogs/ModalProvider';
+import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 
-type SDProps = DialogProps & {
-  title: string;
-};
-
-const SimpleDialog: React.FC<SDProps> = ({ title, ...props }) => (
-  <Dialog {...props}>
-    <DialogTitle>{title}</DialogTitle>
-    <DialogActions>
-      <Button onClick={() => (props as ModalProps).close()}> Close </Button>
-    </DialogActions>
-  </Dialog>
-);
 interface SettingsDialogProps {
   open: boolean;
   handleClose: () => void;
@@ -73,7 +62,13 @@ export default function SettingsDialog(props: SettingsDialogProps) {
       <DialogContent dividers>
         <Button
           onClick={() => {
-            modal(SimpleDialog, { title: 'TEST DIALOG' });
+            modal(ConfirmationDialog, {
+              title: 'TEST DIALOG',
+              text: 'hi this is a test dialog',
+              onConfirm: () => {
+                console.log('YEY!');
+              },
+            });
           }}
         >
           Test
