@@ -6,19 +6,19 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogProps,
   DialogTitle,
 } from '@material-ui/core';
 import React, { FC } from 'react';
+import { useAppDispatch } from '../store';
 
 import { ModalProps } from './ModalProvider';
 
-type ConfimationDialogProps = DialogProps & {
+type ConfimationDialogProps = ModalProps & {
   title: string;
   text: string;
-  onConfirm: () => unknown;
-  onReject?: () => unknown;
-  onCancel?: undefined | (() => unknown);
+  onConfirm: (dispatch?) => unknown;
+  onReject?: (dispatch?) => unknown;
+  onCancel?: undefined | ((dispatch?) => unknown);
 };
 
 const ConfirmationDialog: FC<ConfimationDialogProps> = ({
@@ -28,45 +28,48 @@ const ConfirmationDialog: FC<ConfimationDialogProps> = ({
   onReject,
   onCancel,
   ...props
-}) => (
-  <Dialog disableBackdropClick aria-labelledby="confirm-dialog" {...props}>
-    <DialogTitle id="confirm-dialog">{title}</DialogTitle>
-    <DialogContent>
-      <DialogContentText>{text}</DialogContentText>
-    </DialogContent>
-    <DialogActions>
-      <Button
-        onClick={() => {
-          (props as ModalProps).close();
-          onConfirm();
-        }}
-        color="primary"
-        autoFocus
-      >
-        Yes
-      </Button>
-      <Button
-        onClick={() => {
-          (props as ModalProps).close();
-          if (onReject) onReject();
-        }}
-        color="primary"
-      >
-        No
-      </Button>
-      {onCancel && (
+}) => {
+  const dispatch = useAppDispatch();
+  return (
+    <Dialog disableBackdropClick aria-labelledby="confirm-dialog" {...props}>
+      <DialogTitle id="confirm-dialog">{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{text}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
         <Button
           onClick={() => {
-            (props as ModalProps).close();
-            onCancel();
+            props.close();
+            onConfirm(dispatch);
           }}
-          color="default"
+          color="primary"
+          autoFocus
         >
-          Cancel
+          Yes
         </Button>
-      )}
-    </DialogActions>
-  </Dialog>
-);
+        <Button
+          onClick={() => {
+            props.close();
+            if (onReject) onReject(dispatch);
+          }}
+          color="primary"
+        >
+          No
+        </Button>
+        {onCancel && (
+          <Button
+            onClick={() => {
+              props.close();
+              onCancel(dispatch);
+            }}
+            color="default"
+          >
+            Cancel
+          </Button>
+        )}
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 export default ConfirmationDialog;

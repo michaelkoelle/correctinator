@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 /* eslint-disable react/jsx-no-duplicate-props */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-props-no-spreading */
@@ -9,11 +10,6 @@ import AddIcon from '@material-ui/icons/Add';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import {
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   FormControl,
   Grid,
   IconButton,
@@ -68,7 +64,6 @@ import {
 } from '../../utils/TaskUtil';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
-import ConfirmDialog from '../../components/ConfirmDialog';
 import { correctionsUpsertMany } from '../../model/CorrectionsSlice';
 import {
   commentsRemoveOne,
@@ -84,6 +79,8 @@ import {
   selectSettingsTheme,
 } from '../../model/SettingsSlice';
 import { shouldUseDarkColors } from '../../model/Theme';
+import { useModal } from '../../dialogs/ModalProvider';
+import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 
 function initializeSheet(
   sheetId: string,
@@ -170,6 +167,7 @@ function initializeSheet(
 
 export default function SchemeGenerator() {
   const dispatch = useDispatch();
+  const showModal = useModal();
   const autosave = useSelector(selectSettingsAutosave);
   const theme = useSelector(selectSettingsTheme);
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
@@ -200,11 +198,6 @@ export default function SchemeGenerator() {
   const maxValue: number = selectedSheet?.maxValue || maxValueTasks;
   const [skipCheck, setSkipCheck] = useState<boolean>(false);
 
-  // Dialogs
-  const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
-  const [openConfirmPaste, setOpenConfirmPaste] = useState<boolean>(false);
-  const [correctionDialog, setCorrectionDialog] = useState<boolean>(false);
-
   function onSelectSheet(event) {
     const sheetId = event.target.value;
     if (event.target.value !== 'custom') {
@@ -218,18 +211,6 @@ export default function SchemeGenerator() {
     setType(event.target.value as string);
   }
 
-  function onOverwriteSchema() {
-    setOpenConfirmDialog(true);
-  }
-
-  function onCloseConfirmDialog() {
-    setOpenConfirmDialog(false);
-  }
-
-  function onCloseStartCorrectionDialog() {
-    setCorrectionDialog(false);
-  }
-
   function onStartCorrection() {
     if (selectedSheetId !== undefined) {
       dispatch(correctionPageSetSheetId(selectedSheetId));
@@ -238,7 +219,6 @@ export default function SchemeGenerator() {
   }
 
   function onAssignSchema() {
-    setOpenConfirmDialog(false);
     dispatch(
       initializeSheet(
         selectedSheetId,
@@ -252,7 +232,25 @@ export default function SchemeGenerator() {
     if (autosave) {
       dispatch(save());
     }
-    setCorrectionDialog(true);
+
+    showModal(ConfirmationDialog, {
+      title: 'Start correcting right away?',
+      text: `Do you want to start correcting the sheet "${selectedSheet?.name}" now?`,
+      onConfirm: () => {
+        onStartCorrection();
+      },
+    });
+  }
+
+  function onOverwriteSchema() {
+    showModal(ConfirmationDialog, {
+      title: 'Overwrite schema?',
+      text: `Are you sure you want to overwrite the existing schema of sheet "${selectedSheet?.name}"?
+      All correction progress will be lost!`,
+      onConfirm: () => {
+        onAssignSchema();
+      },
+    });
   }
 
   function onCopyToClipboard() {
@@ -288,9 +286,12 @@ export default function SchemeGenerator() {
         dispatch(schemaSetEntities(newEntities));
         dispatch(schemaSetClipboard(text));
       }
-    } catch (error) {
-      console.log('YAML Parse Error');
-    }
+    } catch (error) {}
+  }
+
+  function clearClipborad() {
+    const text = clipboard.readText();
+    dispatch(schemaSetClipboard(text));
   }
 
   function checkClipboard() {
@@ -312,31 +313,31 @@ export default function SchemeGenerator() {
       if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
         dispatch(schemaSetClipboard(text));
         if (!skipCheck) {
-          setOpenConfirmPaste(true);
+          showModal(ConfirmationDialog, {
+            title: 'Paste from Clipboard?',
+            text: `Do you want to paste the correction schema from you clipboard?`,
+            onConfirm: () => {
+              onPasteFromClipboard();
+            },
+            onReject: () => {
+              clearClipborad();
+            },
+          });
         } else {
           setSkipCheck(false);
         }
       }
-    } catch (error) {
-      console.log('YAML Parse Error');
-    }
+    } catch (error) {}
   }
 
-  function clearClipborad() {
-    const text = clipboard.readText();
-    dispatch(schemaSetClipboard(text));
-  }
-
-  function onChange(newValue: any) {
+  function onChange(newValue: string) {
     if (newValue !== null) {
       try {
         const newEntities = YAML.parse(newValue);
         if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
           dispatch(schemaSetEntities(newEntities));
         }
-      } catch (error) {
-        console.log('YAML Parse Error');
-      }
+      } catch (error) {}
     }
   }
 
@@ -527,7 +528,6 @@ export default function SchemeGenerator() {
                     </Tooltip>
                   </Grid>
                 </Grid>
-
                 {selectedSheet &&
                   selectedSheet?.maxValue - maxValueTasks !== 0 && (
                     <Grid
@@ -617,14 +617,6 @@ export default function SchemeGenerator() {
                   </Button>
                 </Grid>
               </Grid>
-              {/*
-              <TaskSchemeList
-                tasks={tasks}
-                ratings={ratings}
-                ratingEntities={ratingsEntity}
-                comments={commentsEntity}
-                type={selectedSheet ? selectedSheet.valueType : type}
-              /> */}
             </Paper>
           </Grid>
         </Grid>
@@ -654,47 +646,6 @@ export default function SchemeGenerator() {
           </Paper>
         </Grid>
       </Grid>
-      <Dialog open={openConfirmDialog} onClose={onCloseConfirmDialog}>
-        <DialogTitle>Are you sure?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {`Are you sure you want to assign this schema to the sheet "${selectedSheet?.name}"?
-            All progress will be lost!`}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onAssignSchema} color="primary" autoFocus>
-            Yes
-          </Button>
-          <Button onClick={onCloseConfirmDialog} color="primary">
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={correctionDialog} onClose={onCloseStartCorrectionDialog}>
-        <DialogTitle>Start correcting?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {`Do you want to start correcting the sheet "${selectedSheet?.name}" now?`}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onStartCorrection} color="primary" autoFocus>
-            Yes
-          </Button>
-          <Button onClick={onCloseStartCorrectionDialog} color="primary">
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <ConfirmDialog
-        title="Paste from Clipboard?"
-        text="Do you want to paste the correction schema from you clipboard?"
-        open={openConfirmPaste}
-        setOpen={setOpenConfirmPaste}
-        onConfirm={onPasteFromClipboard}
-        onReject={clearClipborad}
-      />
     </Grid>
   );
 }
