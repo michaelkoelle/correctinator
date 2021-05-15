@@ -8,13 +8,12 @@ import { useTheme, Snackbar } from '@material-ui/core';
 import { ipcRenderer, remote } from 'electron';
 import { Alert } from '@material-ui/lab';
 import ReleaseNotes from '../components/ReleaseNotes';
-import { deleteEverythingInDir, reloadState, save } from '../utils/FileAccess';
+import { save } from '../utils/FileAccess';
 import {
   selectRecentPaths,
   selectWorkspacePath,
 } from '../features/workspace/workspaceSlice';
 import { selectUnsavedChanges } from '../model/SaveSlice';
-import ConfirmDialog from '../components/ConfirmDialog';
 import { version } from '../package.json';
 import { selectSettings, SettingsState } from '../model/SettingsSlice';
 import { selectAllSheets } from '../model/SheetSlice';
@@ -24,6 +23,7 @@ import { useAppDispatch } from '../store';
 import { shouldUseDarkColors } from '../model/Theme';
 import { BACKUP_SUCCESSFUL } from '../constants/BackupIPC';
 import buildMenu from '../menu/Menu';
+import { useModal } from '../dialogs/ModalProvider';
 
 const currentWindow = remote.getCurrentWindow();
 
@@ -33,6 +33,7 @@ export default function FramelessTitleBar(props: {
   setReload: (boolean) => void;
 }) {
   const dispatch = useAppDispatch();
+  const showModal = useModal();
   const { setOpenUpdater, unsavedChangesDialog, setReload } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
@@ -43,13 +44,6 @@ export default function FramelessTitleBar(props: {
   const corrections = useSelector(selectCorrectionsBySheetId(exportSheetId));
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
-  const [openResetConfirmDialog, setOpenResetConfirmDialog] = useState<boolean>(
-    false
-  );
-  const [
-    openRestoreBackupDialog,
-    setOpenRestoreBackupDialog,
-  ] = useState<boolean>(false);
   const [openFileError, setOpenFileError] = useState<boolean>(false);
   const [openExportDialog, setOpenExportDialog] = useState<boolean>(false);
   const [versionInfo, setVersionInfo] = useState({
@@ -57,7 +51,6 @@ export default function FramelessTitleBar(props: {
     releaseName: '',
   });
   const [openReleaseNotes, setOpenReleaseNotes] = useState(false);
-  const [backupPath, setBackupPath] = useState('');
   const [backupPaths, setBackupPaths] = useState<string[]>([]);
 
   useEffect(() => {
@@ -129,14 +122,14 @@ export default function FramelessTitleBar(props: {
         menu={
           buildMenu(
             dispatch,
+            showModal,
+            workspace,
             settings,
             sheets,
             unsavedChangesDialog,
             recentPaths,
             setOpenFileError,
             backupPaths,
-            setBackupPath,
-            setOpenRestoreBackupDialog,
             setOpenExportDialog,
             setExportSheetId,
             setReload,
@@ -188,35 +181,6 @@ export default function FramelessTitleBar(props: {
         title={versionInfo?.releaseName}
         releaseNotes={versionInfo?.releaseNotes}
         handleClose={() => setOpenReleaseNotes(false)}
-      />
-      <ConfirmDialog
-        title="Are you sure?"
-        text="Do you really want to reset the workspace, all corrections will be deleted. Make sure you export them first."
-        onConfirm={() => {
-          deleteEverythingInDir(workspace);
-          dispatch(reloadState());
-          setOpenResetConfirmDialog(false);
-        }}
-        onReject={() => {
-          setOpenResetConfirmDialog(false);
-        }}
-        open={openResetConfirmDialog}
-        setOpen={setOpenResetConfirmDialog}
-      />
-      <ConfirmDialog
-        title="Restore Backup"
-        text={`Do you really want to restore backup "${Path.basename(
-          backupPath
-        )}"?`}
-        onConfirm={() => {
-          fs.renameSync(backupPath, workspace);
-          dispatch(reloadState());
-        }}
-        onReject={() => {
-          setOpenRestoreBackupDialog(false);
-        }}
-        open={openRestoreBackupDialog}
-        setOpen={setOpenRestoreBackupDialog}
       />
       <ExportDialog
         open={openExportDialog}

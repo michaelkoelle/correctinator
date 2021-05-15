@@ -2,6 +2,7 @@ import { unwrapResult } from '@reduxjs/toolkit';
 import { OpenDialogReturnValue, remote, SaveDialogReturnValue } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
+import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import { workspaceRemoveOnePath } from '../features/workspace/workspaceSlice';
 import { importCorrections } from '../model/SheetOverviewSlice';
 import { ParserType } from '../parser/Parser';
@@ -15,14 +16,14 @@ import {
 
 const buildFileMenu = (
   dispatch,
+  showModal,
+  workspace,
   settings,
   sheets,
   unsavedChangesDialog,
   recentPaths,
   setOpenFileError,
   backupPaths,
-  setBackupPath,
-  setOpenRestoreBackupDialog,
   setOpenExportDialog,
   setExportSheetId
 ) => {
@@ -115,15 +116,22 @@ const buildFileMenu = (
           return {
             label: path,
             click: async () => {
-              if (
-                fs.existsSync(
-                  Path.join(remote.app.getPath('userData'), 'Backup', path)
-                )
-              ) {
-                setBackupPath(
-                  Path.join(remote.app.getPath('userData'), 'Backup', path)
-                );
-                setOpenRestoreBackupDialog(true);
+              const fullPath = Path.join(
+                remote.app.getPath('userData'),
+                'Backup',
+                path
+              );
+              if (fs.existsSync(fullPath)) {
+                // setBackupPath(fullPath);
+
+                showModal(ConfirmationDialog, {
+                  title: 'Restore Backup?',
+                  text: `Do you really want to restore backup "${path}"?`,
+                  onConfirm: () => {
+                    fs.renameSync(fullPath, workspace);
+                    dispatch(reloadState());
+                  },
+                });
               }
             },
           };

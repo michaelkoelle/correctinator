@@ -4,14 +4,14 @@ import buildViewMenu from './ViewMenu';
 
 const buildMenu = (
   dispatch,
+  showModal,
+  workspace,
   settings,
   sheets,
   unsavedChangesDialog,
   recentPaths,
   setOpenFileError,
   backupPaths,
-  setBackupPath,
-  setOpenRestoreBackupDialog,
   setOpenExportDialog,
   setExportSheetId,
   setReload,
@@ -22,14 +22,14 @@ const buildMenu = (
   return [
     buildFileMenu(
       dispatch,
+      showModal,
+      workspace,
       settings,
       sheets,
       unsavedChangesDialog,
       recentPaths,
       setOpenFileError,
       backupPaths,
-      setBackupPath,
-      setOpenRestoreBackupDialog,
       setOpenExportDialog,
       setExportSheetId
     ),
