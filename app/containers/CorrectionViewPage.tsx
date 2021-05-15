@@ -101,6 +101,7 @@ export default function CorrectionViewPage() {
           position: 'relative',
           padding: '5px',
           height: 'calc(100% - 40px)',
+          userSelect: 'none',
         }}
         split="vertical"
         minSize={50}

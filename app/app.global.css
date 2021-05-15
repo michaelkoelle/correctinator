@@ -13,8 +13,10 @@ body {
   height: calc(100vh);
   overflow: hidden;
   margin: 0;
+  user-select: none;
 }
 
 #root {
   height: 100%;
+  user-select: none;
 }
