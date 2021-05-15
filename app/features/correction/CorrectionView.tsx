@@ -1,10 +1,5 @@
 import {
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Grid,
   IconButton,
   Paper,
@@ -32,7 +27,8 @@ import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import { saveCorrectionToWorkspace } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import { selectSettingsAutosave } from '../../model/SettingsSlice';
-import ConfirmDialog from '../../components/ConfirmDialog';
+import { useModal } from '../../dialogs/ModalProvider';
+import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 
 type CorrectionViewProps = {
   corrections: Correction[];
@@ -44,13 +40,12 @@ export default function CorrectionView(props: CorrectionViewProps) {
   const { corrections = [], index, timeStart } = props;
 
   const dispatch = useDispatch();
+  const showModal = useModal();
   const workspace = useSelector(selectWorkspacePath);
   const autosave: boolean = useSelector(selectSettingsAutosave);
   const corr = corrections[index];
   // Dialogs
-  const [open, setOpen] = useState(false);
   const [openExportDialog, setOpenExportDialog] = useState(false);
-  const [openUnreadFilesDialog, setOpenUnreadFilesDialog] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -61,12 +56,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
   }, [autosave, corr, workspace]);
 
   function onExport() {
-    setOpen(false);
     setOpenExportDialog(true);
-  }
-
-  function onCloseDialog() {
-    setOpen(false);
   }
 
   function onCloseExportDialog() {
@@ -113,7 +103,13 @@ export default function CorrectionView(props: CorrectionViewProps) {
         undefined &&
       !continueAnyways
     ) {
-      setOpenUnreadFilesDialog(true);
+      showModal(ConfirmationDialog, {
+        title: 'Skip unread files?',
+        text: `There are still unread files for this submission. Are you sure you want to go to the next submission?`,
+        onConfirm: () => {
+          onNext(true);
+        },
+      });
       return;
     }
     setStatusDone();
@@ -124,7 +120,13 @@ export default function CorrectionView(props: CorrectionViewProps) {
       corrections.filter((c) => c?.status !== Status.Done).length === 0
     ) {
       // Prompt to export and create zip
-      setOpen(true);
+      showModal(ConfirmationDialog, {
+        title: 'Export Corrections?',
+        text: `Seems like you are finished with the correction. Would you like to export the corrections?`,
+        onConfirm: () => {
+          onExport();
+        },
+      });
     } else {
       goToNextOpen();
     }
@@ -324,37 +326,10 @@ export default function CorrectionView(props: CorrectionViewProps) {
           </Tooltip>
         </Grid>
       </Grid>
-      <Dialog open={open} onClose={onCloseDialog}>
-        <DialogTitle>Export Corrections?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Seems like you are finished with the correction. Would you like to
-            export the corrections?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onExport} color="primary">
-            Yes
-          </Button>
-          <Button onClick={onCloseDialog} color="primary" autoFocus>
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
       <ExportDialog
         open={openExportDialog}
         handleClose={onCloseExportDialog}
         correctionsToExport={corrections}
-      />
-      <ConfirmDialog
-        open={openUnreadFilesDialog}
-        setOpen={setOpenUnreadFilesDialog}
-        title="Unread files"
-        text="There are still unread files for this submission. Are you sure you want to go to the next submission?"
-        onConfirm={() => {
-          onNext(true);
-        }}
-        onReject={() => {}}
       />
     </div>
   );
