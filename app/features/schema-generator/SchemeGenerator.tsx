@@ -79,7 +79,7 @@ import {
   selectSettingsTheme,
 } from '../../model/SettingsSlice';
 import { shouldUseDarkColors } from '../../model/Theme';
-import { useModal } from '../../dialogs/ModalProvider';
+import { useModal } from '../../modals/ModalProvider';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 
 function initializeSheet(

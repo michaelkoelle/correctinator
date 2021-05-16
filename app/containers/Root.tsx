@@ -7,7 +7,7 @@ import { CssBaseline, ThemeProvider, useTheme } from '@material-ui/core';
 import { remote } from 'electron';
 import { AnyAction, EnhancedStore } from '@reduxjs/toolkit';
 import Routes from '../Routes';
-import ModalProvider from '../dialogs/ModalProvider';
+import ModalProvider from '../modals/ModalProvider';
 import createTheme from '../theme';
 
 type Props = {

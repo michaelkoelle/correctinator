@@ -23,7 +23,7 @@ import { useAppDispatch } from '../store';
 import { shouldUseDarkColors } from '../model/Theme';
 import { BACKUP_SUCCESSFUL } from '../constants/BackupIPC';
 import buildMenu from '../menu/Menu';
-import { useModal } from '../dialogs/ModalProvider';
+import { useModal } from '../modals/ModalProvider';
 
 const currentWindow = remote.getCurrentWindow();
 

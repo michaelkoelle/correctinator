@@ -15,7 +15,7 @@ import { selectUnsavedChanges } from './model/SaveSlice';
 import UpdaterDialog from './components/UpdaterDialog';
 import { selectWorkspacePath } from './features/workspace/workspaceSlice';
 import { selectSettingsBackup } from './model/SettingsSlice';
-import { useModal } from './dialogs/ModalProvider';
+import { useModal } from './modals/ModalProvider';
 import SaveBeforeQuittingEffect from './effects/SaveBeforeQuittingEffect';
 import LoadNewFileEffect from './effects/LoadNewFileEffect';
 import BackupEffect from './effects/BackupEffect';

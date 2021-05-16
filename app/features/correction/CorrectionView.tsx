@@ -27,7 +27,7 @@ import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import { saveCorrectionToWorkspace } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import { selectSettingsAutosave } from '../../model/SettingsSlice';
-import { useModal } from '../../dialogs/ModalProvider';
+import { useModal } from '../../modals/ModalProvider';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 
 type CorrectionViewProps = {

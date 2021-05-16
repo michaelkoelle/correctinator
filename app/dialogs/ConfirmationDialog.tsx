@@ -11,7 +11,7 @@ import {
 import React, { FC } from 'react';
 import { useAppDispatch } from '../store';
 
-import { ModalProps } from './ModalProvider';
+import { ModalProps } from '../modals/ModalProvider';
 
 type ConfimationDialogProps = ModalProps & {
   title: string;
