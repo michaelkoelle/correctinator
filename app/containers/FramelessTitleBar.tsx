@@ -50,7 +50,15 @@ export default function FramelessTitleBar(props: {
     releaseName: '',
   });
   const [openReleaseNotes, setOpenReleaseNotes] = useState(false);
-  const [backupPaths, setBackupPaths] = useState<string[]>([]);
+  // Only for force reloading menu
+  const [, setBackupPaths] = useState<string[]>([]);
+
+  const setBackupFilePaths = () => {
+    const paths = fs
+      .readdirSync(Path.join(remote.app.getPath('userData'), 'Backup'))
+      .filter((p) => p.includes(Path.basename(workspace)));
+    setBackupPaths(paths);
+  };
 
   useEffect(() => {
     const acceleratorListener = (event) => {
@@ -60,13 +68,6 @@ export default function FramelessTitleBar(props: {
       }
     };
     window.addEventListener('keydown', acceleratorListener, true);
-
-    const setBackupFilePaths = () => {
-      const paths = fs
-        .readdirSync(Path.join(remote.app.getPath('userData'), 'Backup'))
-        .filter((p) => p.includes(Path.basename(workspace)));
-      setBackupPaths(paths);
-    };
 
     ipcRenderer.on(BACKUP_SUCCESSFUL, setBackupFilePaths);
     return () => {
@@ -128,7 +129,6 @@ export default function FramelessTitleBar(props: {
             unsavedChanges,
             recentPaths,
             setOpenFileError,
-            backupPaths,
             setOpenExportDialog,
             setExportSheetId,
             setReload,
@@ -162,7 +162,6 @@ export default function FramelessTitleBar(props: {
           workspace.length > 0 ? `${Path.parse(workspace).name} - ` : ''
         }correctinator v${version}${unsavedChanges ? ' •' : ''}`}
         onClose={() => {
-          console.log('onCLose');
           currentWindow.close();
         }}
         onMinimize={() => currentWindow.minimize()}

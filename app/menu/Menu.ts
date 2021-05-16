@@ -11,7 +11,6 @@ const buildMenu = (
   unsavedChanges,
   recentPaths,
   setOpenFileError,
-  backupPaths,
   setOpenExportDialog,
   setExportSheetId,
   setReload,
@@ -29,7 +28,6 @@ const buildMenu = (
       unsavedChanges,
       recentPaths,
       setOpenFileError,
-      backupPaths,
       setOpenExportDialog,
       setExportSheetId
     ),

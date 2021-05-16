@@ -27,7 +27,6 @@ const buildFileMenu = (
   unsavedChanges,
   recentPaths,
   setOpenFileError,
-  backupPaths,
   setOpenExportDialog,
   setExportSheetId
 ) => {
@@ -39,6 +38,9 @@ const buildFileMenu = (
       dispatch(reloadState());
     }
   };
+  const backupPaths = fs
+    .readdirSync(Path.join(remote.app.getPath('userData'), 'Backup'))
+    .filter((p) => p.includes(Path.basename(workspace)));
 
   return {
     label: 'File',
