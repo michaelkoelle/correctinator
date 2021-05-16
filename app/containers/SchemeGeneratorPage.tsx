@@ -1,6 +1,6 @@
 import React from 'react';
-import SchemeGenerator from '../features/schema-generator/SchemeGenerator';
+import SchemaGenerator from '../features/schema-generator/SchemaGenerator';
 
 export default function SchemeGeneratorPage() {
-  return <SchemeGenerator />;
+  return <SchemaGenerator />;
 }

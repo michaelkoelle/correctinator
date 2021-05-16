@@ -65,7 +65,7 @@ import OverwriteSchemaDialog, {
 } from '../../dialogs/OverwriteSchemaDialog';
 import CheckClipboardEffect from '../../effects/CheckClipboardEffect';
 
-export default function SchemeGenerator() {
+export default function SchemaGenerator() {
   const dispatch = useDispatch();
   const showModal = useModal();
   const autosave = useSelector(selectSettingsAutosave);
