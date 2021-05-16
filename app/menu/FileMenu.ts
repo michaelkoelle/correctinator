@@ -3,7 +3,11 @@ import { OpenDialogReturnValue, remote, SaveDialogReturnValue } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
-import { workspaceRemoveOnePath } from '../features/workspace/workspaceSlice';
+import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
+import {
+  workspaceRemoveOnePath,
+  workspaceSetPath,
+} from '../features/workspace/workspaceSlice';
 import { importCorrections } from '../model/SheetOverviewSlice';
 import { ParserType } from '../parser/Parser';
 import {
@@ -20,13 +24,22 @@ const buildFileMenu = (
   workspace,
   settings,
   sheets,
-  unsavedChangesDialog,
+  unsavedChanges,
   recentPaths,
   setOpenFileError,
   backupPaths,
   setOpenExportDialog,
   setExportSheetId
 ) => {
+  const unsavedChangesDialog = (path) => {
+    if (unsavedChanges) {
+      showModal(ConfirmationDialog, UnsavedChangesDialog(path));
+    } else {
+      dispatch(workspaceSetPath(path));
+      dispatch(reloadState());
+    }
+  };
+
   return {
     label: 'File',
     submenu: [
@@ -122,8 +135,6 @@ const buildFileMenu = (
                 path
               );
               if (fs.existsSync(fullPath)) {
-                // setBackupPath(fullPath);
-
                 showModal(ConfirmationDialog, {
                   title: 'Restore Backup?',
                   text: `Do you really want to restore backup "${path}"?`,

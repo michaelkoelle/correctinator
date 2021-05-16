@@ -29,12 +29,11 @@ const currentWindow = remote.getCurrentWindow();
 
 export default function FramelessTitleBar(props: {
   setOpenUpdater: (boolean) => void;
-  unsavedChangesDialog: (string) => void;
   setReload: (boolean) => void;
 }) {
   const dispatch = useAppDispatch();
   const showModal = useModal();
-  const { setOpenUpdater, unsavedChangesDialog, setReload } = props;
+  const { setOpenUpdater, setReload } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
   const settings: SettingsState = useSelector(selectSettings);
@@ -126,7 +125,7 @@ export default function FramelessTitleBar(props: {
             workspace,
             settings,
             sheets,
-            unsavedChangesDialog,
+            unsavedChanges,
             recentPaths,
             setOpenFileError,
             backupPaths,
@@ -162,7 +161,10 @@ export default function FramelessTitleBar(props: {
         title={`${
           workspace.length > 0 ? `${Path.parse(workspace).name} - ` : ''
         }correctinator v${version}${unsavedChanges ? ' •' : ''}`}
-        onClose={() => currentWindow.close()}
+        onClose={() => {
+          console.log('onCLose');
+          currentWindow.close();
+        }}
         onMinimize={() => currentWindow.minimize()}
         onMaximize={handleMaximize}
         // when the titlebar is double clicked
