@@ -1,14 +1,14 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import fs from 'fs';
-import TitleBar from 'frameless-titlebar';
+import FramelessTitlebar from 'frameless-titlebar';
 import 'setimmediate';
 import * as Path from 'path';
 import { useSelector } from 'react-redux';
 import { useTheme, Snackbar } from '@material-ui/core';
-import { ipcRenderer, remote } from 'electron';
+import { remote } from 'electron';
 import { Alert } from '@material-ui/lab';
 import ReleaseNotes from '../components/ReleaseNotes';
-import { save } from '../utils/FileAccess';
 import {
   selectRecentPaths,
   selectWorkspacePath,
@@ -21,16 +21,19 @@ import { selectCorrectionsBySheetId } from '../model/Selectors';
 import ExportDialog from '../components/ExportDialog';
 import { useAppDispatch } from '../store';
 import { shouldUseDarkColors } from '../model/Theme';
-import { BACKUP_SUCCESSFUL } from '../constants/BackupIPC';
 import buildMenu from '../menu/Menu';
 import { useModal } from '../modals/ModalProvider';
+import AcceleratorSaveEffect from '../effects/AcceleratorSaveEffect';
+import BackupSuccessfulListenerEffect from '../effects/BackupSuccessfulListenerEffect';
 
 const currentWindow = remote.getCurrentWindow();
 
-export default function FramelessTitleBar(props: {
-  setOpenUpdater: (boolean) => void;
-  setReload: (boolean) => void;
-}) {
+interface TitleBarProps {
+  setOpenUpdater: (open: boolean) => void;
+  setReload: (arg: boolean) => void;
+}
+
+export default function TitleBar(props: TitleBarProps) {
   const dispatch = useAppDispatch();
   const showModal = useModal();
   const { setOpenUpdater, setReload } = props;
@@ -60,21 +63,8 @@ export default function FramelessTitleBar(props: {
     setBackupPaths(paths);
   };
 
-  useEffect(() => {
-    const acceleratorListener = (event) => {
-      // Save
-      if ((event.metaKey || event.ctrlKey) && event.key === 's') {
-        dispatch(save());
-      }
-    };
-    window.addEventListener('keydown', acceleratorListener, true);
-
-    ipcRenderer.on(BACKUP_SUCCESSFUL, setBackupFilePaths);
-    return () => {
-      ipcRenderer.removeListener(BACKUP_SUCCESSFUL, setBackupFilePaths);
-      window.removeEventListener('keydown', acceleratorListener, true);
-    };
-  }, []);
+  useEffect(AcceleratorSaveEffect(dispatch), []);
+  useEffect(BackupSuccessfulListenerEffect(setBackupFilePaths), []);
 
   // add window listeners for currentWindow
   useEffect(() => {
@@ -115,7 +105,7 @@ export default function FramelessTitleBar(props: {
           zIndex: -9999,
         }}
       />
-      <TitleBar
+      <FramelessTitlebar
         iconSrc="../resources/titlebar.png" // app icon
         currentWindow={currentWindow} // electron window instance
         // platform={process.platform} // win32, darwin, linux
@@ -176,7 +166,7 @@ export default function FramelessTitleBar(props: {
         maximized={maximized}
       >
         {/* custom titlebar items */}
-      </TitleBar>
+      </FramelessTitlebar>
       <ReleaseNotes
         open={openReleaseNotes}
         title={versionInfo?.releaseName}

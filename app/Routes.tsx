@@ -10,7 +10,7 @@ import OverviewPage from './containers/OverviewPage';
 import CorrectionViewPage from './containers/CorrectionViewPage';
 import SheetOverviewPage from './containers/SheetOverviewPage';
 import NewHomePage from './containers/NewHomePage';
-import FramelessTitleBar from './containers/FramelessTitleBar';
+import TitleBar from './containers/TitleBar';
 import { selectUnsavedChanges } from './model/SaveSlice';
 import UpdaterDialog from './components/UpdaterDialog';
 import { selectWorkspacePath } from './features/workspace/workspaceSlice';
@@ -63,7 +63,7 @@ export default function Routes() {
 
   return (
     <App>
-      <FramelessTitleBar setOpenUpdater={updaterDialog} setReload={setReload} />
+      <TitleBar setOpenUpdater={updaterDialog} setReload={setReload} />
       <Switch>
         <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
         <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
