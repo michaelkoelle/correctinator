@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   Button,
   Grid,
@@ -24,11 +25,13 @@ import { correctionPageSetIndex } from '../../model/CorrectionPageSlice';
 import CorrectionComment from './CorrectionComment';
 import TaskView from './TaskView';
 import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
-import { saveCorrectionToWorkspace } from '../../utils/FileAccess';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import { selectSettingsAutosave } from '../../model/SettingsSlice';
 import { useModal } from '../../modals/ModalProvider';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
+import SkipUnreadFilesDialog from '../../dialogs/SkipUnreadFilesDialog';
+import OpenExportModalDialog from '../../dialogs/OpenExportModalDialog';
+import AutosaveCorrectionEffect from '../../effects/AutosaveCorrectionEffect';
 
 type CorrectionViewProps = {
   corrections: Correction[];
@@ -47,13 +50,11 @@ export default function CorrectionView(props: CorrectionViewProps) {
   // Dialogs
   const [openExportDialog, setOpenExportDialog] = useState(false);
 
-  useEffect(() => {
-    return () => {
-      if (corr && autosave) {
-        saveCorrectionToWorkspace(corr, workspace);
-      }
-    };
-  }, [autosave, corr, workspace]);
+  useEffect(AutosaveCorrectionEffect(autosave, corr, workspace), [
+    autosave,
+    corr,
+    workspace,
+  ]);
 
   function onExport() {
     setOpenExportDialog(true);
@@ -103,13 +104,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
         undefined &&
       !continueAnyways
     ) {
-      showModal(ConfirmationDialog, {
-        title: 'Skip unread files?',
-        text: `There are still unread files for this submission. Are you sure you want to go to the next submission?`,
-        onConfirm: () => {
-          onNext(true);
-        },
-      });
+      showModal(ConfirmationDialog, SkipUnreadFilesDialog(onNext));
       return;
     }
     setStatusDone();
@@ -120,13 +115,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
       corrections.filter((c) => c?.status !== Status.Done).length === 0
     ) {
       // Prompt to export and create zip
-      showModal(ConfirmationDialog, {
-        title: 'Export Corrections?',
-        text: `Seems like you are finished with the correction. Would you like to export the corrections?`,
-        onConfirm: () => {
-          onExport();
-        },
-      });
+      showModal(ConfirmationDialog, OpenExportModalDialog(onExport));
     } else {
       goToNextOpen();
     }
