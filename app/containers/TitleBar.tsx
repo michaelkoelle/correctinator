@@ -8,7 +8,6 @@ import { useSelector } from 'react-redux';
 import { useTheme, Snackbar } from '@material-ui/core';
 import { remote } from 'electron';
 import { Alert } from '@material-ui/lab';
-import ReleaseNotes from '../components/ReleaseNotes';
 import {
   selectRecentPaths,
   selectWorkspacePath,
@@ -48,11 +47,6 @@ export default function TitleBar(props: TitleBarProps) {
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
   const [openFileError, setOpenFileError] = useState<boolean>(false);
   const [openExportDialog, setOpenExportDialog] = useState<boolean>(false);
-  const [versionInfo, setVersionInfo] = useState({
-    releaseNotes: '',
-    releaseName: '',
-  });
-  const [openReleaseNotes, setOpenReleaseNotes] = useState(false);
   // Only for force reloading menu
   const [, setBackupPaths] = useState<string[]>([]);
 
@@ -122,9 +116,7 @@ export default function TitleBar(props: TitleBarProps) {
             setOpenExportDialog,
             setExportSheetId,
             setReload,
-            setOpenUpdater,
-            setOpenReleaseNotes,
-            setVersionInfo
+            setOpenUpdater
           ) as any
         }
         theme={{
@@ -167,12 +159,6 @@ export default function TitleBar(props: TitleBarProps) {
       >
         {/* custom titlebar items */}
       </FramelessTitlebar>
-      <ReleaseNotes
-        open={openReleaseNotes}
-        title={versionInfo?.releaseName}
-        releaseNotes={versionInfo?.releaseNotes}
-        handleClose={() => setOpenReleaseNotes(false)}
-      />
       <ExportDialog
         open={openExportDialog}
         handleClose={() => {

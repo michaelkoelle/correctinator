@@ -11,7 +11,7 @@ export interface ModalProps {
 }
 
 const ModalContext = createContext<
-  <T>(component: FC<T & ModalProps>, options: T) => void
+  <T>(component: FC<T & ModalProps>, options?: T) => void
 >(() => undefined);
 
 export default function ModalProvider(props: ModalProviderProps) {
@@ -36,11 +36,7 @@ export default function ModalProvider(props: ModalProviderProps) {
     <ModalContext.Provider value={openModal}>
       {children}
       {Modal !== null && modalOptions !== null && (
-        <Modal
-          open={Boolean(modalOptions)}
-          close={closeModal}
-          {...modalOptions}
-        />
+        <Modal open={Boolean(Modal)} close={closeModal} {...modalOptions} />
       )}
     </ModalContext.Provider>
   );

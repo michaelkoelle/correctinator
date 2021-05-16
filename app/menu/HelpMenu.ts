@@ -1,10 +1,10 @@
 import { MenuItemConstructorOptions, remote, shell } from 'electron';
 import * as Path from 'path';
+import ReleaseNotesModal from '../modals/ReleaseNotesModal';
 
 const buildHelpMenu = (
-  setOpenUpdater,
-  setOpenReleaseNotes,
-  setVersionInfo
+  showModal,
+  setOpenUpdater
 ): MenuItemConstructorOptions => {
   return {
     label: 'Help',
@@ -18,14 +18,7 @@ const buildHelpMenu = (
       {
         label: 'View Release Notes',
         async click() {
-          setOpenReleaseNotes(true);
-          const info = await remote
-            .require('electron-updater')
-            .autoUpdater.checkForUpdates();
-          if (info === undefined) {
-            setOpenReleaseNotes(false);
-          }
-          setVersionInfo(info.versionInfo);
+          showModal(ReleaseNotesModal);
         },
       },
       { type: 'separator' },

@@ -14,9 +14,7 @@ const buildMenu = (
   setOpenExportDialog,
   setExportSheetId,
   setReload,
-  setOpenUpdater,
-  setOpenReleaseNotes,
-  setVersionInfo
+  setOpenUpdater
 ) => {
   return [
     buildFileMenu(
@@ -32,7 +30,7 @@ const buildMenu = (
       setExportSheetId
     ),
     buildViewMenu(dispatch, settings, setReload),
-    buildHelpMenu(setOpenUpdater, setOpenReleaseNotes, setVersionInfo),
+    buildHelpMenu(showModal, setOpenUpdater),
   ];
 };
 

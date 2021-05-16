@@ -7,6 +7,7 @@ import * as IPCConstants from './constants/ipc';
 export default class AppUpdater {
   constructor() {
     autoUpdater.autoDownload = false;
+    // autoUpdater.fullChangelog = true;
 
     ipcMain.on(
       IPCConstants.CHECK_FOR_UPDATE_PENDING,
