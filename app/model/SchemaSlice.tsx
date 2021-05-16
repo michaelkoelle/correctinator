@@ -1,4 +1,5 @@
 /* eslint-disable import/no-cycle */
+import { v4 as uuidv4 } from 'uuid';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { denormalize } from 'normalizr';
 import { getMaxValueForTasks } from '../utils/Formatter';
@@ -9,19 +10,27 @@ import {
   generateSingleChoiceTask,
 } from '../utils/Generator';
 import {
+  flatMapTasksFromSheetEntity,
   isParentTaskEntity,
   isRateableTask,
   isSingleChoiceTask,
 } from '../utils/TaskUtil';
 import CommentEntity from './CommentEntity';
+import { commentsRemoveOne, commentsUpsertMany } from './CommentSlice';
+import CorrectionEntity from './CorrectionEntity';
+import { correctionsUpsertMany } from './CorrectionsSlice';
 import { TasksSchema } from './NormalizationSchema';
 import ParentTaskEntity from './ParentTaskEntity';
 import RateableTask from './RateableTask';
 import RatingEntity from './RatingEntity';
+import { ratingsRemoveOne, ratingsUpsertMany } from './RatingSlice';
+import { sheetsUpsertOne } from './SheetSlice';
 import SingleChoiceTask from './SingleChoiceTask';
 import Task from './Task';
 import TaskEntity from './TaskEntity';
+import { tasksRemoveMany, tasksUpsertMany } from './TaskSlice';
 import TaskType from './TaskType';
+import SheetEntity from './SheetEntity';
 
 export interface SchemaState {
   selectedTaskId: string | undefined;
@@ -135,32 +144,6 @@ const slice = createSlice({
       state.ratings = {};
       state.selectedTaskId = undefined;
     },
-    /*
-    schemaAddSubtask: (
-      state,
-      action: PayloadAction<{ parentId: string; task: TaskEntity }>
-    ) => {
-      const tasks = new Map(Object.entries(state.tasks));
-      const parent = tasks.get(action.payload.parentId);
-      if (parent) {
-        if (isParentTaskEntity(parent)) {
-          // Add subtask to children
-          parent.tasks.push(action.payload.task.id);
-          tasks.set(parent.id, parent);
-        } else {
-          // Convert Rateable Task to Parent Task
-          const temp: ParentTaskEntity = {
-            id: parent.id,
-            name: parent.name,
-            tasks: [action.payload.task.id],
-          };
-          tasks.set(parent.id, temp);
-        }
-        tasks.set(action.payload.task.id, action.payload.task);
-      }
-      state.tasks = Object.fromEntries(tasks);
-    },
-    */
   },
 });
 
@@ -482,5 +465,88 @@ export function removeSchemaTaskById(id: string) {
         dispatch(schemaRemoveRating(r.id));
       }
     });
+  };
+}
+
+export function initializeSheet(
+  sheetId: string,
+  tasks: TaskEntity[],
+  ratings: RatingEntity[],
+  comments: CommentEntity[],
+  topLevelTaskIds: string[]
+) {
+  return (dispatch, getState) => {
+    const state = getState();
+    const sheet: SheetEntity = state.sheets.entities[sheetId];
+    const tasksOfSheet: TaskEntity[] = flatMapTasksFromSheetEntity(
+      sheet,
+      state
+    );
+    const correctionsOfSheet = Object.values<CorrectionEntity>(
+      state.corrections.entities
+    ).filter((c) => state.submissions.entities[c.submission].sheet === sheetId);
+
+    // Delete all unused tasks and tasks that were previously a parent task
+    dispatch(
+      tasksRemoveMany(
+        tasksOfSheet
+          .filter((t) => {
+            const updatedTask = tasks.find((tsk) => tsk.id === t.id);
+            // Unused tasks
+            const unusedTask = updatedTask === undefined;
+            // Tasks that were previously a parent task
+            const previouslyParent =
+              updatedTask !== undefined &&
+              isParentTaskEntity(t) &&
+              !isParentTaskEntity(updatedTask);
+            return unusedTask || previouslyParent;
+          })
+          .map((t) => t.id)
+      )
+    );
+
+    // Delete all unused ratings and comments
+    correctionsOfSheet.forEach((c) =>
+      c.ratings?.forEach((r) => {
+        const rating: RatingEntity = state.ratings.entities[r];
+        dispatch(ratingsRemoveOne(rating.id));
+        dispatch(commentsRemoveOne(rating.comment));
+      })
+    );
+
+    dispatch(tasksUpsertMany(tasks));
+
+    if (sheet) {
+      const temp = { ...sheet };
+      temp.tasks = topLevelTaskIds;
+      dispatch(sheetsUpsertOne(temp));
+    }
+
+    const allComments: CommentEntity[] = [];
+    const allRatings: RatingEntity[] = [];
+
+    const allCorrections: CorrectionEntity[] = [];
+    correctionsOfSheet.forEach((c) => {
+      const ratingsForCorrection: RatingEntity[] = [];
+      ratings.forEach((r) => {
+        const newComment = comments.find((comment) => comment.id === r.comment);
+        const tempRating = { ...r };
+        if (newComment) {
+          const tempComment = { ...newComment };
+          tempComment.id = uuidv4();
+          allComments.push(tempComment);
+          tempRating.comment = tempComment.id;
+        }
+        tempRating.id = uuidv4();
+        ratingsForCorrection.push(tempRating);
+        allRatings.push(tempRating);
+      });
+      const tempCorrection = { ...c };
+      tempCorrection.ratings = ratingsForCorrection.map((r) => r.id);
+      allCorrections.push(tempCorrection);
+    });
+    dispatch(commentsUpsertMany(allComments));
+    dispatch(ratingsUpsertMany(allRatings));
+    dispatch(correctionsUpsertMany(allCorrections));
   };
 }
