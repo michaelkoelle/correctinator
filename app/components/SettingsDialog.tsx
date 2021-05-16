@@ -4,13 +4,11 @@
 /* eslint-disable react/no-danger */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import Dialog, { DialogProps } from '@material-ui/core/Dialog';
+import Dialog from '@material-ui/core/Dialog';
 import Typography from '@material-ui/core/Typography';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import {
-  Button,
-  DialogActions,
   FormControlLabel,
   List,
   ListItem,
@@ -21,10 +19,6 @@ import {
 } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  SettingsInputComponent,
-  SettingsPowerRounded,
-} from '@material-ui/icons';
-import {
   selectSettings,
   settingsSetAutosave,
   settingsSetBackup,
@@ -32,8 +26,6 @@ import {
   SettingsState,
 } from '../model/SettingsSlice';
 import { Theme } from '../model/Theme';
-import { ModalProps, useModal } from '../dialogs/ModalProvider';
-import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -43,7 +35,6 @@ interface SettingsDialogProps {
 export default function SettingsDialog(props: SettingsDialogProps) {
   const { open, handleClose } = props;
   const dispatch = useDispatch();
-  const modal = useModal();
   const settings: SettingsState = useSelector(selectSettings);
 
   const handleThemeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,19 +51,6 @@ export default function SettingsDialog(props: SettingsDialogProps) {
         <Typography variant="h5">Settings</Typography>
       </DialogTitle>
       <DialogContent dividers>
-        <Button
-          onClick={() => {
-            modal(ConfirmationDialog, {
-              title: 'TEST DIALOG',
-              text: 'hi this is a test dialog',
-              onConfirm: () => {
-                console.log('YEY!');
-              },
-            });
-          }}
-        >
-          Test
-        </Button>
         <List>
           <ListItem>
             <ListItemText
