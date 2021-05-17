@@ -6,7 +6,7 @@ import {
   Grid,
   Paper,
 } from '@material-ui/core';
-import React, { useState } from 'react';
+import React from 'react';
 import HomeIcon from '@material-ui/icons/Home';
 import SettingsIcon from '@material-ui/icons/Settings';
 import WebIcon from '@material-ui/icons/Web';
@@ -19,9 +19,10 @@ import SheetOverviewPage from '../containers/SheetOverviewPage';
 import SchemeGeneratorPage from '../containers/SchemeGeneratorPage';
 import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
 import CorrectionViewPage from '../containers/CorrectionViewPage';
-import InfoDialog from './InfoDialog';
 import OverviewPage from '../containers/OverviewPage';
-import SettingsDialog from './SettingsDialog';
+import { useModal } from '../modals/ModalProvider';
+import InfoModal from '../modals/InfoModal';
+import SettingsModal from '../modals/SettingsModal';
 
 const useStyle = makeStyles({
   indicator: {
@@ -31,9 +32,8 @@ const useStyle = makeStyles({
 
 export default function Navigation(): JSX.Element {
   const dispatch = useDispatch();
+  const showModal = useModal();
   const tabIndex = useSelector(selectTabIndex);
-  const [openInfo, setOpenInfo] = useState<boolean>(false);
-  const [openSettings, setOpenSettings] = useState<boolean>(false);
   const classes = useStyle();
 
   function setTab(newValue) {
@@ -100,7 +100,7 @@ export default function Navigation(): JSX.Element {
                 width: '60px',
                 borderRadius: '0',
               }}
-              onClick={() => setOpenInfo(true)}
+              onClick={() => showModal(InfoModal)}
             >
               <InfoIcon />
             </IconButton>
@@ -109,7 +109,7 @@ export default function Navigation(): JSX.Element {
                 width: '60px',
                 borderRadius: '0',
               }}
-              onClick={() => setOpenSettings(true)}
+              onClick={() => showModal(SettingsModal)}
             >
               <SettingsIcon />
             </IconButton>
@@ -152,11 +152,6 @@ export default function Navigation(): JSX.Element {
           </TabPanel>
         </Grid>
       </TabContext>
-      <InfoDialog open={openInfo} setOpen={setOpenInfo} />
-      <SettingsDialog
-        open={openSettings}
-        handleClose={() => setOpenSettings(false)}
-      />
     </Grid>
   );
 }

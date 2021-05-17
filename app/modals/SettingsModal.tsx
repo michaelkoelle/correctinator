@@ -3,11 +3,10 @@
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/no-danger */
 /* eslint-disable react/jsx-props-no-spreading */
-import React from 'react';
+import React, { FC } from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import Typography from '@material-ui/core/Typography';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
 import {
   FormControlLabel,
   List,
@@ -26,14 +25,13 @@ import {
   SettingsState,
 } from '../model/SettingsSlice';
 import { Theme } from '../model/Theme';
+import { ModalProps } from './ModalProvider';
+import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 
-interface SettingsDialogProps {
-  open: boolean;
-  handleClose: () => void;
-}
+type SettingsModalProps = ModalProps;
 
-export default function SettingsDialog(props: SettingsDialogProps) {
-  const { open, handleClose } = props;
+const SettingsModal: FC<SettingsModalProps> = ({ ...props }) => {
+  const { close } = props;
   const dispatch = useDispatch();
   const settings: SettingsState = useSelector(selectSettings);
 
@@ -46,10 +44,10 @@ export default function SettingsDialog(props: SettingsDialogProps) {
   };
 
   return (
-    <Dialog onClose={handleClose} open={open} fullWidth>
-      <DialogTitle disableTypography>
+    <Dialog {...props} fullWidth disableBackdropClick>
+      <DialogTitleWithCloseIcon onClose={close}>
         <Typography variant="h5">Settings</Typography>
-      </DialogTitle>
+      </DialogTitleWithCloseIcon>
       <DialogContent dividers>
         <List>
           <ListItem>
@@ -130,4 +128,6 @@ export default function SettingsDialog(props: SettingsDialogProps) {
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default SettingsModal;

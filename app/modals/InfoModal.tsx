@@ -1,19 +1,19 @@
-import React from 'react';
+/* eslint-disable react/prop-types */
+/* eslint-disable react/jsx-props-no-spreading */
+import React, { FC } from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
-import { Grid, Typography } from '@material-ui/core';
+import { Button, Grid, Typography } from '@material-ui/core';
 import { version } from '../package.json';
+import { ModalProps } from './ModalProvider';
 
-type InfoDialogProps = {
-  open: boolean;
-  setOpen: (v: boolean) => unknown;
-};
+type InfoModalProps = ModalProps;
 
-export default function InfoDialog(props: InfoDialogProps) {
-  const { open, setOpen } = props;
+const InfoModal: FC<InfoModalProps> = ({ ...props }) => {
+  const { close } = props;
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)}>
+    <Dialog {...props} onClose={close} disableBackdropClick>
       <DialogContent style={{ overflow: 'hidden' }}>
         <Grid container direction="column" justify="center" alignItems="center">
           <Grid item>
@@ -29,8 +29,15 @@ export default function InfoDialog(props: InfoDialogProps) {
           <Grid item style={{ marginBottom: '20px' }}>
             <Typography>by Michael Kölle</Typography>
           </Grid>
+          <Grid item style={{ marginBottom: '20px' }}>
+            <Button onClick={() => close()} variant="outlined">
+              CLOSE
+            </Button>
+          </Grid>
         </Grid>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default InfoModal;
