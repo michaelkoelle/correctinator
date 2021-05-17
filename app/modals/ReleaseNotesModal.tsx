@@ -6,7 +6,6 @@ import {
   CircularProgress,
   Dialog,
   DialogContent,
-  DialogTitle,
   Grid,
   Typography,
   useTheme,
@@ -14,6 +13,7 @@ import {
 import { remote } from 'electron';
 import { UpdateCheckResult, UpdateInfo } from 'electron-updater';
 import React, { FC, useEffect, useState } from 'react';
+import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import { ModalProps } from './ModalProvider';
 
 type ReleaseNotesModalProps = ModalProps;
@@ -75,9 +75,9 @@ const ReleaseNotesModal: FC<ReleaseNotesModalProps> = ({ ...props }) => {
     // Update Info received
     content = (
       <>
-        <DialogTitle disableTypography>
+        <DialogTitleWithCloseIcon onClose={close}>
           <Typography variant="h5">{`Version ${updateInfo?.version}`}</Typography>
-        </DialogTitle>
+        </DialogTitleWithCloseIcon>
         <DialogContent dividers>
           <div
             dangerouslySetInnerHTML={{
