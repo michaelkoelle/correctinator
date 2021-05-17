@@ -16,14 +16,14 @@ const buildHelpMenu = (
         },
       },
       {
-        label: 'View Release Notes',
+        label: 'Release Notes',
         async click() {
           showModal(ReleaseNotesModal);
         },
       },
       { type: 'separator' },
       {
-        label: 'Show Backups Folder',
+        label: 'Backups Folder',
         click: async () => {
           remote.shell.openPath(
             Path.join(remote.app.getPath('userData'), 'Backup')
