@@ -1,7 +1,7 @@
 import { createMuiTheme } from '@material-ui/core';
-import { shouldUseDarkColors, themeToPaletteType } from './model/Theme';
+import { shouldUseDarkColors, Theme, themeToPaletteType } from './model/Theme';
 
-const createTheme = (appTheme) =>
+const createTheme = (appTheme: Theme) =>
   createMuiTheme({
     palette: {
       type: themeToPaletteType(appTheme),
