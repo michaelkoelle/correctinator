@@ -2,18 +2,12 @@ import {
   Box,
   Button,
   ButtonGroup,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Grid,
   IconButton,
   Typography,
 } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { remote } from 'electron';
 import { unwrapResult } from '@reduxjs/toolkit';
@@ -22,29 +16,29 @@ import SheetCardList from './SheetCardList';
 import {
   ImportConflicts,
   importCorrections,
-  overwriteConflictedCorrections,
-  resetImportConflicts,
   selectsheetOverviewConflicts,
-  selectSheetOverviewLoading,
 } from '../../model/SheetOverviewSlice';
 import { ParserType } from '../../parser/Parser';
 import { useAppDispatch } from '../../store';
 import { selectSettingsAutosave } from '../../model/SettingsSlice';
+import { useModal } from '../../modals/ModalProvider';
+import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
+import OverwriteDuplicateSubmissionsDialog from '../../dialogs/OverwriteDuplicateSubmissionsDialog';
 
 export default function SheetOverview() {
   const dispatch = useAppDispatch();
+  const showModal = useModal();
   const autosave = useSelector(selectSettingsAutosave);
-  const loading = useSelector(selectSheetOverviewLoading);
   const conflicts: ImportConflicts | undefined = useSelector(
     selectsheetOverviewConflicts
-  );
-  const [openOverwriteDialog, setOpenOverwriteDialog] = useState<boolean>(
-    false
   );
 
   useEffect(() => {
     if (conflicts) {
-      setOpenOverwriteDialog(true);
+      showModal(
+        ConfirmationDialog,
+        OverwriteDuplicateSubmissionsDialog(conflicts?.conflicts.length)
+      );
     }
   }, [conflicts]);
 
@@ -58,9 +52,7 @@ export default function SheetOverview() {
         }
         return originalPromiseResult;
       })
-      .catch((rejectedValueOrSerializedError) => {
-        console.log(rejectedValueOrSerializedError);
-      });
+      .catch(() => {});
   }
 
   async function onImportSubmissionsZip() {
@@ -78,14 +70,8 @@ export default function SheetOverview() {
           }
           return originalPromiseResult;
         })
-        .catch((rejectedValueOrSerializedError) => {
-          console.log(rejectedValueOrSerializedError);
-        });
+        .catch(() => {});
     }
-  }
-
-  async function onOverwriteConflicts() {
-    dispatch(overwriteConflictedCorrections());
   }
 
   return (
@@ -138,53 +124,6 @@ export default function SheetOverview() {
       <Box flex="1 1 0%" display="flex" flexDirection="column" marginTop="8px">
         <SheetCardList />
       </Box>
-      <Dialog
-        open={openOverwriteDialog}
-        onClose={() => setOpenOverwriteDialog(false)}
-        disableBackdropClick
-      >
-        <DialogTitle>{`${conflicts?.conflicts.length} duplicate submissions found!`}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {`Are you sure you want to overwrite ${conflicts?.conflicts.length} submissions? This will erase the correction progress of the submissions. This cannot be undone!`}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setOpenOverwriteDialog(false);
-              onOverwriteConflicts();
-            }}
-            color="primary"
-            autoFocus
-          >
-            Yes
-          </Button>
-          <Button
-            onClick={() => {
-              setOpenOverwriteDialog(false);
-              dispatch(resetImportConflicts());
-            }}
-            color="primary"
-          >
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={loading} fullWidth>
-        <DialogContent>
-          <Grid
-            container
-            justify="center"
-            alignItems="center"
-            style={{ height: '200px' }}
-          >
-            <Grid item>
-              <CircularProgress />
-            </Grid>
-          </Grid>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
