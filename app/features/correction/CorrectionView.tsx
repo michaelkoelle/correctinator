@@ -7,14 +7,13 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import FindInPageIcon from '@material-ui/icons/FindInPage';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import { useDispatch, useSelector } from 'react-redux';
-import ExportDialog from '../../components/ExportDialog';
 import TimeAverage from '../../components/TimeAverage';
 import TimeRemaining from '../../components/TimeRemaining';
 import Status from '../../model/Status';
@@ -32,6 +31,7 @@ import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 import SkipUnreadFilesDialog from '../../dialogs/SkipUnreadFilesDialog';
 import OpenExportModalDialog from '../../dialogs/OpenExportModalDialog';
 import AutosaveCorrectionEffect from '../../effects/AutosaveCorrectionEffect';
+import ExportModal from '../../modals/ExportModal';
 
 type CorrectionViewProps = {
   corrections: Correction[];
@@ -47,8 +47,6 @@ export default function CorrectionView(props: CorrectionViewProps) {
   const workspace = useSelector(selectWorkspacePath);
   const autosave: boolean = useSelector(selectSettingsAutosave);
   const corr = corrections[index];
-  // Dialogs
-  const [openExportDialog, setOpenExportDialog] = useState(false);
 
   useEffect(AutosaveCorrectionEffect(autosave, corr, workspace), [
     autosave,
@@ -57,11 +55,10 @@ export default function CorrectionView(props: CorrectionViewProps) {
   ]);
 
   function onExport() {
-    setOpenExportDialog(true);
-  }
-
-  function onCloseExportDialog() {
-    setOpenExportDialog(false);
+    const sheetId = corrections[index]?.submission.sheet.id;
+    if (sheetId) {
+      showModal(ExportModal, { sheetId });
+    }
   }
 
   function setStatusDone() {
@@ -315,11 +312,6 @@ export default function CorrectionView(props: CorrectionViewProps) {
           </Tooltip>
         </Grid>
       </Grid>
-      <ExportDialog
-        open={openExportDialog}
-        handleClose={onCloseExportDialog}
-        correctionsToExport={corrections}
-      />
     </div>
   );
 }

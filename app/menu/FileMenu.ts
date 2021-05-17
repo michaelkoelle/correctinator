@@ -8,6 +8,7 @@ import {
   workspaceRemoveOnePath,
   workspaceSetPath,
 } from '../features/workspace/workspaceSlice';
+import ExportModal from '../modals/ExportModal';
 import { importCorrections } from '../model/SheetOverviewSlice';
 import { ParserType } from '../parser/Parser';
 import {
@@ -26,9 +27,7 @@ const buildFileMenu = (
   sheets,
   unsavedChanges,
   recentPaths,
-  setOpenFileError,
-  setOpenExportDialog,
-  setExportSheetId
+  setOpenFileError
 ) => {
   const unsavedChangesDialog = (path) => {
     if (unsavedChanges) {
@@ -210,8 +209,7 @@ const buildFileMenu = (
           return {
             label: s.name,
             click: async () => {
-              setOpenExportDialog(true);
-              setExportSheetId(s.id);
+              showModal(ExportModal, { sheetId: s.id });
             },
           };
         }),

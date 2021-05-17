@@ -5,11 +5,6 @@ import {
   CardActions,
   CardContent,
   CardHeader,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Grid,
   IconButton,
   LinearProgress,
@@ -25,22 +20,13 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
 import { Alert } from '@material-ui/lab';
-import ExportDialog from '../../components/ExportDialog';
 import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
 import { setTabIndex } from '../../model/HomeSlice';
 import Status from '../../model/Status';
 import { SheetSchema } from '../../model/NormalizationSchema';
 import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
-import {
-  schemaClearSelectedSheetWithId,
-  schemaSetSelectedSheet,
-} from '../../model/SchemaSlice';
-import {
-  deleteCorrectionFromWorkspace,
-  reloadState,
-  save,
-} from '../../utils/FileAccess';
+import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
 import SheetEntity from '../../model/SheetEntity';
 import {
@@ -50,12 +36,16 @@ import {
 import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
-import { overviewClearSelectedSheetWithId } from '../../model/OverviewSlice';
 import { selectSettingsAutosave } from '../../model/SettingsSlice';
+import { useModal } from '../../modals/ModalProvider';
+import ExportModal from '../../modals/ExportModal';
+import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
+import ConfirmDeleteSheetDialog from '../../dialogs/ConfirmDeleteSheetDialog';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
   const theme = useTheme();
+  const showModal = useModal();
   const workspace = useSelector(selectWorkspacePath);
   const autosave: boolean = useSelector(selectSettingsAutosave);
   const entities = useSelector(selectAllEntities);
@@ -64,8 +54,6 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     selectCorrectionsBySheetId(sheet.id)
   );
   const [anchorEl, setAnchorEl] = useState(null);
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-  const [openExportDialog, setOpenExportDialog] = useState(false);
   const [openAutoCorrectionInfo, setOpenAutoCorrectionInfo] = useState(false);
   const [autoCorrectionCount, setAutoCorrectionCount] = useState<{
     taskCount: number;
@@ -111,31 +99,15 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
 
   function onExport() {
     setAnchorEl(null);
-    setOpenExportDialog(true);
-  }
-
-  function onCloseConfirmDialog() {
-    setOpenConfirmDialog(false);
-  }
-
-  function onCloseExportDialog() {
-    setOpenExportDialog(false);
+    showModal(ExportModal, { sheetId: sheet.id });
   }
 
   function onOpenConfirmDialog() {
     onCloseMenu();
-    setOpenConfirmDialog(true);
-  }
-
-  function onDeleteSheet() {
-    onCloseConfirmDialog();
-    dispatch(schemaClearSelectedSheetWithId(sheet.id));
-    dispatch(overviewClearSelectedSheetWithId(sheet.id));
-    corrections.forEach((c) => deleteCorrectionFromWorkspace(c, workspace));
-    dispatch(reloadState());
-    if (autosave) {
-      dispatch(save());
-    }
+    showModal(
+      ConfirmationDialog,
+      ConfirmDeleteSheetDialog(autosave, sheet, workspace, corrections)
+    );
   }
 
   function onAutoCorrectSingleChoiceTasks() {
@@ -325,27 +297,6 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
           }
         />
       </Card>
-      <Dialog open={openConfirmDialog} onClose={onCloseConfirmDialog}>
-        <DialogTitle>Are you sure?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {`Are you sure you want to delete the sheet "${sheet.name}"?`}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onDeleteSheet} color="primary" autoFocus>
-            Yes
-          </Button>
-          <Button onClick={onCloseConfirmDialog} color="primary">
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <ExportDialog
-        correctionsToExport={corrections}
-        open={openExportDialog}
-        handleClose={onCloseExportDialog}
-      />
       <Snackbar
         open={openAutoCorrectionInfo}
         autoHideDuration={5000}

@@ -12,7 +12,6 @@ import {
   TextField,
   Tooltip,
 } from '@material-ui/core';
-import ConditionalComment from '../model/ConditionalComment';
 
 const PrimaryTooltip = withStyles((theme: Theme) => ({
   tooltip: {
@@ -38,17 +37,28 @@ function ValueLabelComponent(props: any) {
   );
 }
 
-export interface ConditionalCommentProps {}
+export interface ConditionalCommentProps {
+  conditionalComment;
+  setConditionalComment;
+  showLabel;
+  setShowLabel;
+  value;
+  setValue;
+  comments;
+  setComments;
+}
 
-const ConditionalComment = (props: ConditionalCommentProps) => {
-  const [conditionalComment, setConditionalComment] = useState(true);
-  const [showLabel, setShowLabel] = useState(true);
-  const [value, setValue] = React.useState<number[]>([60, 80, 100]);
-  const [comments, setComments] = React.useState<string[]>([
-    'Gut!',
-    'Sehr gut!',
-    'Perfekt!',
-  ]);
+const ConditionalCommentPanel = (props: ConditionalCommentProps) => {
+  const {
+    conditionalComment,
+    setConditionalComment,
+    showLabel,
+    setShowLabel,
+    value,
+    setValue,
+    comments,
+    setComments,
+  } = props;
 
   const marks = [
     {
@@ -114,16 +124,16 @@ const ConditionalComment = (props: ConditionalCommentProps) => {
           />
         </Grid>
       </Grid>
-      <Collapse in={conditionalComment}>
+      <Collapse in={conditionalComment} style={{ width: '100%' }}>
         <Grid container justify="center" alignItems="center">
           <Grid item xs={12}>
             <Paper
               variant="outlined"
               style={{
-                padding: '50px 60px 16px',
+                padding: '50px 50px 10px',
                 marginTop: '16px',
                 marginBottom: '16px',
-                width: 'calc(100% - 50px)',
+                width: 'calc(100%)',
               }}
             >
               <Slider
@@ -151,7 +161,7 @@ const ConditionalComment = (props: ConditionalCommentProps) => {
             <Grid key={`comment-${i}`} item>
               <TextField
                 id={`comment-${i}`}
-                label={`Comment ${i}`}
+                label={`Score ≥ ${value[i]}%`}
                 name={i.toString()}
                 defaultValue={c}
                 variant="outlined"
@@ -171,4 +181,4 @@ const ConditionalComment = (props: ConditionalCommentProps) => {
   );
 };
 
-export default ConditionalComment;
+export default ConditionalCommentPanel;

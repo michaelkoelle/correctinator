@@ -16,8 +16,6 @@ import { selectUnsavedChanges } from '../model/SaveSlice';
 import { version } from '../package.json';
 import { selectSettings, SettingsState } from '../model/SettingsSlice';
 import { selectAllSheets } from '../model/SheetSlice';
-import { selectCorrectionsBySheetId } from '../model/Selectors';
-import ExportDialog from '../components/ExportDialog';
 import { useAppDispatch } from '../store';
 import { shouldUseDarkColors } from '../model/Theme';
 import buildMenu from '../menu/Menu';
@@ -41,12 +39,10 @@ export default function TitleBar(props: TitleBarProps) {
   const settings: SettingsState = useSelector(selectSettings);
   const recentPaths: string[] = useSelector(selectRecentPaths);
   const sheets = useSelector(selectAllSheets);
-  const [exportSheetId, setExportSheetId] = useState<string>();
-  const corrections = useSelector(selectCorrectionsBySheetId(exportSheetId));
   const unsavedChanges: boolean = useSelector(selectUnsavedChanges);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
   const [openFileError, setOpenFileError] = useState<boolean>(false);
-  const [openExportDialog, setOpenExportDialog] = useState<boolean>(false);
+
   // Only for force reloading menu
   const [, setBackupPaths] = useState<string[]>([]);
 
@@ -113,8 +109,6 @@ export default function TitleBar(props: TitleBarProps) {
             unsavedChanges,
             recentPaths,
             setOpenFileError,
-            setOpenExportDialog,
-            setExportSheetId,
             setReload,
             setOpenUpdater
           ) as any
@@ -156,16 +150,6 @@ export default function TitleBar(props: TitleBarProps) {
         disableMaximize={false}
         // is the current window maximized?
         maximized={maximized}
-      >
-        {/* custom titlebar items */}
-      </FramelessTitlebar>
-      <ExportDialog
-        open={openExportDialog}
-        handleClose={() => {
-          setOpenExportDialog(false);
-          setExportSheetId(undefined);
-        }}
-        correctionsToExport={corrections}
       />
       <Snackbar
         open={openFileError}

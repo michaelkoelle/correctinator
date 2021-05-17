@@ -1,155 +1,50 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-props-no-spreading */
-import React from 'react';
-import {
-  createStyles,
-  Theme,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core/styles';
+import React, { FC, useState } from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
 import FolderIcon from '@material-ui/icons/Folder';
 import Typography from '@material-ui/core/Typography';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import MuiDialogTitle from '@material-ui/core/DialogTitle';
-import {
-  Collapse,
-  Grid,
-  MenuItem,
-  Paper,
-  Select,
-  Slider,
-  Snackbar,
-  Switch,
-  TextField,
-  Tooltip,
-} from '@material-ui/core';
+import { Grid, MenuItem, Select, Snackbar, TextField } from '@material-ui/core';
 import { remote } from 'electron';
 import Path from 'path';
 import { useSelector } from 'react-redux';
 import { Alert } from '@material-ui/lab';
-import { exportCorrections, exportCorrections1 } from '../utils/FileAccess';
+import { exportCorrections1 } from '../utils/FileAccess';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import ConditionalComment from '../model/ConditionalComment';
 import Uni2WorkParser from '../parser/Uni2WorkParser';
-import Correction from '../model/Correction';
 import Sheet from '../model/Sheet';
+import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
+import { ModalProps } from './ModalProvider';
+import ConditionalCommentPanel from '../components/ConditionalCommentPanel';
+import { selectCorrectionsBySheetId } from '../model/Selectors';
 
-const PrimaryTooltip = withStyles((theme: Theme) => ({
-  tooltip: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.background.default,
-    boxShadow: theme.shadows[1],
-    fontSize: 11,
-  },
-}))(Tooltip);
+type ExportModalProps = ModalProps & {
+  sheetId: string;
+};
 
-function ValueLabelComponent(props: any) {
-  const { children, open, value, comments } = props;
-  return (
-    <PrimaryTooltip
-      open={open}
-      hidden={!open}
-      placement="top"
-      title={`${comments[children.props['data-index']]} ≥ ${value}`}
-      arrow
-    >
-      {children}
-    </PrimaryTooltip>
-  );
-}
-
-const styles = (theme: Theme) =>
-  createStyles({
-    root: {
-      margin: 0,
-      padding: theme.spacing(2),
-    },
-    closeButton: {
-      position: 'absolute',
-      right: theme.spacing(1),
-      top: theme.spacing(1),
-      color: theme.palette.grey[500],
-    },
-  });
-
-export interface DialogTitleProps extends WithStyles<typeof styles> {
-  id: string;
-  children: React.ReactNode;
-  onClose: () => void;
-}
-
-const DialogTitle = withStyles(styles)((props: DialogTitleProps) => {
-  const { children, classes, onClose, ...other } = props;
-  return (
-    <MuiDialogTitle disableTypography className={classes.root} {...other}>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton
-          aria-label="close"
-          className={classes.closeButton}
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </IconButton>
-      ) : null}
-    </MuiDialogTitle>
-  );
-});
-
-export default function ExportDialog(props: {
-  open: boolean;
-  handleClose: () => void;
-  correctionsToExport: Correction[];
-}) {
-  const { open, handleClose, correctionsToExport } = props;
+const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
+  const { close, sheetId } = props;
+  const correctionsToExport = useSelector(selectCorrectionsBySheetId(sheetId));
   const workspace = useSelector(selectWorkspacePath);
-  const [openSuccess, setOpenSuccess] = React.useState(false);
-  const [openError, setOpenError] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [exportInProgress, setExportInProgress] = React.useState(false);
-  const [value, setValue] = React.useState<number[]>([60, 80, 100]);
-  const [comments, setComments] = React.useState<string[]>([
+  const [openSuccess, setOpenSuccess] = useState(false);
+  const [openError, setOpenError] = useState(false);
+  const [error, setError] = useState('');
+  const [exportInProgress, setExportInProgress] = useState(false);
+  const [path, setPath] = useState<string>('');
+  const [format, setFormat] = useState('Uni2Work');
+  const [conditionalComment, setConditionalComment] = useState(true);
+  const [showLabel, setShowLabel] = useState(true);
+  const [value, setValue] = useState<number[]>([60, 80, 100]);
+  const [comments, setComments] = useState<string[]>([
     'Gut!',
     'Sehr gut!',
     'Perfekt!',
   ]);
-  const [path, setPath] = React.useState<string>('');
-  const [format, setFormat] = React.useState('Uni2Work');
-  const [conditionalComment, setConditionalComment] = React.useState(true);
-  const [showLabel, setShowLabel] = React.useState(true);
-
-  const marks = [
-    {
-      value: 0,
-      label: '0%',
-    },
-    {
-      value: 25,
-      label: '25%',
-    },
-    {
-      value: 50,
-      label: '50%',
-    },
-    {
-      value: 75,
-      label: '75%',
-    },
-    {
-      value: 100,
-      label: '100%',
-    },
-  ];
-
-  function onChangeComment(event) {
-    const temp = [...comments];
-    temp[event.target.name] = event.target.value;
-    setComments(temp);
-  }
 
   function onChangePath(event) {
     setPath(event.target.value);
@@ -157,10 +52,6 @@ export default function ExportDialog(props: {
 
   function onChangeFormatSelection(event) {
     setFormat(event.target.value);
-  }
-
-  function onChangeSlider(event, newValue) {
-    setValue(newValue);
   }
 
   function onChoosePath() {
@@ -205,7 +96,7 @@ export default function ExportDialog(props: {
 
   function closeExportDialog() {
     if (!exportInProgress) {
-      handleClose();
+      close();
     }
   }
 
@@ -261,18 +152,6 @@ export default function ExportDialog(props: {
     }
   }
 
-  function onToggleConditionalComment() {
-    setConditionalComment(!conditionalComment);
-    // Workaround for using tooltips
-    if (showLabel) {
-      setShowLabel(false);
-    } else {
-      setTimeout(() => {
-        setShowLabel(true);
-      }, 300);
-    }
-  }
-
   /*
   if (
     correctionsToExport.filter(
@@ -300,12 +179,13 @@ export default function ExportDialog(props: {
     );
   }
 */
+
   return (
     <div>
-      <Dialog open={open} fullWidth>
-        <DialogTitle id="export-dialog-title" onClose={closeExportDialog}>
+      <Dialog {...props} fullWidth>
+        <DialogTitleWithCloseIcon onClose={closeExportDialog}>
           <Typography variant="h5">Export Corrections</Typography>
-        </DialogTitle>
+        </DialogTitleWithCloseIcon>
         <DialogContent dividers>
           <Grid
             item
@@ -389,83 +269,16 @@ export default function ExportDialog(props: {
               </Grid>
             </Grid>
           </Grid>
-          <Grid
-            container
-            direction="row"
-            justify="flex-start"
-            alignItems="center"
-          >
-            <Grid
-              item
-              container
-              direction="row"
-              justify="space-between"
-              alignItems="center"
-            >
-              <Grid item>
-                <Typography variant="h6">Conditional Comment</Typography>
-              </Grid>
-              <Grid item>
-                <Switch
-                  checked={conditionalComment}
-                  onChange={onToggleConditionalComment}
-                />
-              </Grid>
-            </Grid>
-            <Collapse in={conditionalComment}>
-              <Grid container justify="center" alignItems="center">
-                <Grid item xs={12}>
-                  <Paper
-                    variant="outlined"
-                    style={{
-                      padding: '50px 60px 16px',
-                      marginTop: '16px',
-                      marginBottom: '16px',
-                      width: 'calc(100% - 50px)',
-                    }}
-                  >
-                    <Slider
-                      value={value}
-                      valueLabelDisplay="on"
-                      marks={marks}
-                      onChange={onChangeSlider}
-                      ValueLabelComponent={(p) => (
-                        <ValueLabelComponent
-                          {...p}
-                          comments={comments}
-                          open={showLabel}
-                        />
-                      )}
-                    />
-                  </Paper>
-                </Grid>
-              </Grid>
-              <Grid container justify="flex-start" alignItems="center">
-                <Grid item xs={12}>
-                  <Typography>Options:</Typography>
-                </Grid>
-                {comments.map((c, i) => (
-                  // eslint-disable-next-line react/no-array-index-key
-                  <Grid key={`comment-${i}`} item>
-                    <TextField
-                      id={`comment-${i}`}
-                      label={`Comment ${i}`}
-                      name={i.toString()}
-                      defaultValue={c}
-                      variant="outlined"
-                      size="small"
-                      onChange={onChangeComment}
-                      style={{
-                        width: '120px',
-                        marginRight: '16px',
-                        marginTop: '16px',
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </Collapse>
-          </Grid>
+          <ConditionalCommentPanel
+            conditionalComment={conditionalComment}
+            setConditionalComment={setConditionalComment}
+            showLabel={showLabel}
+            setShowLabel={setShowLabel}
+            value={value}
+            setValue={setValue}
+            comments={comments}
+            setComments={setComments}
+          />
         </DialogContent>
         <DialogActions>
           <Button
@@ -498,4 +311,6 @@ export default function ExportDialog(props: {
       </Snackbar>
     </div>
   );
-}
+};
+
+export default ExportModal;

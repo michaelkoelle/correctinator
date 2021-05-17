@@ -11,8 +11,6 @@ const buildMenu = (
   unsavedChanges,
   recentPaths,
   setOpenFileError,
-  setOpenExportDialog,
-  setExportSheetId,
   setReload,
   setOpenUpdater
 ) => {
@@ -25,9 +23,7 @@ const buildMenu = (
       sheets,
       unsavedChanges,
       recentPaths,
-      setOpenFileError,
-      setOpenExportDialog,
-      setExportSheetId
+      setOpenFileError
     ),
     buildViewMenu(dispatch, settings, setReload),
     buildHelpMenu(showModal, setOpenUpdater),
