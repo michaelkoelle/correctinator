@@ -6,16 +6,17 @@ import {
   Typography,
 } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
+import LaunchIcon from '@material-ui/icons/Launch';
 import RemoveIcon from '@material-ui/icons/Remove';
 import RotateLeftIcon from '@material-ui/icons/RotateLeft';
 import RotateRightIcon from '@material-ui/icons/RotateRight';
 import NavigateNextIcon from '@material-ui/icons/NavigateNext';
 import NavigateBeforeIcon from '@material-ui/icons/NavigateBefore';
 import CropFreeIcon from '@material-ui/icons/CropFree';
-import FolderOpenIcon from '@material-ui/icons/FolderOpen';
 import React, { useEffect } from 'react';
 import { shell } from 'electron';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import * as Path from 'path';
 import clamp from '../../utils/MathUtil';
 
 type ViewerToolbarProps = {
@@ -109,100 +110,124 @@ export default function ViewerToolbar(props: ViewerToolbarProps) {
       alignItems="center"
     >
       <Paper>
-        <Grid item container justify="center" alignItems="center">
-          <Grid item>
-            <Tooltip title="Previous file">
-              <IconButton
-                size="medium"
-                aria-label="add"
-                onClick={onPreviousFile}
-                disabled={filePaths.length === 1}
-              >
-                <NavigateBeforeIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-          <Grid item>
-            <Tooltip title="Rotate left">
-              <IconButton size="medium" aria-label="add" onClick={onRotateLeft}>
-                <RotateLeftIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-          <Grid item>
-            <Tooltip title="Zoom in">
-              <span>
+        <Grid
+          item
+          container
+          direction="column"
+          justify="center"
+          alignItems="center"
+          spacing={0}
+        >
+          <Grid item container justify="center" alignItems="center">
+            <Grid item>
+              <Tooltip title="Previous file">
                 <IconButton
                   size="medium"
                   aria-label="add"
-                  onClick={onZoomIn}
-                  disabled={scale >= ZOOMMAX}
+                  onClick={onPreviousFile}
+                  disabled={filePaths.length === 1}
                 >
-                  <AddIcon />
+                  <NavigateBeforeIcon />
                 </IconButton>
-              </span>
-            </Tooltip>
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Tooltip title="Rotate left">
+                <IconButton
+                  size="medium"
+                  aria-label="add"
+                  onClick={onRotateLeft}
+                >
+                  <RotateLeftIcon />
+                </IconButton>
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Tooltip title="Zoom in">
+                <span>
+                  <IconButton
+                    size="medium"
+                    aria-label="add"
+                    onClick={onZoomIn}
+                    disabled={scale >= ZOOMMAX}
+                  >
+                    <AddIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Typography variant="h6">
+                {`(${fileIndex + 1}/${filePaths.length})`}
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Tooltip title="Zoom out">
+                <span>
+                  <IconButton
+                    size="medium"
+                    aria-label="add"
+                    onClick={onZoomOut}
+                    disabled={scale <= ZOOMMIN}
+                  >
+                    <RemoveIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Tooltip title="Rotate right">
+                <IconButton
+                  size="medium"
+                  aria-label="add"
+                  onClick={onRotateRight}
+                >
+                  <RotateRightIcon />
+                </IconButton>
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Tooltip title="Next file">
+                <IconButton
+                  size="medium"
+                  aria-label="add"
+                  onClick={onNextFile}
+                  disabled={filePaths.length === 1}
+                >
+                  <NavigateNextIcon />
+                </IconButton>
+              </Tooltip>
+            </Grid>
+            <Grid item>
+              <Tooltip title="Reset scale">
+                <IconButton
+                  size="medium"
+                  aria-label="add"
+                  onClick={onResetScale}
+                  disabled={scale === 1}
+                >
+                  <CropFreeIcon />
+                </IconButton>
+              </Tooltip>
+            </Grid>
           </Grid>
-          <Grid item>
-            <Typography variant="h6">
-              {`(${fileIndex + 1}/${filePaths.length})`}
+          <Grid
+            item
+            container
+            justify="center"
+            alignItems="center"
+            style={{ marginTop: '-5px', marginBottom: '2px' }}
+          >
+            <Typography variant="caption">
+              {Path.basename(filePaths[fileIndex])}
             </Typography>
-          </Grid>
-          <Grid item>
-            <Tooltip title="Zoom out">
-              <span>
-                <IconButton
-                  size="medium"
-                  aria-label="add"
-                  onClick={onZoomOut}
-                  disabled={scale <= ZOOMMIN}
-                >
-                  <RemoveIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-          </Grid>
-          <Grid item>
-            <Tooltip title="Rotate right">
-              <IconButton
-                size="medium"
-                aria-label="add"
-                onClick={onRotateRight}
-              >
-                <RotateRightIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-          <Grid item>
-            <Tooltip title="Next file">
-              <IconButton
-                size="medium"
-                aria-label="add"
-                onClick={onNextFile}
-                disabled={filePaths.length === 1}
-              >
-                <NavigateNextIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-          <Grid item>
-            <Tooltip title="Reset scale">
-              <IconButton
-                size="medium"
-                aria-label="add"
-                onClick={onResetScale}
-                disabled={scale === 1}
-              >
-                <CropFreeIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-          <Grid item>
-            <Tooltip title="Open file in folder">
-              <IconButton size="medium" aria-label="add" onClick={onOpenFolder}>
-                <FolderOpenIcon />
-              </IconButton>
-            </Tooltip>
+            <IconButton
+              size="small"
+              style={{ marginLeft: '5px' }}
+              onClick={onOpenFolder}
+            >
+              <LaunchIcon style={{ width: '12px', height: '12px' }} />
+            </IconButton>
           </Grid>
         </Grid>
       </Paper>

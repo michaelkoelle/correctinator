@@ -110,8 +110,8 @@ function ingestCorrectionFromZip(
   const targetFiles: string[] = [];
   files.forEach((file, i) => {
     const filesDir: string = Path.join(submissionName, 'files');
-    const { ext } = Path.parse(file);
-    const fileName = `${submissionName}-${i + 1}${ext}`;
+    const { base } = Path.parse(file);
+    const fileName = base;
     const buffer: Buffer | null = zip.readFile(file);
     if (buffer != null) {
       addFileToWorkspace(`${filesDir}/${fileName}`, buffer, workspace);

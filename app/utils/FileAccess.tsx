@@ -64,16 +64,16 @@ export function getAllFilesInDirectory(
 
 export function copySubmissionFiles(
   files: string[],
-  name: string | undefined = undefined,
+  submissionId: string | undefined = undefined,
   workspace: string
 ): string[] {
   const zip = new AdmZip(workspace);
   const targetFiles: string[] = [];
   files.forEach((file, i) => {
-    const { ext } = Path.parse(file);
-    if (name) {
-      const fileName = `${name}-${i + 1}${ext}`;
-      const fileDir = `${name}/files/`;
+    const { base } = Path.parse(file);
+    if (submissionId) {
+      const fileName = base;
+      const fileDir = `${submissionId}/files/`;
       const fullPath = `${fileDir}/${fileName}`;
       if (zip.getEntry(fullPath) === null) {
         zip.addLocalFile(file, fileDir, fileName);
