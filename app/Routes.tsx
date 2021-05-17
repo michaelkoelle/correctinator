@@ -12,7 +12,6 @@ import SheetOverviewPage from './containers/SheetOverviewPage';
 import NewHomePage from './containers/NewHomePage';
 import TitleBar from './containers/TitleBar';
 import { selectUnsavedChanges } from './model/SaveSlice';
-import UpdaterDialog from './components/UpdaterDialog';
 import { selectWorkspacePath } from './features/workspace/workspaceSlice';
 import { selectSettingsBackup } from './model/SettingsSlice';
 import { useModal } from './modals/ModalProvider';
@@ -28,17 +27,10 @@ export default function Routes() {
   const unsavedChanges = useSelector(selectUnsavedChanges);
   const saveBackups = useSelector(selectSettingsBackup);
   const workspacePath = useSelector(selectWorkspacePath);
-  const [openUpdaterDialog, setOpenUpdaterDialog] = useState<boolean>(false);
-  const [showNotAvailiable, setShowNotAvailiable] = useState<boolean>(false);
   const [quitAnyways, setQuitAnyways] = useState<boolean>(false);
   const [reload, setReload] = useState<boolean>(false);
 
-  function updaterDialog(show: boolean) {
-    setShowNotAvailiable(show);
-    setOpenUpdaterDialog(true);
-  }
-
-  useEffect(CheckForUpdatesEffect(updaterDialog), []);
+  useEffect(CheckForUpdatesEffect(showModal), []);
   useEffect(RequestFilePathEffect(), []);
   useEffect(LoadNewFileEffect(dispatch, showModal, unsavedChanges), [
     dispatch,
@@ -63,7 +55,7 @@ export default function Routes() {
 
   return (
     <App>
-      <TitleBar setOpenUpdater={updaterDialog} setReload={setReload} />
+      <TitleBar setReload={setReload} />
       <Switch>
         <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
         <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
@@ -71,11 +63,6 @@ export default function Routes() {
         <Route path={routes.SCHEMAGENERATOR} component={SchemeGeneratorPage} />
         <Route path={routes.HOME} component={NewHomePage} />
       </Switch>
-      <UpdaterDialog
-        open={openUpdaterDialog}
-        setOpen={setOpenUpdaterDialog}
-        showNotAvailiable={showNotAvailiable}
-      />
     </App>
   );
 }

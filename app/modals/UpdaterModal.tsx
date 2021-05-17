@@ -1,5 +1,9 @@
 /* eslint-disable no-case-declarations */
-import React, { useEffect, useState } from 'react';
+/* eslint-disable promise/always-return */
+/* eslint-disable react/no-danger */
+/* eslint-disable react/prop-types */
+/* eslint-disable react/jsx-props-no-spreading */
+import React, { FC, useEffect, useState } from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -18,18 +22,9 @@ import { UpdateInfo } from 'electron-updater';
 import { useDispatch } from 'react-redux';
 import { version as currentAppVersion } from '../package.json';
 import * as IPCConstants from '../constants/ipc';
-import CircularProgressWithLabel from './CircularProgressWithLabel';
 import { saveAllCorrections } from '../utils/FileAccess';
-
-type UpdaterDialogProps = {
-  open: boolean;
-  setOpen: (v: boolean) => unknown;
-  showNotAvailiable?: boolean;
-};
-
-const defaultProps = {
-  showNotAvailiable: false,
-};
+import { ModalProps } from './ModalProvider';
+import CircularProgressWithLabel from '../components/CircularProgressWithLabel';
 
 enum UpdaterState {
   CHECKING_FOR_UPDATE,
@@ -40,8 +35,13 @@ enum UpdaterState {
   UPDATE_DOWNLOADED,
 }
 
-function UpdaterDialog(props: UpdaterDialogProps) {
-  const { open, setOpen, showNotAvailiable } = props;
+type UpdaterModalProps = ModalProps & {
+  showNotAvailiable?: boolean;
+};
+
+const UpdaterModal: FC<UpdaterModalProps> = ({ ...props }) => {
+  const { open, close, showNotAvailiable } = props;
+
   const theme = useTheme();
   const dispatch = useDispatch();
   const [updaterState, setUpdaterState] = useState<UpdaterState>(
@@ -58,67 +58,95 @@ function UpdaterDialog(props: UpdaterDialogProps) {
   }, [open]);
 
   useEffect(() => {
-    ipcRenderer.on(
-      IPCConstants.CHECK_FOR_UPDATE_SUCCESS,
-      (_event, info: UpdateInfo | undefined) => {
-        const version = info && info.version;
-        if (version && version !== currentAppVersion) {
-          // Only start download if user confirms
-          setUpdateInfo(info);
-          setUpdaterState(UpdaterState.UPDATE_AVAILIABLE);
-        } else if (showNotAvailiable) {
-          // No updates found. Show update no availiable content
-          setUpdaterState(UpdaterState.UPDATE_NOT_AVAILIABLE);
-        } else {
-          // No updates found. Just exit for now
-          setTimeout(() => {
-            setOpen(false);
-          }, 1000);
-        }
+    const CheckForUpdateSuccess = (_event, info: UpdateInfo | undefined) => {
+      const version = info && info.version;
+      if (version && version !== currentAppVersion) {
+        // Only start download if user confirms
+        setUpdateInfo(info);
+        setUpdaterState(UpdaterState.UPDATE_AVAILIABLE);
+      } else if (showNotAvailiable) {
+        // No updates found. Show update no availiable content
+        setUpdaterState(UpdaterState.UPDATE_NOT_AVAILIABLE);
+      } else {
+        // No updates found. Just exit for now
+        setTimeout(() => {
+          close();
+        }, 1000);
       }
-    );
+    };
 
-    ipcRenderer.on(IPCConstants.CHECK_FOR_UPDATE_FAILURE, (_event, err) => {
+    const CheckForUpdateFailure = (_event, err) => {
       // Trigger failure in your state.
       setError(err);
-      setOpen(false);
-    });
+      close();
+    };
 
-    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_PROGRESS, (_event, percent) => {
+    const DownloadUpdateProgress = (_event, percent) => {
       setDownloadProgress(percent);
-    });
+    };
 
-    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_SUCCESS, () => {
+    const DownloadUpdateSuccess = () => {
       // Update state for download complete
       setUpdaterState(UpdaterState.UPDATE_DOWNLOADED);
       // TODO: for now we just save before installing
       dispatch(saveAllCorrections());
       setTimeout(() => {
         ipcRenderer.send(IPCConstants.QUIT_AND_INSTALL_UPDATE);
-        setOpen(false);
+        close();
       }, 1000);
-    });
+    };
 
-    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_FAILURE, (_event, err) => {
+    const DownloadUpdateFailure = (_event, err) => {
       // Trigger failure in your state.
       setError(err);
       setUpdaterState(UpdaterState.DOWNLOAD_FAILED);
-    });
-    return () => {
-      ipcRenderer.removeAllListeners(IPCConstants.CHECK_FOR_UPDATE_SUCCESS);
-      ipcRenderer.removeAllListeners(IPCConstants.CHECK_FOR_UPDATE_FAILURE);
-      ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_SUCCESS);
-      ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_FAILURE);
-      ipcRenderer.removeAllListeners(IPCConstants.DOWNLOAD_UPDATE_PROGRESS);
     };
-  }, [dispatch, setOpen, showNotAvailiable]);
+
+    ipcRenderer.on(
+      IPCConstants.CHECK_FOR_UPDATE_SUCCESS,
+      CheckForUpdateSuccess
+    );
+    ipcRenderer.on(
+      IPCConstants.CHECK_FOR_UPDATE_FAILURE,
+      CheckForUpdateFailure
+    );
+    ipcRenderer.on(
+      IPCConstants.DOWNLOAD_UPDATE_PROGRESS,
+      DownloadUpdateProgress
+    );
+    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_SUCCESS, DownloadUpdateSuccess);
+    ipcRenderer.on(IPCConstants.DOWNLOAD_UPDATE_FAILURE, DownloadUpdateFailure);
+
+    return () => {
+      ipcRenderer.removeListener(
+        IPCConstants.CHECK_FOR_UPDATE_SUCCESS,
+        CheckForUpdateSuccess
+      );
+      ipcRenderer.removeListener(
+        IPCConstants.CHECK_FOR_UPDATE_FAILURE,
+        CheckForUpdateFailure
+      );
+      ipcRenderer.removeListener(
+        IPCConstants.DOWNLOAD_UPDATE_PROGRESS,
+        DownloadUpdateProgress
+      );
+      ipcRenderer.removeListener(
+        IPCConstants.DOWNLOAD_UPDATE_SUCCESS,
+        DownloadUpdateSuccess
+      );
+      ipcRenderer.removeListener(
+        IPCConstants.DOWNLOAD_UPDATE_FAILURE,
+        DownloadUpdateFailure
+      );
+    };
+  }, [close, dispatch, showNotAvailiable]);
 
   function onDownloadUpdate() {
     setUpdaterState(UpdaterState.DOWNLOADING_UPDATE);
     ipcRenderer.send(IPCConstants.DOWNLOAD_UPDATE_PENDING);
   }
 
-  let content;
+  let content: JSX.Element;
   switch (updaterState) {
     case UpdaterState.CHECKING_FOR_UPDATE:
       content = (
@@ -153,11 +181,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
             <Typography gutterBottom>No updates availiable!</Typography>
           </Grid>
           <Grid item>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setOpen(false)}
-            >
+            <Button variant="outlined" size="small" onClick={close}>
               OK
             </Button>
           </Grid>
@@ -236,10 +260,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
                 </Button>
               </Grid>
               <Grid item>
-                <IconButton
-                  style={{ padding: '2px' }}
-                  onClick={() => setOpen(false)}
-                >
+                <IconButton style={{ padding: '2px' }} onClick={close}>
                   <CloseIcon style={{ width: '1.5rem', height: '1.5rem' }} />
                 </IconButton>
               </Grid>
@@ -267,10 +288,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
                 </Button>
               </Grid>
               <Grid item>
-                <IconButton
-                  style={{ padding: '2px' }}
-                  onClick={() => setOpen(false)}
-                >
+                <IconButton style={{ padding: '2px' }} onClick={close}>
                   <CloseIcon style={{ width: '1.5rem', height: '1.5rem' }} />
                 </IconButton>
               </Grid>
@@ -339,10 +357,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
               </Button>
             </Grid>
             <Grid item>
-              <IconButton
-                style={{ padding: '2px' }}
-                onClick={() => setOpen(false)}
-              >
+              <IconButton style={{ padding: '2px' }} onClick={close}>
                 <CloseIcon style={{ width: '1.5rem', height: '1.5rem' }} />
               </IconButton>
             </Grid>
@@ -385,7 +400,7 @@ function UpdaterDialog(props: UpdaterDialogProps) {
   }
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} disableBackdropClick>
+    <Dialog {...props} onClose={close} disableBackdropClick>
       <DialogContent style={{ overflow: 'auto' }}>
         <Grid
           container
@@ -408,8 +423,6 @@ function UpdaterDialog(props: UpdaterDialogProps) {
       </DialogContent>
     </Dialog>
   );
-}
+};
 
-UpdaterDialog.defaultProps = defaultProps;
-
-export default UpdaterDialog;
+export default UpdaterModal;

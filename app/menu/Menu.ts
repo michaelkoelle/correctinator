@@ -11,8 +11,7 @@ const buildMenu = (
   unsavedChanges,
   recentPaths,
   setOpenFileError,
-  setReload,
-  setOpenUpdater
+  setReload
 ) => {
   return [
     buildFileMenu(
@@ -26,7 +25,7 @@ const buildMenu = (
       setOpenFileError
     ),
     buildViewMenu(dispatch, settings, setReload),
-    buildHelpMenu(showModal, setOpenUpdater),
+    buildHelpMenu(showModal),
   ];
 };
 

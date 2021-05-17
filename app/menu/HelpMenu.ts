@@ -1,18 +1,16 @@
 import { MenuItemConstructorOptions, remote, shell } from 'electron';
 import * as Path from 'path';
 import ReleaseNotesModal from '../modals/ReleaseNotesModal';
+import UpdaterModal from '../modals/UpdaterModal';
 
-const buildHelpMenu = (
-  showModal,
-  setOpenUpdater
-): MenuItemConstructorOptions => {
+const buildHelpMenu = (showModal): MenuItemConstructorOptions => {
   return {
     label: 'Help',
     submenu: [
       {
         label: 'Check for Updates',
         async click() {
-          setOpenUpdater(true);
+          showModal(UpdaterModal, { showNotAvailiable: true });
         },
       },
       {

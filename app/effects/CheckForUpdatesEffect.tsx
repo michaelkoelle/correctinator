@@ -5,9 +5,10 @@ import {
   CHECK_FOR_UPDATE_SUCCESS,
   REQUEST_FILE_PATH,
 } from '../constants/ipc';
+import UpdaterModal from '../modals/UpdaterModal';
 import { version as currentAppVersion } from '../package.json';
 
-const CheckForUpdatesEffect = (updaterDialog) => {
+const CheckForUpdatesEffect = (showModal) => {
   return () => {
     ipcRenderer.on(
       CHECK_FOR_UPDATE_SUCCESS,
@@ -15,7 +16,7 @@ const CheckForUpdatesEffect = (updaterDialog) => {
         const version = info && info.version;
         if (version && version !== currentAppVersion) {
           // Show updater dialog
-          updaterDialog(false);
+          showModal(UpdaterModal, { showNotAvailiable: false });
         }
       }
     );

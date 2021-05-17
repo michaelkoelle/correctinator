@@ -26,14 +26,13 @@ import BackupSuccessfulListenerEffect from '../effects/BackupSuccessfulListenerE
 const currentWindow = remote.getCurrentWindow();
 
 interface TitleBarProps {
-  setOpenUpdater: (open: boolean) => void;
   setReload: (arg: boolean) => void;
 }
 
 export default function TitleBar(props: TitleBarProps) {
   const dispatch = useAppDispatch();
   const showModal = useModal();
-  const { setOpenUpdater, setReload } = props;
+  const { setReload } = props;
   const theme = useTheme();
   const workspace: string = useSelector(selectWorkspacePath);
   const settings: SettingsState = useSelector(selectSettings);
@@ -109,8 +108,7 @@ export default function TitleBar(props: TitleBarProps) {
             unsavedChanges,
             recentPaths,
             setOpenFileError,
-            setReload,
-            setOpenUpdater
+            setReload
           ) as any
         }
         theme={{
