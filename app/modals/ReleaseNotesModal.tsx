@@ -106,7 +106,7 @@ const ReleaseNotesModal: FC<ReleaseNotesModalProps> = ({ ...props }) => {
   }
 
   return (
-    <Dialog {...props} onClose={close} fullWidth>
+    <Dialog {...props} fullWidth disableBackdropClick>
       {content}
     </Dialog>
   );
