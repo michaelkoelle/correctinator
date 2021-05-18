@@ -20,7 +20,7 @@ import {
 } from '../../model/SheetOverviewSlice';
 import { ParserType } from '../../parser/Parser';
 import { useAppDispatch } from '../../store';
-import { selectSettingsAutosave } from '../../model/SettingsSlice';
+import { selectSettingsGeneral } from '../../model/SettingsSlice';
 import { useModal } from '../../modals/ModalProvider';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 import OverwriteDuplicateSubmissionsDialog from '../../dialogs/OverwriteDuplicateSubmissionsDialog';
@@ -28,7 +28,7 @@ import OverwriteDuplicateSubmissionsDialog from '../../dialogs/OverwriteDuplicat
 export default function SheetOverview() {
   const dispatch = useAppDispatch();
   const showModal = useModal();
-  const autosave = useSelector(selectSettingsAutosave);
+  const { autosave } = useSelector(selectSettingsGeneral);
   const conflicts: ImportConflicts | undefined = useSelector(
     selectsheetOverviewConflicts
   );

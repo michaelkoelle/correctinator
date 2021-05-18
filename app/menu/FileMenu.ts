@@ -9,6 +9,7 @@ import {
   workspaceSetPath,
 } from '../features/workspace/workspaceSlice';
 import ExportModal from '../modals/ExportModal';
+import { SettingsState } from '../model/SettingsSlice';
 import { importCorrections } from '../model/SheetOverviewSlice';
 import { ParserType } from '../parser/Parser';
 import {
@@ -23,7 +24,7 @@ const buildFileMenu = (
   dispatch,
   showModal,
   workspace,
-  settings,
+  settings: SettingsState,
   sheets,
   unsavedChanges,
   recentPaths,
@@ -174,7 +175,7 @@ const buildFileMenu = (
                 )
                   .then(unwrapResult)
                   .then((originalPromiseResult) => {
-                    if (settings.autosave) {
+                    if (settings.general.autosave) {
                       dispatch(save());
                     }
                     return originalPromiseResult;
@@ -193,7 +194,7 @@ const buildFileMenu = (
               )
                 .then(unwrapResult)
                 .then((originalPromiseResult) => {
-                  if (settings.autosave) {
+                  if (settings.general.autosave) {
                     dispatch(save());
                   }
                   return originalPromiseResult;

@@ -7,12 +7,12 @@ import Modelist from 'ace-builds/src-noconflict/ext-modelist';
 import 'ace-builds/webpack-resolver';
 import { useSelector } from 'react-redux';
 import ViewerProps from './ViewerProps';
-import { selectSettingsTheme } from '../../model/SettingsSlice';
+import { selectSettingsGeneral } from '../../model/SettingsSlice';
 import { shouldUseDarkColors } from '../../model/Theme';
 
 export default function TextViewer(props: ViewerProps) {
   const { filePath, scale } = props;
-  const theme = useSelector(selectSettingsTheme);
+  const { theme } = useSelector(selectSettingsGeneral);
   const data = fs.readFileSync(filePath, 'UTF-8') + '\n'.repeat(6);
   const mode = Modelist.getModeForPath(filePath);
 

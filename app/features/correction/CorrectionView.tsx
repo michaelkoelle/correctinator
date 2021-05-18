@@ -25,7 +25,7 @@ import CorrectionComment from './CorrectionComment';
 import TaskView from './TaskView';
 import TimeElapsedDisplay from '../../components/TimeElapsedDisplay';
 import { selectWorkspacePath } from '../workspace/workspaceSlice';
-import { selectSettingsAutosave } from '../../model/SettingsSlice';
+import { selectSettingsGeneral } from '../../model/SettingsSlice';
 import { useModal } from '../../modals/ModalProvider';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 import SkipUnreadFilesDialog from '../../dialogs/SkipUnreadFilesDialog';
@@ -45,7 +45,7 @@ export default function CorrectionView(props: CorrectionViewProps) {
   const dispatch = useDispatch();
   const showModal = useModal();
   const workspace = useSelector(selectWorkspacePath);
-  const autosave: boolean = useSelector(selectSettingsAutosave);
+  const { autosave } = useSelector(selectSettingsGeneral);
   const corr = corrections[index];
 
   useEffect(AutosaveCorrectionEffect(autosave, corr, workspace), [

@@ -1,10 +1,10 @@
 import { MenuItemConstructorOptions, remote } from 'electron';
-import { settingsSetTheme } from '../model/SettingsSlice';
+import { settingsSetGeneral, SettingsState } from '../model/SettingsSlice';
 import { Theme } from '../model/Theme';
 
 const buildViewMenu = (
   dispatch,
-  settings,
+  settings: SettingsState,
   setReload
 ): MenuItemConstructorOptions => {
   const currentWindow = remote.getCurrentWindow();
@@ -42,25 +42,40 @@ const buildViewMenu = (
                 {
                   label: 'Dark',
                   type: 'checkbox',
-                  checked: settings.theme === Theme.DARK,
+                  checked: settings.general.theme === Theme.DARK,
                   click: () => {
-                    dispatch(settingsSetTheme(Theme.DARK));
+                    dispatch(
+                      settingsSetGeneral({
+                        ...settings.general,
+                        theme: Theme.DARK,
+                      })
+                    );
                   },
                 },
                 {
                   label: 'Light',
                   type: 'checkbox',
-                  checked: settings.theme === Theme.LIGHT,
+                  checked: settings.general.theme === Theme.LIGHT,
                   click: () => {
-                    dispatch(settingsSetTheme(Theme.LIGHT));
+                    dispatch(
+                      settingsSetGeneral({
+                        ...settings.general,
+                        theme: Theme.LIGHT,
+                      })
+                    );
                   },
                 },
                 {
                   label: 'System',
                   type: 'checkbox',
-                  checked: settings.theme === Theme.SYSTEM,
+                  checked: settings.general.theme === Theme.SYSTEM,
                   click: () => {
-                    dispatch(settingsSetTheme(Theme.SYSTEM));
+                    dispatch(
+                      settingsSetGeneral({
+                        ...settings.general,
+                        theme: Theme.SYSTEM,
+                      })
+                    );
                   },
                 },
               ],
@@ -80,25 +95,40 @@ const buildViewMenu = (
                 {
                   label: 'Dark',
                   type: 'checkbox',
-                  checked: settings.theme === Theme.DARK,
+                  checked: settings.general.theme === Theme.DARK,
                   click: () => {
-                    dispatch(settingsSetTheme(Theme.DARK));
+                    dispatch(
+                      settingsSetGeneral({
+                        ...settings.general,
+                        theme: Theme.DARK,
+                      })
+                    );
                   },
                 },
                 {
                   label: 'Light',
                   type: 'checkbox',
-                  checked: settings.theme === Theme.LIGHT,
+                  checked: settings.general.theme === Theme.LIGHT,
                   click: () => {
-                    dispatch(settingsSetTheme(Theme.LIGHT));
+                    dispatch(
+                      settingsSetGeneral({
+                        ...settings.general,
+                        theme: Theme.LIGHT,
+                      })
+                    );
                   },
                 },
                 {
                   label: 'System',
                   type: 'checkbox',
-                  checked: settings.theme === Theme.SYSTEM,
+                  checked: settings.general.theme === Theme.SYSTEM,
                   click: () => {
-                    dispatch(settingsSetTheme(Theme.SYSTEM));
+                    dispatch(
+                      settingsSetGeneral({
+                        ...settings.general,
+                        theme: Theme.SYSTEM,
+                      })
+                    );
                   },
                 },
               ],

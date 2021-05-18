@@ -53,10 +53,7 @@ import { getTopLevelTasks, hasTasksWithZeroMax } from '../../utils/TaskUtil';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
 import SchemaTaskList from './SchemaTaskList';
-import {
-  selectSettingsAutosave,
-  selectSettingsTheme,
-} from '../../model/SettingsSlice';
+import { selectSettingsGeneral } from '../../model/SettingsSlice';
 import { shouldUseDarkColors } from '../../model/Theme';
 import { useModal } from '../../modals/ModalProvider';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
@@ -68,8 +65,7 @@ import CheckClipboardEffect from '../../effects/CheckClipboardEffect';
 export default function SchemaGenerator() {
   const dispatch = useDispatch();
   const showModal = useModal();
-  const autosave = useSelector(selectSettingsAutosave);
-  const theme = useSelector(selectSettingsTheme);
+  const { autosave, theme } = useSelector(selectSettingsGeneral);
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
   const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
   const tasksEntity: TaskEntity[] = useSelector(selectSchemaTasks);

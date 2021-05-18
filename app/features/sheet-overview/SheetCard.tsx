@@ -36,7 +36,7 @@ import {
 import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
-import { selectSettingsAutosave } from '../../model/SettingsSlice';
+import { selectSettingsGeneral } from '../../model/SettingsSlice';
 import { useModal } from '../../modals/ModalProvider';
 import ExportModal from '../../modals/ExportModal';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
@@ -47,7 +47,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   const theme = useTheme();
   const showModal = useModal();
   const workspace = useSelector(selectWorkspacePath);
-  const autosave: boolean = useSelector(selectSettingsAutosave);
+  const { autosave } = useSelector(selectSettingsGeneral);
   const entities = useSelector(selectAllEntities);
   const sheet: Sheet = denormalize(props.sheet, SheetSchema, entities);
   const corrections: Correction[] = useSelector(

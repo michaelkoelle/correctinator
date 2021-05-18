@@ -17,7 +17,12 @@ import React, { useEffect } from 'react';
 import { shell } from 'electron';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import * as Path from 'path';
+import { useSelector } from 'react-redux';
 import clamp from '../../utils/MathUtil';
+import {
+  MediaViewerSettings,
+  selectSettingsMediaViewer,
+} from '../../model/SettingsSlice';
 
 type ViewerToolbarProps = {
   filePaths: string[];
@@ -43,6 +48,7 @@ export default function ViewerToolbar(props: ViewerToolbarProps) {
     rotation,
     setRotation,
   } = props;
+  const settings: MediaViewerSettings = useSelector(selectSettingsMediaViewer);
 
   function resetScaleAndRotation() {
     setRotation(0);
@@ -75,14 +81,21 @@ export default function ViewerToolbar(props: ViewerToolbarProps) {
 
   function onNextFile() {
     resetScaleAndRotation();
-    setFileIndex(Math.abs((fileIndex + 1) % filePaths.length));
+    if (
+      settings.cycleFiles ||
+      (!settings.cycleFiles && fileIndex + 1 < filePaths.length)
+    )
+      setFileIndex(Math.abs((fileIndex + 1) % filePaths.length));
   }
 
   function onPreviousFile() {
     resetScaleAndRotation();
-    setFileIndex(
-      Math.abs((fileIndex + (filePaths.length - 1)) % filePaths.length)
-    );
+
+    if (settings.cycleFiles || (!settings.cycleFiles && fileIndex - 1 >= 0)) {
+      setFileIndex(
+        Math.abs((fileIndex + (filePaths.length - 1)) % filePaths.length)
+      );
+    }
   }
 
   useEffect(() => {
@@ -125,7 +138,10 @@ export default function ViewerToolbar(props: ViewerToolbarProps) {
                   size="medium"
                   aria-label="add"
                   onClick={onPreviousFile}
-                  disabled={filePaths.length === 1}
+                  disabled={
+                    filePaths.length === 1 ||
+                    (!settings.cycleFiles && fileIndex - 1 < 0)
+                  }
                 >
                   <NavigateBeforeIcon />
                 </IconButton>
@@ -192,7 +208,10 @@ export default function ViewerToolbar(props: ViewerToolbarProps) {
                   size="medium"
                   aria-label="add"
                   onClick={onNextFile}
-                  disabled={filePaths.length === 1}
+                  disabled={
+                    filePaths.length === 1 ||
+                    (!settings.cycleFiles && fileIndex + 1 >= filePaths.length)
+                  }
                 >
                   <NavigateNextIcon />
                 </IconButton>
@@ -210,25 +229,42 @@ export default function ViewerToolbar(props: ViewerToolbarProps) {
                 </IconButton>
               </Tooltip>
             </Grid>
+            {!settings.showFileName && (
+              <Grid item>
+                <Tooltip title="Reveal file in folder">
+                  <IconButton
+                    size="medium"
+                    aria-label="add"
+                    onClick={onOpenFolder}
+                  >
+                    <LaunchIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+            )}
           </Grid>
-          <Grid
-            item
-            container
-            justify="center"
-            alignItems="center"
-            style={{ marginTop: '-5px', marginBottom: '2px' }}
-          >
-            <Typography variant="caption">
-              {Path.basename(filePaths[fileIndex])}
-            </Typography>
-            <IconButton
-              size="small"
-              style={{ marginLeft: '5px' }}
-              onClick={onOpenFolder}
+          {settings.showFileName && (
+            <Grid
+              item
+              container
+              justify="center"
+              alignItems="center"
+              style={{ marginTop: '-5px', marginBottom: '2px' }}
             >
-              <LaunchIcon style={{ width: '12px', height: '12px' }} />
-            </IconButton>
-          </Grid>
+              <Typography variant="caption">
+                {Path.basename(filePaths[fileIndex])}
+              </Typography>
+              <Tooltip title="Reveal file in folder">
+                <IconButton
+                  size="small"
+                  style={{ marginLeft: '5px' }}
+                  onClick={onOpenFolder}
+                >
+                  <LaunchIcon style={{ width: '12px', height: '12px' }} />
+                </IconButton>
+              </Tooltip>
+            </Grid>
+          )}
         </Grid>
       </Paper>
     </Grid>

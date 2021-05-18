@@ -7,8 +7,7 @@ import { CssBaseline, ThemeProvider } from '@material-ui/core';
 import Routes from '../Routes';
 import ModalProvider from '../modals/ModalProvider';
 import createTheme from '../theme';
-import { selectSettingsTheme } from '../model/SettingsSlice';
-import { Theme } from '../model/Theme';
+import { selectSettingsGeneral } from '../model/SettingsSlice';
 import SystemThemeUpdateEffect from '../effects/SystemThemeUpdateEffect';
 
 type Props = {
@@ -16,7 +15,7 @@ type Props = {
 };
 
 const Providers = ({ history }: Props) => {
-  const theme: Theme = useSelector(selectSettingsTheme);
+  const { theme } = useSelector(selectSettingsGeneral);
   const [, setCurrentTheme] = useState(createTheme(theme));
 
   useEffect(SystemThemeUpdateEffect(setCurrentTheme, theme), [
