@@ -123,7 +123,9 @@ export default function TitleBar(props: TitleBarProps) {
           },
           ...theme,
           menu: {
-            palette: shouldUseDarkColors(settings.theme) ? 'dark' : 'light',
+            palette: shouldUseDarkColors(settings.general.theme)
+              ? 'dark'
+              : 'light',
             overlay: {
               opacity: 0.0,
             },
