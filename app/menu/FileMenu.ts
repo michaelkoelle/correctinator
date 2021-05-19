@@ -86,6 +86,7 @@ const buildFileMenu = (
       },
       {
         label: 'Open recent files',
+        disabled: recentPaths.length <= 0,
         submenu: recentPaths
           ? recentPaths.map((path) => {
               return {
@@ -206,6 +207,7 @@ const buildFileMenu = (
       },
       {
         label: 'Export Corrections',
+        disabled: sheets.length <= 0,
         submenu: sheets.map((s) => {
           return {
             label: s.name,
