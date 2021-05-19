@@ -20,7 +20,6 @@ import commentsReducer from './model/CommentSlice';
 import ratingsReducer from './model/RatingSlice';
 import correctionPageReducer from './model/CorrectionPageSlice';
 import saveReducer from './model/SaveSlice';
-import sheetOverviewReducer from './model/SheetOverviewSlice';
 import overviewReducer from './model/OverviewSlice';
 import settingsReducer from './model/SettingsSlice';
 
@@ -45,7 +44,6 @@ export default function createRootReducer(history: History) {
     home: homeReducer,
     ratings: ratingsReducer,
     save: saveReducer,
-    sheetOverview: sheetOverviewReducer,
     overview: overviewReducer,
     settings: settingsReducer,
   });

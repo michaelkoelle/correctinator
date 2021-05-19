@@ -7,52 +7,23 @@ import {
   Typography,
 } from '@material-ui/core';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import { remote } from 'electron';
-import { unwrapResult } from '@reduxjs/toolkit';
-import { openDirectory, reloadState, save } from '../../utils/FileAccess';
+import { openDirectory, reloadState } from '../../utils/FileAccess';
 import SheetCardList from './SheetCardList';
-import {
-  ImportConflicts,
-  importCorrections,
-  selectsheetOverviewConflicts,
-} from '../../model/SheetOverviewSlice';
-import { ParserType } from '../../parser/Parser';
 import { useAppDispatch } from '../../store';
-import { selectSettingsGeneral } from '../../model/SettingsSlice';
 import { useModal } from '../../modals/ModalProvider';
-import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
-import OverwriteDuplicateSubmissionsDialog from '../../dialogs/OverwriteDuplicateSubmissionsDialog';
+import ImportModal from '../../modals/ImportModal';
 
 export default function SheetOverview() {
   const dispatch = useAppDispatch();
   const showModal = useModal();
-  const { autosave } = useSelector(selectSettingsGeneral);
-  const conflicts: ImportConflicts | undefined = useSelector(
-    selectsheetOverviewConflicts
-  );
-
-  useEffect(() => {
-    if (conflicts) {
-      showModal(
-        ConfirmationDialog,
-        OverwriteDuplicateSubmissionsDialog(conflicts?.conflicts.length)
-      );
-    }
-  }, [conflicts]);
 
   async function onImportSubmissionsFolder() {
     const path: string = await openDirectory();
-    dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }))
-      .then(unwrapResult)
-      .then((originalPromiseResult) => {
-        if (autosave) {
-          dispatch(save());
-        }
-        return originalPromiseResult;
-      })
-      .catch(() => {});
+    if (path) {
+      showModal(ImportModal, { path });
+    }
   }
 
   async function onImportSubmissionsZip() {
@@ -62,15 +33,7 @@ export default function SheetOverview() {
     });
     const path = dialogReturnValue.filePaths[0];
     if (path) {
-      dispatch(importCorrections({ path, parserType: ParserType.Uni2Work }))
-        .then(unwrapResult)
-        .then((originalPromiseResult) => {
-          if (autosave) {
-            dispatch(save());
-          }
-          return originalPromiseResult;
-        })
-        .catch(() => {});
+      showModal(ImportModal, { path });
     }
   }
 

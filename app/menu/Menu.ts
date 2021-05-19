@@ -18,7 +18,6 @@ const buildMenu = (
       dispatch,
       showModal,
       workspace,
-      settings,
       sheets,
       unsavedChanges,
       recentPaths,

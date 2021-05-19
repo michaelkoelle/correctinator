@@ -1,4 +1,3 @@
-import { unwrapResult } from '@reduxjs/toolkit';
 import { OpenDialogReturnValue, remote, SaveDialogReturnValue } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
@@ -9,9 +8,8 @@ import {
   workspaceSetPath,
 } from '../features/workspace/workspaceSlice';
 import ExportModal from '../modals/ExportModal';
-import { SettingsState } from '../model/SettingsSlice';
-import { importCorrections } from '../model/SheetOverviewSlice';
-import { ParserType } from '../parser/Parser';
+import ImportModal from '../modals/ImportModal';
+
 import {
   createNewCorFile,
   openDirectory,
@@ -24,7 +22,6 @@ const buildFileMenu = (
   dispatch,
   showModal,
   workspace,
-  settings: SettingsState,
   sheets,
   unsavedChanges,
   recentPaths,
@@ -171,17 +168,7 @@ const buildFileMenu = (
               });
               const path = dialogReturnValue.filePaths[0];
               if (path) {
-                dispatch(
-                  importCorrections({ path, parserType: ParserType.Uni2Work })
-                )
-                  .then(unwrapResult)
-                  .then((originalPromiseResult) => {
-                    if (settings.general.autosave) {
-                      dispatch(save());
-                    }
-                    return originalPromiseResult;
-                  })
-                  .catch(() => {});
+                showModal(ImportModal, { path });
               }
             },
           },
@@ -190,17 +177,9 @@ const buildFileMenu = (
             accelerator: 'CmdOrCtrl+Shift+I',
             click: async () => {
               const path: string = await openDirectory();
-              dispatch(
-                importCorrections({ path, parserType: ParserType.Uni2Work })
-              )
-                .then(unwrapResult)
-                .then((originalPromiseResult) => {
-                  if (settings.general.autosave) {
-                    dispatch(save());
-                  }
-                  return originalPromiseResult;
-                })
-                .catch(() => {});
+              if (path) {
+                showModal(ImportModal, { path });
+              }
             },
           },
         ],

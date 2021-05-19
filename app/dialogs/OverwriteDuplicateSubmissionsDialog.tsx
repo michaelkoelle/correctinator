@@ -1,17 +1,16 @@
-import {
-  overwriteConflictedCorrections,
-  resetImportConflicts,
-} from '../model/SheetOverviewSlice';
+import { ImportConflicts } from '../importer';
+// eslint-disable-next-line import/no-cycle
+import ImportModal from '../modals/ImportModal';
 
-const OverwriteDuplicateSubmissionsDialog = (size: number) => {
+const OverwriteDuplicateSubmissionsDialog = (
+  showModal,
+  conflicts: ImportConflicts
+) => {
   return {
-    title: `${size} duplicate submissions found!`,
-    text: `Are you sure you want to overwrite ${size} submissions? This will erase the correction progress of the submissions. This cannot be undone!`,
-    onConfirm: (dispatch) => {
-      dispatch(overwriteConflictedCorrections());
-    },
-    onReject: (dispatch) => {
-      dispatch(resetImportConflicts());
+    title: `${conflicts.files.length} duplicate submissions found!`,
+    text: `Are you sure you want to overwrite ${conflicts.files.length} submissions? This will erase the correction progress of the submissions. This cannot be undone!`,
+    onConfirm: () => {
+      showModal(ImportModal, { conflicts });
     },
   };
 };

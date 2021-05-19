@@ -19,6 +19,7 @@ import * as BackupIPC from './constants/BackupIPC';
 import AppUpdater from './updater';
 import Backup from './backup';
 import Exporter from './exporter';
+import Importer from './importer';
 
 let mainWindow: BrowserWindow | null = null;
 let backup: Backup | null = null;
@@ -102,6 +103,7 @@ const createWindow = async () => {
   new AppUpdater();
   backup = new Backup();
   new Exporter();
+  new Importer(mainWindow);
 };
 
 const openWithFileHandler = (argv: string[]) => {
