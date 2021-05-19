@@ -40,7 +40,7 @@ const buildFileMenu = (
   };
   const backupPaths = fs
     .readdirSync(Path.join(remote.app.getPath('userData'), 'Backup'))
-    .filter((p) => p.includes(Path.basename(workspace)));
+    .filter((p) => workspace && p.includes(Path.basename(workspace)));
 
   return {
     label: 'File',
