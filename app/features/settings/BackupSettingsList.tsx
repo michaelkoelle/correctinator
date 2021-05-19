@@ -21,10 +21,10 @@ const BackupSettingsList = () => {
   const settings: BackupSettings = useSelector(selectSettingsBackup);
 
   return (
-    <List subheader={<ListSubheader>Backup</ListSubheader>}>
+    <List subheader={<ListSubheader disableSticky>Backup</ListSubheader>}>
       <ListItem>
         <ListItemText
-          primary="Enable Backup"
+          primary="Automatic Backup"
           secondary="Save backups of the current file every 5 minutes"
         />
         <ListItemSecondaryAction>

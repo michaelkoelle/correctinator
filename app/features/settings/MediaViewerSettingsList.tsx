@@ -22,7 +22,7 @@ const MediaViewerSettingsList = () => {
   const settings: MediaViewerSettings = useSelector(selectSettingsMediaViewer);
 
   return (
-    <List subheader={<ListSubheader>Media Viewer</ListSubheader>}>
+    <List subheader={<ListSubheader disableSticky>Media Viewer</ListSubheader>}>
       <ListItem>
         <ListItemText
           primary="Show Filenames"

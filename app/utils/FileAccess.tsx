@@ -4,13 +4,9 @@ import fs from 'fs';
 import * as Path from 'path';
 import 'setimmediate';
 import AdmZip from 'adm-zip';
-import archiver from 'archiver';
 import { normalize } from 'normalizr';
-import { serializeCorrection } from './Formatter';
 import Correction from '../model/Correction';
 import { CorrectionSchema } from '../model/NormalizationSchema';
-import Parser from '../parser/Parser';
-import ConditionalComment from '../model/ConditionalComment';
 import { deleteEntities, loadCorrections } from '../model/CorrectionsSlice';
 import { selectAllCorrectionsDenormalized } from '../model/Selectors';
 import {
@@ -166,134 +162,6 @@ export function loadFilesFromWorkspace(
       tempPaths.push(path);
     });
   return tempPaths;
-}
-
-export function exportCorrections(
-  zipPath: string,
-  workspace: string,
-  parser: Parser,
-  corrections: Correction[],
-  conditionalComments: ConditionalComment[] = []
-) {
-  const zip = new AdmZip();
-
-  corrections.forEach((c) => {
-    const content = parser.serialize(
-      c,
-      serializeCorrection(c, conditionalComments)
-    );
-
-    // Add rating file
-    zip.addFile(
-      Path.join(c.submission.name, parser.getConfigFileName(c)),
-      Buffer.from(content, 'utf8')
-    );
-
-    // Add submission files folder
-    zip.addLocalFolder(
-      Path.join(workspace, c.submission.name, 'files'),
-      Path.join(c.submission.name, 'files')
-    );
-  });
-
-  zip.writeZip(zipPath);
-
-  // Verify zip contents
-  const zipVal = new AdmZip(zipPath);
-  const zipEntries = zipVal.getEntries();
-
-  const validation = corrections
-    .map((c) => Path.join(c.submission.name, parser.getConfigFileName(c)))
-    .map((path) => {
-      let hit = false;
-      zipEntries.forEach((entry) => {
-        if (entry.entryName === path) {
-          hit = true;
-        }
-      });
-      return { path, valid: hit };
-    });
-
-  // If not all directories have been found in zip, throw error
-  if (validation.filter((v) => !v.valid).length > 0) {
-    throw Error('Validation failed!');
-  }
-}
-
-function verifyZipContents(zipPath, corrections, parser) {
-  // Verify zip contents
-  const zipVal = new AdmZip(zipPath);
-  const zipEntries = zipVal.getEntries();
-
-  const validation = corrections
-    .map((c) => Path.join(c.submission.name, parser.getConfigFileName(c)))
-    .map((path) => {
-      let hit = false;
-      zipEntries.forEach((entry) => {
-        if (entry.entryName === path.replace('\\', '/')) {
-          hit = true;
-        }
-      });
-      return { path, valid: hit };
-    });
-
-  // If not all directories have been found in zip, throw error
-  if (validation.filter((v) => !v.valid).length > 0) {
-    throw Error('Validation failed!');
-  }
-}
-
-export function exportCorrections1(
-  zipPath: string,
-  workspace: string,
-  parser: Parser,
-  corrections: Correction[],
-  conditionalComments: ConditionalComment[] = []
-) {
-  return new Promise((resolve, reject) => {
-    const output = fs.createWriteStream(zipPath);
-
-    output.on('close', () => {
-      try {
-        verifyZipContents(zipPath, corrections, parser);
-        resolve(zipPath);
-      } catch (e) {
-        reject(e);
-      }
-    });
-
-    const archive = archiver('zip', {
-      zlib: { level: 9 },
-    });
-
-    archive.on('error', (e) => {
-      reject(e);
-    });
-
-    archive.pipe(output);
-
-    corrections.forEach((c) => {
-      const content = parser.serialize(
-        c,
-        serializeCorrection(c, conditionalComments)
-      );
-
-      // Add submission files folder
-      loadFilesFromWorkspace(c.submission.name, workspace).forEach((f) => {
-        const fBuffer = fs.readFileSync(f);
-        archive.append(fBuffer, {
-          name: Path.join(c.submission.name, 'files', Path.parse(f).base),
-        });
-      });
-
-      // Add rating file
-      archive.append(Buffer.from(content), {
-        name: Path.join(c.submission.name, parser.getConfigFileName(c)),
-      });
-    });
-
-    archive.finalize();
-  });
 }
 
 export function deleteCorrectionFromWorkspace(

@@ -1,57 +1,78 @@
+/* eslint-disable react/jsx-curly-newline */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import IconButton from '@material-ui/core/IconButton';
 import FolderIcon from '@material-ui/icons/Folder';
+import CheckIcon from '@material-ui/icons/Check';
 import Typography from '@material-ui/core/Typography';
 import DialogActions from '@material-ui/core/DialogActions';
+import InfoIcon from '@material-ui/icons/Info';
 import DialogContent from '@material-ui/core/DialogContent';
-import { Grid, MenuItem, Select, Snackbar, TextField } from '@material-ui/core';
-import { remote } from 'electron';
-import Path from 'path';
-import { useSelector } from 'react-redux';
-import { Alert } from '@material-ui/lab';
-import { exportCorrections1 } from '../utils/FileAccess';
+import WarningRoundedIcon from '@material-ui/icons/WarningRounded';
+import {
+  CircularProgress,
+  Grid,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  Switch,
+  TextField,
+  useTheme,
+} from '@material-ui/core';
+import { ipcRenderer, IpcRendererEvent, remote } from 'electron';
+import { useDispatch, useSelector } from 'react-redux';
+import { CloseIcon } from '@material-ui/data-grid';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
-import ConditionalComment from '../model/ConditionalComment';
-import Uni2WorkParser from '../parser/Uni2WorkParser';
 import Sheet from '../model/Sheet';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import { ModalProps } from './ModalProvider';
 import ConditionalCommentPanel from '../components/ConditionalCommentPanel';
 import { selectCorrectionsBySheetId } from '../model/Selectors';
+import * as ExportIPC from '../constants/ExportIPC';
+import { ParserType } from '../parser/Parser';
+import { ExportProgress } from '../exporter';
+import CircularProgressWithLabel from '../components/CircularProgressWithLabel';
+import Status from '../model/Status';
+import {
+  selectSettingsExport,
+  settingsSetExport,
+} from '../model/SettingsSlice';
+import OutputFormatSelect from '../components/OutputFormatSelect';
+import ConditionalCommentSettings from '../components/ConditionalCommentSettings';
 
 type ExportModalProps = ModalProps & {
   sheetId: string;
 };
 
+enum ExportState {
+  EXPORT_NOT_STARTED,
+  EXPORT_STARTED,
+  EXPORT_SUCCESSFUL,
+  EXPORT_FAILED,
+}
+
 const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
   const { close, sheetId } = props;
+  const theme = useTheme();
+  const dispatch = useDispatch();
   const correctionsToExport = useSelector(selectCorrectionsBySheetId(sheetId));
   const workspace = useSelector(selectWorkspacePath);
-  const [openSuccess, setOpenSuccess] = useState(false);
-  const [openError, setOpenError] = useState(false);
-  const [error, setError] = useState('');
-  const [exportInProgress, setExportInProgress] = useState(false);
+  const settings = useSelector(selectSettingsExport);
+  const [exportError, setExportError] = useState<Error | undefined>(undefined);
+  const [exportState, setExportState] = useState<ExportState>(
+    ExportState.EXPORT_NOT_STARTED
+  );
+  const [exportProgress, setExportProgress] = useState<
+    ExportProgress | undefined
+  >(undefined);
   const [path, setPath] = useState<string>('');
-  const [format, setFormat] = useState('Uni2Work');
-  const [conditionalComment, setConditionalComment] = useState(true);
-  const [showLabel, setShowLabel] = useState(true);
-  const [value, setValue] = useState<number[]>([60, 80, 100]);
-  const [comments, setComments] = useState<string[]>([
-    'Gut!',
-    'Sehr gut!',
-    'Perfekt!',
-  ]);
 
   function onChangePath(event) {
     setPath(event.target.value);
-  }
-
-  function onChangeFormatSelection(event) {
-    setFormat(event.target.value);
   }
 
   function onChoosePath() {
@@ -95,222 +116,351 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
   }
 
   function closeExportDialog() {
-    if (!exportInProgress) {
+    if (exportState === ExportState.EXPORT_NOT_STARTED) {
       close();
     }
   }
 
   function onExportCorrections() {
     if (correctionsToExport.length > 0) {
-      setExportInProgress(true);
-      const condComments: ConditionalComment[] = value.map((v, i) => {
-        return { text: comments[i], minPercentage: v / 100.0 };
-      });
+      setExportState(ExportState.EXPORT_STARTED);
 
       if (path !== undefined) {
-        exportCorrections1(
-          path,
+        ipcRenderer.send(ExportIPC.EXPORT_START, {
+          zipPath: path,
           workspace,
-          new Uni2WorkParser(),
-          correctionsToExport,
-          conditionalComment ? condComments : []
-        )
-          .then((v) => {
-            setExportInProgress(false);
-            closeExportDialog();
-            setOpenSuccess(true);
-            return v;
-          })
-          .catch(() => {
-            setError(error);
-            setExportInProgress(false);
-            closeExportDialog();
-            setOpenError(true);
-          });
+          parser: ParserType.Uni2Work,
+          corrections: correctionsToExport,
+          conditionalComments: settings.conditionalCommentEnabled
+            ? settings.conditionalComments
+            : [],
+        });
       }
-      /*
-      if (path !== undefined) {
-        try {
-          exportCorrections(
-            path,
-            workspace,
-            new Uni2WorkParser(),
-            correctionsToExport,
-            conditionalComment ? condComments : []
-          );
-          setExportInProgress(false);
-          closeExportDialog();
-          setOpenSuccess(true);
-        } catch (err) {
-          setError(error);
-          setExportInProgress(false);
-          closeExportDialog();
-          setOpenError(true);
-        }
-      }
-      */
     }
   }
 
-  /*
-  if (
-    correctionsToExport.filter(
-      (c) => c.rating_done === false || c.status !== Status.Done
-    ).length > 0
-  ) {
-    return (
-      <Dialog open={openError} onClose={() => setOpenError(false)}>
-        <DialogTitle>Error!</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Not all corrections you want to export are finished. Do you want to
-            export them anyway?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Yes
-          </Button>
-          <Button onClick={handleClose} color="primary" autoFocus>
-            No
-          </Button>
-        </DialogActions>
-      </Dialog>
-    );
-  }
-*/
+  useEffect(() => {
+    const handleExportSuccessful = () => {
+      setTimeout(() => setExportState(ExportState.EXPORT_SUCCESSFUL), 1000);
+    };
+    const handleExportFailed = (_event: IpcRendererEvent, error: Error) => {
+      setExportError(error);
+      setExportState(ExportState.EXPORT_FAILED);
+    };
+    const handleProgress = (
+      _event: IpcRendererEvent,
+      progress: ExportProgress
+    ) => {
+      setTimeout(() => setExportProgress(progress), 1000);
+    };
 
-  return (
-    <div>
-      <Dialog {...props} fullWidth>
-        <DialogTitleWithCloseIcon onClose={closeExportDialog}>
-          <Typography variant="h5">Export Corrections</Typography>
-        </DialogTitleWithCloseIcon>
-        <DialogContent dividers>
-          <Grid
-            item
-            container
-            direction="column"
-            justify="flex-start"
-            alignItems="center"
-            style={{ marginBottom: '24px' }}
-          >
+    ipcRenderer.on(ExportIPC.EXPORT_SUCCESSFUL, handleExportSuccessful);
+    ipcRenderer.on(ExportIPC.EXPORT_FAILED, handleExportFailed);
+    ipcRenderer.on(ExportIPC.EXPORT_PROGRESS, handleProgress);
+    return () => {
+      ipcRenderer.removeListener(
+        ExportIPC.EXPORT_SUCCESSFUL,
+        handleExportSuccessful
+      );
+      ipcRenderer.removeListener(ExportIPC.EXPORT_FAILED, handleExportFailed);
+      ipcRenderer.removeListener(ExportIPC.EXPORT_PROGRESS, handleProgress);
+    };
+  }, []);
+
+  let content;
+
+  switch (exportState) {
+    case ExportState.EXPORT_NOT_STARTED:
+      content = (
+        <Dialog {...props} fullWidth>
+          <DialogTitleWithCloseIcon onClose={closeExportDialog}>
+            <Typography variant="h5">Export Corrections</Typography>
+          </DialogTitleWithCloseIcon>
+          <DialogContent dividers style={{ padding: '0px 8px' }}>
+            <List>
+              <ListItem>
+                <ListItemText
+                  primary="Export path"
+                  secondary="Select the destination for the archive"
+                />
+                <ListItemSecondaryAction>
+                  <IconButton onClick={onChoosePath}>
+                    <FolderIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Output Format"
+                  secondary="Select the output format you desire"
+                />
+                <ListItemSecondaryAction>
+                  <OutputFormatSelect />
+                </ListItemSecondaryAction>
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Conditional Comment"
+                  secondary="Apppend comment to output depending on score %"
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    onChange={() =>
+                      dispatch(
+                        settingsSetExport({
+                          ...settings,
+                          conditionalCommentEnabled: !settings.conditionalCommentEnabled,
+                        })
+                      )
+                    }
+                    checked={settings.conditionalCommentEnabled}
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+              {settings.conditionalCommentEnabled && (
+                <ListItem>
+                  <ConditionalCommentSettings
+                    showLabel={settings.conditionalCommentEnabled}
+                  />
+                </ListItem>
+              )}
+              {correctionsToExport.filter(
+                (c) => c.rating_done === false || c.status !== Status.Done
+              ).length > 0 && (
+                <ListItem>
+                  <Grid
+                    item
+                    container
+                    direction="row"
+                    justify="flex-start"
+                    alignItems="center"
+                    style={{ marginTop: '5px', marginBottom: '0px' }}
+                  >
+                    <Grid item>
+                      <WarningRoundedIcon
+                        style={{
+                          background:
+                            theme.palette.type === 'dark'
+                              ? theme.palette.warning.dark
+                              : theme.palette.warning.light,
+                          padding: '4px',
+                          marginRight: '10px',
+                          borderRadius: '50%',
+                        }}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <Typography>
+                        Some corrections you want to export are not finished yet
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </ListItem>
+              )}
+              {!path && (
+                <ListItem>
+                  <Grid
+                    item
+                    container
+                    direction="row"
+                    justify="flex-start"
+                    alignItems="center"
+                    style={{ marginTop: '5px', marginBottom: '0px' }}
+                  >
+                    <Grid item>
+                      <InfoIcon
+                        style={{
+                          color:
+                            theme.palette.type === 'dark'
+                              ? theme.palette.info.dark
+                              : theme.palette.info.light,
+                          marginRight: '10px',
+                        }}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <Typography>You need to select a path</Typography>
+                    </Grid>
+                  </Grid>
+                </ListItem>
+              )}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              autoFocus
+              onClick={onExportCorrections}
+              color="primary"
+              disabled={path === undefined || path?.trim()?.length <= 0}
+            >
+              Export as zip
+            </Button>
+          </DialogActions>
+        </Dialog>
+      );
+      break;
+    case ExportState.EXPORT_STARTED:
+      content = (
+        <Dialog {...props}>
+          <DialogContent style={{ padding: '20px' }}>
             <Grid
               item
               container
-              direction="row"
-              justify="space-between"
+              direction="column"
+              justify="center"
               alignItems="center"
+              spacing={2}
+              style={{ height: '100%' }}
+            >
+              {exportProgress ? (
+                <>
+                  <Grid item>
+                    <CircularProgressWithLabel
+                      value={
+                        (exportProgress.steps.reduce((acc, curr, i) => {
+                          if (i < exportProgress.stepIndex) {
+                            return acc + curr.files.length;
+                          }
+                          if (i === exportProgress.stepIndex) {
+                            return acc + exportProgress.fileIndex + 1;
+                          }
+                          return acc;
+                        }, 0) /
+                          exportProgress.steps.reduce(
+                            (acc, curr) => acc + curr.files.length,
+                            0
+                          )) *
+                        100
+                      }
+                      size={30}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Typography gutterBottom>
+                      {`${
+                        exportProgress.steps[exportProgress.stepIndex].name
+                      }...`}
+                    </Typography>
+                  </Grid>
+                  <Grid item style={{ marginTop: '-15px' }}>
+                    <Typography gutterBottom>
+                      {exportProgress.stepIndex === 0 ? (
+                        <b>Export correction: </b>
+                      ) : (
+                        <b>Check file: </b>
+                      )}
+                      {
+                        exportProgress.steps[exportProgress.stepIndex].files[
+                          exportProgress.fileIndex
+                        ]
+                      }
+                    </Typography>
+                  </Grid>
+                </>
+              ) : (
+                <>
+                  <Grid item>
+                    <CircularProgress size={30} />
+                  </Grid>
+                  <Grid item>
+                    <Typography gutterBottom>Initializing export...</Typography>
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          </DialogContent>
+        </Dialog>
+      );
+      break;
+    case ExportState.EXPORT_SUCCESSFUL:
+      content = (
+        <Dialog {...props}>
+          <DialogContent style={{ padding: '20px' }}>
+            <Grid
+              item
+              container
+              direction="column"
+              justify="center"
+              alignItems="center"
+              spacing={2}
+              style={{ height: '100%', marginTop: '5px' }}
             >
               <Grid item>
-                <Typography variant="h6">Export to:</Typography>
-              </Grid>
-            </Grid>
-            <Grid
-              item
-              container
-              direction="row"
-              justify="space-between"
-              alignItems="center"
-            >
-              <Grid item style={{ width: 'calc(100% - 50px)' }}>
-                <TextField
-                  // label="Path"
-                  variant="outlined"
-                  size="small"
-                  value={path}
-                  onChange={onChangePath}
-                  fullWidth
-                  disabled
+                <CheckIcon
+                  style={{
+                    background:
+                      theme.palette.type === 'dark'
+                        ? theme.palette.success.dark
+                        : theme.palette.success.light,
+                    width: '30px',
+                    height: '30px',
+                    padding: '5px',
+                    borderRadius: '50%',
+                  }}
                 />
               </Grid>
               <Grid item>
-                <IconButton onClick={onChoosePath}>
-                  <FolderIcon />
-                </IconButton>
+                <Typography gutterBottom>Export was successful!</Typography>
+              </Grid>
+              <Grid item style={{ marginBottom: '-5px' }}>
+                <Button onClick={close} variant="outlined">
+                  CLOSE
+                </Button>
               </Grid>
             </Grid>
-          </Grid>
-          <Grid
-            item
-            container
-            direction="column"
-            justify="flex-start"
-            alignItems="center"
-            style={{ marginBottom: '24px' }}
-          >
+          </DialogContent>
+        </Dialog>
+      );
+      break;
+    default:
+      content = (
+        <Dialog {...props}>
+          <DialogContent style={{ padding: '20px' }}>
             <Grid
               item
               container
-              direction="row"
-              justify="space-between"
+              direction="column"
+              justify="center"
               alignItems="center"
+              spacing={2}
+              style={{ height: '100%' }}
             >
               <Grid item>
-                <Typography variant="h6">Format</Typography>
+                <CloseIcon
+                  style={{
+                    background:
+                      theme.palette.type === 'dark'
+                        ? theme.palette.error.dark
+                        : theme.palette.error.light,
+                    width: '30px',
+                    height: '30px',
+                    padding: '5px',
+                    borderRadius: '50%',
+                  }}
+                />
               </Grid>
-            </Grid>
-            <Grid
-              item
-              container
-              direction="row"
-              justify="space-between"
-              alignItems="center"
-            >
               <Grid item>
-                <Select
-                  value={format}
-                  onChange={onChangeFormatSelection}
+                <Typography gutterBottom>
+                  <b>{`${exportError?.name}: `}</b>
+                  {exportError?.message}
+                </Typography>
+              </Grid>
+              <Grid item>
+                <Button
+                  onClick={() => setExportState(ExportState.EXPORT_NOT_STARTED)}
                   variant="outlined"
-                  autoWidth
                 >
-                  <MenuItem value="Uni2Work">Uni2Work</MenuItem>
-                </Select>
+                  Try again
+                </Button>
               </Grid>
             </Grid>
-          </Grid>
-          <ConditionalCommentPanel
-            conditionalComment={conditionalComment}
-            setConditionalComment={setConditionalComment}
-            showLabel={showLabel}
-            setShowLabel={setShowLabel}
-            value={value}
-            setValue={setValue}
-            comments={comments}
-            setComments={setComments}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            autoFocus
-            onClick={onExportCorrections}
-            color="primary"
-            disabled={path === undefined || path?.trim()?.length <= 0}
-          >
-            Export as zip
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Snackbar
-        open={openError}
-        autoHideDuration={3000}
-        onClose={() => setOpenError(false)}
-      >
-        <Alert onClose={() => setOpenError(false)} severity="error">
-          {`Error exporting ${Path.parse(path).base}!`}
-        </Alert>
-      </Snackbar>
-      <Snackbar
-        open={openSuccess}
-        autoHideDuration={3000}
-        onClose={() => setOpenSuccess(false)}
-      >
-        <Alert onClose={() => setOpenSuccess(false)} severity="success">
-          {`Export of ${Path.parse(path).base} was successful!`}
-        </Alert>
-      </Snackbar>
-    </div>
-  );
+          </DialogContent>
+        </Dialog>
+      );
+  }
+
+  return content;
 };
 
 export default ExportModal;

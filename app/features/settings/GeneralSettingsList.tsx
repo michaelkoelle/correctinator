@@ -37,7 +37,7 @@ const GeneralSettingsList = () => {
   };
 
   return (
-    <List subheader={<ListSubheader>General</ListSubheader>}>
+    <List subheader={<ListSubheader disableSticky>General</ListSubheader>}>
       <ListItem>
         <ListItemText
           primary="Autosave"

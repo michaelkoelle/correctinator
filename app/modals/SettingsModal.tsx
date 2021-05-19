@@ -10,6 +10,7 @@ import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import GeneralSettingsList from '../features/settings/GeneralSettingsList';
 import BackupSettingsList from '../features/settings/BackupSettingsList';
 import MediaViewerSettingsList from '../features/settings/MediaViewerSettingsList';
+import ExportSettingsList from '../features/settings/ExportSettingsList';
 
 type SettingsModalProps = ModalProps;
 
@@ -27,6 +28,8 @@ const SettingsModal: FC<SettingsModalProps> = ({ ...props }) => {
         <BackupSettingsList />
         <Divider variant="middle" component="div" />
         <MediaViewerSettingsList />
+        <Divider variant="middle" component="div" />
+        <ExportSettingsList />
       </DialogContent>
     </Dialog>
   );
