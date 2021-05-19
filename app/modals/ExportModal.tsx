@@ -20,7 +20,6 @@ import {
   ListItemSecondaryAction,
   ListItemText,
   Switch,
-  TextField,
   useTheme,
 } from '@material-ui/core';
 import { ipcRenderer, IpcRendererEvent, remote } from 'electron';
@@ -30,7 +29,6 @@ import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import Sheet from '../model/Sheet';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import { ModalProps } from './ModalProvider';
-import ConditionalCommentPanel from '../components/ConditionalCommentPanel';
 import { selectCorrectionsBySheetId } from '../model/Selectors';
 import * as ExportIPC from '../constants/ExportIPC';
 import { ParserType } from '../parser/Parser';
@@ -70,10 +68,6 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
     ExportProgress | undefined
   >(undefined);
   const [path, setPath] = useState<string>('');
-
-  function onChangePath(event) {
-    setPath(event.target.value);
-  }
 
   function onChoosePath() {
     let defaultPath = 'exported-corrections.zip';

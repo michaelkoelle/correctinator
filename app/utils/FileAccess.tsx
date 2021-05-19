@@ -65,7 +65,7 @@ export function copySubmissionFiles(
 ): string[] {
   const zip = new AdmZip(workspace);
   const targetFiles: string[] = [];
-  files.forEach((file, i) => {
+  files.forEach((file) => {
     const { base } = Path.parse(file);
     if (submissionId) {
       const fileName = base;

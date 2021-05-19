@@ -41,7 +41,7 @@ export default class Exporter {
           return v;
         })
         .catch((e) => {
-          sender.send(EXPORT_FAILED);
+          sender.send(EXPORT_FAILED, e);
         });
     });
   }
