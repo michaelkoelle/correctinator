@@ -16,14 +16,14 @@ import {
   isSingleChoiceTask,
 } from '../utils/TaskUtil';
 import CommentEntity from './CommentEntity';
-import { commentsRemoveOne, commentsUpsertMany } from './CommentSlice';
+import { commentsRemoveMany, commentsUpsertMany } from './CommentSlice';
 import CorrectionEntity from './CorrectionEntity';
 import { correctionsUpsertMany } from './CorrectionsSlice';
 import { TasksSchema } from './NormalizationSchema';
 import ParentTaskEntity from './ParentTaskEntity';
 import RateableTask from './RateableTask';
 import RatingEntity from './RatingEntity';
-import { ratingsRemoveOne, ratingsUpsertMany } from './RatingSlice';
+import { ratingsRemoveMany, ratingsUpsertMany } from './RatingSlice';
 import { sheetsUpsertOne } from './SheetSlice';
 import SingleChoiceTask from './SingleChoiceTask';
 import Task from './Task';
@@ -506,13 +506,19 @@ export function initializeSheet(
     );
 
     // Delete all unused ratings and comments
+    const ratingsToDelete: string[] = [];
+    const commentsToDelete: string[] = [];
     correctionsOfSheet.forEach((c) =>
       c.ratings?.forEach((r) => {
         const rating: RatingEntity = state.ratings.entities[r];
-        dispatch(ratingsRemoveOne(rating.id));
-        dispatch(commentsRemoveOne(rating.comment));
+        ratingsToDelete.push(rating.id);
+        commentsToDelete.push(rating.comment);
       })
     );
+    if (ratingsToDelete.length > 0 && commentsToDelete.length > 0) {
+      dispatch(ratingsRemoveMany(ratingsToDelete));
+      dispatch(commentsRemoveMany(commentsToDelete));
+    }
 
     dispatch(tasksUpsertMany(tasks));
 
