@@ -27,7 +27,7 @@ const SettingsModal: FC<SettingsModalProps> = ({ ...props }) => {
       <DialogTitleWithCloseIcon onClose={close}>
         <Typography variant="h5">Settings</Typography>
       </DialogTitleWithCloseIcon>
-      <DialogContent dividers>
+      <DialogContent dividers style={{ overflowX: 'hidden' }}>
         <GeneralSettingsList />
         <Divider variant="middle" component="div" />
         <BackupSettingsList />

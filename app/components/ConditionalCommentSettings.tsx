@@ -12,6 +12,7 @@ import {
   Paper,
   Slider,
   Tooltip,
+  useTheme,
 } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
 import ConditionalCommentTextInput from './ConditionalCommentTextInput';
@@ -21,37 +22,63 @@ import {
   settingsUpdateConditionalCommentValue,
 } from '../model/SettingsSlice';
 
-const PrimaryTooltip = withStyles((theme: Theme) => ({
-  tooltip: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.background.default,
-    boxShadow: theme.shadows[1],
-    fontSize: 11,
-  },
-}))(Tooltip);
-
 function ValueLabelComponent(props: any) {
-  const { children, open, value, comments } = props;
+  const { children, value, comments, theme } = props;
   return (
-    <PrimaryTooltip
-      open={open}
-      hidden={!open}
-      TransitionComponent={Fade}
-      TransitionProps={{ timeout: 0 }}
-      placement="top"
-      title={`${comments[children.props['data-index']]} ≥ ${Math.round(
-        value
-      )}%`}
-      arrow
-    >
+    <>
       {children}
-    </PrimaryTooltip>
+      <span
+        style={{
+          position: 'absolute',
+          display: 'flex',
+          left: `${value}%`,
+        }}
+      >
+        <span
+          style={{
+            position: 'relative',
+            left: '-50%',
+          }}
+        >
+          <span
+            style={{
+              position: 'relative',
+              bottom: '39px',
+              padding: '5px',
+              borderRadius: '5px',
+              background: theme.palette.primary.main,
+              color: 'white',
+              whiteSpace: 'nowrap',
+              boxShadow: '0px 0px 10px -3px rgba(0,0,0,0.4)',
+              fontSize: '13px',
+            }}
+          >
+            {`${comments[children.props['data-index']]} ≥ ${Math.round(
+              value
+            )}%`}
+          </span>
+        </span>
+        <span
+          style={{
+            position: 'absolute',
+            left: '-10px',
+            bottom: '29px',
+            width: '0',
+            height: '0',
+            borderLeft: '10px solid transparent',
+            borderRight: '10px solid transparent',
+            borderTop: `6px solid ${theme.palette.primary.dark}`,
+          }}
+        />
+      </span>
+    </>
   );
 }
 
 const ConditionalCommentSettings = (props: { showLabel: boolean }) => {
   const { showLabel } = props;
   const dispatch = useDispatch();
+  const theme = useTheme();
   const settings = useSelector(selectSettingsExport);
 
   return (
@@ -88,6 +115,7 @@ const ConditionalCommentSettings = (props: { showLabel: boolean }) => {
               ValueLabelComponent={(p) => (
                 <ValueLabelComponent
                   {...p}
+                  theme={theme}
                   comments={settings.conditionalComments.map((c) => c.text)}
                 />
               )}
