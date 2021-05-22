@@ -213,7 +213,7 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
                   </Grid>
                   <Grid item>
                     <Typography gutterBottom>
-                      Initializing automatic correction...
+                      Initializing auto correction...
                     </Typography>
                   </Grid>
                 </>
