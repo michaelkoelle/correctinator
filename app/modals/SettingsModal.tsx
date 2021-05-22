@@ -18,7 +18,12 @@ const SettingsModal: FC<SettingsModalProps> = ({ ...props }) => {
   const { close } = props;
 
   return (
-    <Dialog {...props} fullWidth disableBackdropClick>
+    <Dialog
+      {...props}
+      fullWidth
+      disableBackdropClick
+      style={{ paddingTop: '32px' }}
+    >
       <DialogTitleWithCloseIcon onClose={close}>
         <Typography variant="h5">Settings</Typography>
       </DialogTitleWithCloseIcon>
