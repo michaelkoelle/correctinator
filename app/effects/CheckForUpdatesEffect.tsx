@@ -3,8 +3,8 @@ import { UpdateInfo } from 'electron-updater';
 import {
   CHECK_FOR_UPDATE_PENDING,
   CHECK_FOR_UPDATE_SUCCESS,
-  REQUEST_FILE_PATH,
-} from '../constants/ipc';
+} from '../constants/AutoUpdaterIPC';
+import { REQUEST_FILE_PATH } from '../constants/OpenFileIPC';
 import UpdaterModal from '../modals/UpdaterModal';
 import { version as currentAppVersion } from '../package.json';
 

@@ -37,7 +37,7 @@ export default function Routes() {
     showModal,
     unsavedChanges,
   ]);
-  useEffect(BackupEffect(workspacePath, saveBackups), [
+  useEffect(BackupEffect(workspacePath, saveBackups.enabled), [
     saveBackups,
     workspacePath,
   ]);

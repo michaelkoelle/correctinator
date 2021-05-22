@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { REQUEST_FILE_PATH } from '../constants/ipc';
+import { REQUEST_FILE_PATH } from '../constants/OpenFileIPC';
 
 const RequestFilePathEffect = () => {
   return () => {

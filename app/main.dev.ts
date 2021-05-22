@@ -14,12 +14,12 @@ import 'regenerator-runtime/runtime';
 import path from 'path';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import MenuBuilder from './menu';
-import * as IPCConstants from './constants/ipc';
 import AppUpdater from './updater';
 import Backup from './backup';
 import Exporter from './exporter';
 import Importer from './importer';
 import AutoCorrection from './autocorrection';
+import { RECEIVE_FILE_PATH, REQUEST_FILE_PATH } from './constants/OpenFileIPC';
 
 let mainWindow: BrowserWindow | null = null;
 let file = '';
@@ -113,7 +113,7 @@ const openWithFileHandler = (argv: string[]) => {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
     if (arg) {
-      mainWindow.webContents.send(IPCConstants.RECEIVE_FILE_PATH, arg);
+      mainWindow.webContents.send(RECEIVE_FILE_PATH, arg);
     }
   }
 };
@@ -122,7 +122,7 @@ const openWithFileHandler = (argv: string[]) => {
  * Add event listeners...
  */
 
-ipcMain.on(IPCConstants.REQUEST_FILE_PATH, () => {
+ipcMain.on(REQUEST_FILE_PATH, () => {
   if (process.platform === 'win32') {
     openWithFileHandler(process.argv);
   } else {

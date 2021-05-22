@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import * as Path from 'path';
-import { RECEIVE_FILE_PATH } from '../constants/ipc';
+import { RECEIVE_FILE_PATH } from '../constants/OpenFileIPC';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
 import { workspaceSetPath } from '../features/workspace/workspaceSlice';

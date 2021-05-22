@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { ipcMain } from 'electron';
 import { autoUpdater, UpdateCheckResult } from 'electron-updater';
-import * as IPCConstants from './constants/ipc';
+import * as IPCConstants from './constants/AutoUpdaterIPC';
 
 export default class AppUpdater {
   constructor() {

@@ -21,7 +21,7 @@ import { ipcRenderer, remote, shell } from 'electron';
 import { UpdateInfo } from 'electron-updater';
 import { useDispatch } from 'react-redux';
 import { version as currentAppVersion } from '../package.json';
-import * as IPCConstants from '../constants/ipc';
+import * as IPCConstants from '../constants/AutoUpdaterIPC';
 import { saveAllCorrections } from '../utils/FileAccess';
 import { ModalProps } from './ModalProvider';
 import CircularProgressWithLabel from '../components/CircularProgressWithLabel';
