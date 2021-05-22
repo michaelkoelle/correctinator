@@ -1,6 +1,6 @@
 import fs from 'fs';
 import * as Path from 'path';
-import { app, IpcMainEvent } from 'electron';
+import { app, IpcMainEvent, ipcMain } from 'electron';
 import * as BackupIPC from './constants/BackupIPC';
 
 export default class Backup {
@@ -22,6 +22,14 @@ export default class Backup {
     if (!fs.existsSync(Backup.backupDir)) {
       fs.mkdirSync(Backup.backupDir);
     }
+
+    ipcMain.on(BackupIPC.BACKUP_START, (event, p) => {
+      this.startBackup(event, p);
+    });
+
+    ipcMain.on(BackupIPC.BACKUP_STOP, () => {
+      this.stopBackup();
+    });
   }
 
   public startBackup(event: IpcMainEvent, filePath: string) {

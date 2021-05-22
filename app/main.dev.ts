@@ -15,7 +15,6 @@ import path from 'path';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import MenuBuilder from './menu';
 import * as IPCConstants from './constants/ipc';
-import * as BackupIPC from './constants/BackupIPC';
 import AppUpdater from './updater';
 import Backup from './backup';
 import Exporter from './exporter';
@@ -23,7 +22,6 @@ import Importer from './importer';
 import AutoCorrection from './autocorrection';
 
 let mainWindow: BrowserWindow | null = null;
-let backup: Backup | null = null;
 let file = '';
 
 if (process.env.NODE_ENV === 'production') {
@@ -102,7 +100,7 @@ const createWindow = async () => {
   menuBuilder.buildMenu();
 
   new AppUpdater();
-  backup = new Backup();
+  new Backup();
   new Importer(mainWindow);
   new Exporter();
   new AutoCorrection();
@@ -123,13 +121,6 @@ const openWithFileHandler = (argv: string[]) => {
 /**
  * Add event listeners...
  */
-
-ipcMain.on(BackupIPC.BACKUP_START, (event, p) => {
-  if (backup != null) backup.startBackup(event, p);
-});
-ipcMain.on(BackupIPC.BACKUP_STOP, () => {
-  if (backup != null) backup.stopBackup();
-});
 
 ipcMain.on(IPCConstants.REQUEST_FILE_PATH, () => {
   if (process.platform === 'win32') {
