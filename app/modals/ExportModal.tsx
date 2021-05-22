@@ -160,7 +160,10 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
           <DialogTitleWithCloseIcon onClose={closeExportDialog}>
             <Typography variant="h5">Export Corrections</Typography>
           </DialogTitleWithCloseIcon>
-          <DialogContent dividers style={{ padding: '0px 8px' }}>
+          <DialogContent
+            dividers
+            style={{ padding: '0px 8px', overflowX: 'hidden' }}
+          >
             <List>
               <ListItem>
                 <ListItemText
