@@ -308,24 +308,10 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
               <Grid item>
                 <Button
                   onClick={() => {
-                    // TODO
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
+                    ipcRenderer.send(AutoCorrectionIPC.AUTOCORRECTION_START, {
+                      corrections,
+                      workspace,
+                    });
                   }}
                   variant="outlined"
                 >
