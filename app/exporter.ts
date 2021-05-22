@@ -2,7 +2,7 @@ import AdmZip from 'adm-zip';
 import archiver from 'archiver';
 import fs from 'fs';
 import * as Path from 'path';
-import { app, ipcMain, IpcMainEvent, WebContents } from 'electron';
+import { ipcMain, IpcMainEvent, WebContents } from 'electron';
 import {
   EXPORT_FAILED,
   EXPORT_PROGRESS,
@@ -14,6 +14,7 @@ import Correction from './model/Correction';
 import Parser, { ParserType } from './parser/Parser';
 import instanciateParser from './parser/ParserUtil';
 import { serializeCorrection } from './utils/Formatter';
+import { loadFilesFromWorkspaceMainProcess } from './utils/FileAccess';
 
 export interface ExportProgress {
   steps: {
@@ -107,7 +108,7 @@ export default class Exporter {
         );
 
         // Add submission files folder
-        Exporter.loadFilesFromWorkspace(c.submission.name, workspace).forEach(
+        loadFilesFromWorkspaceMainProcess(c.submission.name, workspace).forEach(
           (f) => {
             const fBuffer = fs.readFileSync(f);
             archive.append(fBuffer, {
@@ -213,64 +214,4 @@ export default class Exporter {
       throw Error('Validation failed!');
     }
   };
-
-  static loadFilesFromWorkspace(
-    submissionName: string,
-    workspace: string
-  ): string[] {
-    if (!fs.existsSync(workspace) || Path.extname(workspace) !== '.cor') {
-      return [];
-    }
-    const tempPaths: string[] = [];
-    const userDataPath: string = app.getPath('userData');
-    const tempDir = Path.join(userDataPath, 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir);
-    }
-
-    Exporter.deleteEverythingInDir(tempDir);
-
-    const zip = new AdmZip(workspace);
-    zip
-      .getEntries()
-      .filter((entry) => {
-        return (
-          Path.dirname(entry.entryName).replaceAll('\\', '/') ===
-          Path.join(submissionName, 'files').replaceAll('\\', '/')
-        );
-      })
-      .forEach((entry) => {
-        const path = Path.join(tempDir, entry.name);
-        zip.extractEntryTo(entry, tempDir, false, true);
-        tempPaths.push(path);
-      });
-    return tempPaths;
-  }
-
-  static deleteFolderRecursive(path) {
-    if (fs.existsSync(path)) {
-      fs.readdirSync(path).forEach((file) => {
-        const curPath = Path.join(path, file);
-        if (fs.lstatSync(curPath).isDirectory()) {
-          Exporter.deleteFolderRecursive(curPath);
-        } else {
-          fs.unlinkSync(curPath);
-        }
-      });
-      fs.rmdirSync(path);
-    }
-  }
-
-  static deleteEverythingInDir(dir: string) {
-    if (fs.existsSync(dir)) {
-      fs.readdirSync(dir).forEach((file) => {
-        const path = Path.join(dir, file);
-        if (fs.lstatSync(path).isDirectory()) {
-          Exporter.deleteFolderRecursive(path);
-        } else {
-          fs.unlinkSync(path);
-        }
-      });
-    }
-  }
 }

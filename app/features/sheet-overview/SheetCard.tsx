@@ -11,7 +11,6 @@ import {
   ListItem,
   Menu,
   MenuItem,
-  Snackbar,
   Typography,
   useTheme,
 } from '@material-ui/core';
@@ -19,7 +18,6 @@ import React, { useState } from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
-import { Alert } from '@material-ui/lab';
 import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
 import { setTabIndex } from '../../model/HomeSlice';
@@ -33,7 +31,6 @@ import {
   selectAllEntities,
   selectCorrectionsBySheetId,
 } from '../../model/Selectors';
-import { autoCorrectSingleChoiceTasksOfSheet } from '../../utils/AutoCorrection';
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
 import { selectSettingsGeneral } from '../../model/SettingsSlice';
@@ -41,6 +38,7 @@ import { useModal } from '../../modals/ModalProvider';
 import ExportModal from '../../modals/ExportModal';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 import ConfirmDeleteSheetDialog from '../../dialogs/ConfirmDeleteSheetDialog';
+import AutoCorrectionModal from '../../modals/AutoCorrectionModal';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -54,11 +52,6 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
     selectCorrectionsBySheetId(sheet.id)
   );
   const [anchorEl, setAnchorEl] = useState(null);
-  const [openAutoCorrectionInfo, setOpenAutoCorrectionInfo] = useState(false);
-  const [autoCorrectionCount, setAutoCorrectionCount] = useState<{
-    taskCount: number;
-    subCount: number;
-  }>({ taskCount: 0, subCount: 0 });
 
   const notInitialized =
     corrections.filter(
@@ -111,10 +104,8 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   }
 
   function onAutoCorrectSingleChoiceTasks() {
-    const counts: any = dispatch(autoCorrectSingleChoiceTasksOfSheet(sheet.id));
+    showModal(AutoCorrectionModal, { sheetId: sheet.id });
     setAnchorEl(null);
-    setAutoCorrectionCount(counts);
-    setOpenAutoCorrectionInfo(true);
   }
 
   return (
@@ -145,7 +136,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
               </Menu>
             </>
             // eslint-disable-next-line prettier/prettier
-                    )}
+          )}
           // eslint-disable-next-line prettier/prettier
           subheader={(
             <>
@@ -160,7 +151,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
               </div>
             </>
             // eslint-disable-next-line prettier/prettier
-                    )}
+          )}
           title={sheet.name}
         />
         <CardContent>
@@ -297,15 +288,6 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
           }
         />
       </Card>
-      <Snackbar
-        open={openAutoCorrectionInfo}
-        autoHideDuration={5000}
-        onClose={() => setOpenAutoCorrectionInfo(false)}
-      >
-        <Alert onClose={() => setOpenAutoCorrectionInfo(false)} severity="info">
-          {`Corrected ${autoCorrectionCount.subCount} submissions! (${autoCorrectionCount.taskCount} Single Choice Tasks)`}
-        </Alert>
-      </Snackbar>
     </ListItem>
   );
 }
