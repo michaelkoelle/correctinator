@@ -4,12 +4,9 @@
 import React, { FC, useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
-import IconButton from '@material-ui/core/IconButton';
-import FolderIcon from '@material-ui/icons/Folder';
 import CheckIcon from '@material-ui/icons/Check';
 import Typography from '@material-ui/core/Typography';
 import DialogActions from '@material-ui/core/DialogActions';
-import InfoIcon from '@material-ui/icons/Info';
 import DialogContent from '@material-ui/core/DialogContent';
 import WarningRoundedIcon from '@material-ui/icons/WarningRounded';
 import {
@@ -67,47 +64,6 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
   const [exportProgress, setExportProgress] = useState<
     ExportProgress | undefined
   >(undefined);
-  const [path, setPath] = useState<string>('');
-
-  function onChoosePath() {
-    let defaultPath = 'exported-corrections.zip';
-    const sheets: Sheet[] = Array.from(
-      correctionsToExport
-        .reduce(
-          (acc, item) =>
-            acc.set(item.submission.sheet.id, item.submission.sheet),
-          new Map()
-        )
-        .values()
-    );
-    if (sheets.length > 1) {
-      defaultPath = sheets
-        .map((s) => s.name.replace(' ', '-'))
-        .join('-')
-        .concat('.zip');
-    } else {
-      defaultPath = sheets
-        .map((s) => {
-          const course = s.course.name.replace(' ', '-');
-          const term = s.term.summerterm
-            ? `SS${s.term.year}`
-            : `WS${s.term.year}`;
-          const sheet = s.name.replace(' ', '-');
-          return `${course}-${term}-${sheet}`;
-        })
-        .join('-')
-        .concat('.zip');
-    }
-
-    const p = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
-      defaultPath,
-      filters: [{ name: 'Zip', extensions: ['zip'] }],
-    });
-
-    if (p !== undefined && p?.trim().length > 0) {
-      setPath(p);
-    }
-  }
 
   function closeExportDialog() {
     if (exportState === ExportState.EXPORT_NOT_STARTED) {
@@ -117,11 +73,45 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
 
   function onExportCorrections() {
     if (correctionsToExport.length > 0) {
-      setExportState(ExportState.EXPORT_STARTED);
+      let defaultPath = 'exported-corrections.zip';
+      const sheets: Sheet[] = Array.from(
+        correctionsToExport
+          .reduce(
+            (acc, item) =>
+              acc.set(item.submission.sheet.id, item.submission.sheet),
+            new Map()
+          )
+          .values()
+      );
+      if (sheets.length > 1) {
+        defaultPath = sheets
+          .map((s) => s.name.replace(' ', '-'))
+          .join('-')
+          .concat('.zip');
+      } else {
+        defaultPath = sheets
+          .map((s) => {
+            const course = s.course.name.replace(' ', '-');
+            const term = s.term.summerterm
+              ? `SS${s.term.year}`
+              : `WS${s.term.year}`;
+            const sheet = s.name.replace(' ', '-');
+            return `${course}-${term}-${sheet}`;
+          })
+          .join('-')
+          .concat('.zip');
+      }
 
-      if (path !== undefined) {
+      const p = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), {
+        defaultPath,
+        filters: [{ name: 'Zip', extensions: ['zip'] }],
+      });
+
+      if (p !== undefined && p?.trim().length > 0) {
+        setExportState(ExportState.EXPORT_STARTED);
+
         ipcRenderer.send(ExportIPC.EXPORT_START, {
-          zipPath: path,
+          zipPath: p,
           workspace,
           parser: ParserType.Uni2Work,
           corrections: correctionsToExport,
@@ -172,17 +162,6 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
           </DialogTitleWithCloseIcon>
           <DialogContent dividers style={{ padding: '0px 8px' }}>
             <List>
-              <ListItem>
-                <ListItemText
-                  primary="Export path"
-                  secondary="Select the destination for the archive"
-                />
-                <ListItemSecondaryAction>
-                  <IconButton onClick={onChoosePath}>
-                    <FolderIcon />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
               <ListItem>
                 <ListItemText
                   primary="Output Format"
@@ -252,42 +231,10 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
                   </Grid>
                 </ListItem>
               )}
-              {!path && (
-                <ListItem>
-                  <Grid
-                    item
-                    container
-                    direction="row"
-                    justify="flex-start"
-                    alignItems="center"
-                    style={{ marginTop: '5px', marginBottom: '0px' }}
-                  >
-                    <Grid item>
-                      <InfoIcon
-                        style={{
-                          color:
-                            theme.palette.type === 'dark'
-                              ? theme.palette.info.dark
-                              : theme.palette.info.light,
-                          marginRight: '10px',
-                        }}
-                      />
-                    </Grid>
-                    <Grid item>
-                      <Typography>You need to select a path</Typography>
-                    </Grid>
-                  </Grid>
-                </ListItem>
-              )}
             </List>
           </DialogContent>
           <DialogActions>
-            <Button
-              autoFocus
-              onClick={onExportCorrections}
-              color="primary"
-              disabled={path === undefined || path?.trim()?.length <= 0}
-            >
+            <Button autoFocus onClick={onExportCorrections} color="primary">
               Export as zip
             </Button>
           </DialogActions>
