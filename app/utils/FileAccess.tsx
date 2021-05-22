@@ -1,10 +1,11 @@
 /* eslint-disable import/no-cycle */
-import { OpenDialogReturnValue, remote } from 'electron';
+import { app, OpenDialogReturnValue, remote } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
 import 'setimmediate';
 import AdmZip from 'adm-zip';
 import { normalize } from 'normalizr';
+import _ from 'lodash';
 import Correction from '../model/Correction';
 import { CorrectionSchema } from '../model/NormalizationSchema';
 import { deleteEntities, loadCorrections } from '../model/CorrectionsSlice';
@@ -189,13 +190,23 @@ export function reloadState() {
     // Load from .cor
     const workspace = selectWorkspacePath(getState());
     const zip = new AdmZip(workspace);
+    let allEntities: unknown;
     zip
       .getEntries()
       .filter((entry) => Path.parse(entry.entryName).base === 'config.json')
       .forEach((entry) => {
         const entities = JSON.parse(zip.readAsText(entry, 'utf8'));
-        dispatch(loadCorrections(entities));
+        if (entities) {
+          if (allEntities) {
+            allEntities = _.merge(allEntities, entities);
+          } else {
+            allEntities = entities;
+          }
+        }
       });
+    if (allEntities) {
+      dispatch(loadCorrections(allEntities));
+    }
   };
 }
 
@@ -278,4 +289,37 @@ export function exportWorkspace(zipPath: string, workspace: string) {
   const zip = new AdmZip();
   zip.addLocalFolder(workspace);
   zip.writeZip(zipPath);
+}
+
+export function loadFilesFromWorkspaceMainProcess(
+  submissionName: string,
+  workspace: string
+): string[] {
+  if (!fs.existsSync(workspace) || Path.extname(workspace) !== '.cor') {
+    return [];
+  }
+  const tempPaths: string[] = [];
+  const userDataPath: string = app.getPath('userData');
+  const tempDir = Path.join(userDataPath, 'temp');
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+  }
+
+  deleteEverythingInDir(tempDir);
+
+  const zip = new AdmZip(workspace);
+  zip
+    .getEntries()
+    .filter((entry) => {
+      return (
+        Path.dirname(entry.entryName).replaceAll('\\', '/') ===
+        Path.join(submissionName, 'files').replaceAll('\\', '/')
+      );
+    })
+    .forEach((entry) => {
+      const path = Path.join(tempDir, entry.name);
+      zip.extractEntryTo(entry, tempDir, false, true);
+      tempPaths.push(path);
+    });
+  return tempPaths;
 }
