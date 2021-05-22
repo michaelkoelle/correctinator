@@ -7,10 +7,10 @@ import DialogContent from '@material-ui/core/DialogContent';
 import { Divider } from '@material-ui/core';
 import { ModalProps } from './ModalProvider';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
-import GeneralSettingsList from '../features/settings/GeneralSettingsList';
-import BackupSettingsList from '../features/settings/BackupSettingsList';
-import MediaViewerSettingsList from '../features/settings/MediaViewerSettingsList';
-import ExportSettingsList from '../features/settings/ExportSettingsList';
+import GeneralSettingsList from './settings/GeneralSettingsList';
+import BackupSettingsList from './settings/BackupSettingsList';
+import MediaViewerSettingsList from './settings/MediaViewerSettingsList';
+import ExportSettingsList from './settings/ExportSettingsList';
 
 type SettingsModalProps = ModalProps;
 

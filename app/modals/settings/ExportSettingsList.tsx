@@ -6,6 +6,8 @@ import {
   List,
   ListItem,
   ListSubheader,
+  TextField,
+  Collapse,
 } from '@material-ui/core';
 
 import React from 'react';
@@ -35,6 +37,47 @@ const ExportSettingsList = () => {
       </ListItem>
       <ListItem>
         <ListItemText
+          primary="Value Type Overwrite"
+          secondary="Enable overwrite for the value type e.g. points"
+        />
+        <ListItemSecondaryAction>
+          <Switch
+            edge="end"
+            onChange={() =>
+              dispatch(
+                settingsSetExport({
+                  ...settings,
+                  valueTypeOverrideEnabled: !settings.valueTypeOverrideEnabled,
+                })
+              )
+            }
+            checked={settings.valueTypeOverrideEnabled}
+          />
+        </ListItemSecondaryAction>
+      </ListItem>
+      <Collapse in={settings.valueTypeOverrideEnabled}>
+        <ListItem>
+          <ListItemText primary="" secondary="" />
+          <ListItemSecondaryAction>
+            <TextField
+              label="Value Type"
+              variant="outlined"
+              size="small"
+              value={settings.valueTypeOverride}
+              onChange={(event) =>
+                dispatch(
+                  settingsSetExport({
+                    ...settings,
+                    valueTypeOverride: event.target.value,
+                  })
+                )
+              }
+            />
+          </ListItemSecondaryAction>
+        </ListItem>
+      </Collapse>
+      <ListItem>
+        <ListItemText
           primary="Conditional Comment"
           secondary="Apppend comment to output depending on score %"
         />
@@ -53,13 +96,13 @@ const ExportSettingsList = () => {
           />
         </ListItemSecondaryAction>
       </ListItem>
-      {settings.conditionalCommentEnabled && (
+      <Collapse in={settings.conditionalCommentEnabled}>
         <ListItem>
           <ConditionalCommentSettings
             showLabel={settings.conditionalCommentEnabled}
           />
         </ListItem>
-      )}
+      </Collapse>
     </List>
   );
 };

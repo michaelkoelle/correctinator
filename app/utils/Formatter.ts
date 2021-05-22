@@ -143,6 +143,7 @@ export function getConditionalCommentForValue(
 
 export function serializeCorrection(
   correction: Correction,
+  valueTypeOverwrite: string | undefined,
   conditionalComments: ConditionalComment[] = []
 ): string {
   const ratings: Rating[] = correction.ratings ? correction.ratings : [];
@@ -151,7 +152,13 @@ export function serializeCorrection(
     : [];
   const serializedTasks =
     tasks && ratings
-      ? serializeTasks(tasks, ratings, correction.submission.sheet.valueType)
+      ? serializeTasks(
+          tasks,
+          ratings,
+          valueTypeOverwrite !== undefined
+            ? valueTypeOverwrite
+            : correction.submission.sheet.valueType
+        )
       : '';
   const serializedAnnotation =
     correction.annotation && correction.annotation.text.trim().length > 0

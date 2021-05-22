@@ -118,6 +118,9 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
           conditionalComments: settings.conditionalCommentEnabled
             ? settings.conditionalComments
             : [],
+          valueTypeOverwrite: settings.valueTypeOverrideEnabled
+            ? settings.valueTypeOverride
+            : undefined,
         });
       }
     }

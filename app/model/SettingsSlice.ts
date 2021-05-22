@@ -19,6 +19,8 @@ export interface MediaViewerSettings {
 
 export interface ExportSettings {
   outputFormat: ParserType;
+  valueTypeOverrideEnabled: boolean;
+  valueTypeOverride: string;
   conditionalCommentEnabled: boolean;
   conditionalComments: ConditionalComment[];
 }
@@ -46,6 +48,8 @@ const settingsSlice = createSlice({
     },
     export: {
       outputFormat: ParserType.Uni2Work,
+      valueTypeOverrideEnabled: true,
+      valueTypeOverride: 'Punkte',
       conditionalCommentEnabled: true,
       conditionalComments: [
         { text: 'Gut!', minPercentage: 0.5 },

@@ -35,6 +35,7 @@ export default class Exporter {
         arg.parser,
         arg.corrections,
         arg.conditionalComments,
+        arg.valueTypeOverwrite,
         sender
       )
         .then((v) => {
@@ -53,6 +54,7 @@ export default class Exporter {
     parserType: ParserType,
     corrections: Correction[],
     conditionalComments: ConditionalComment[] = [],
+    valueTypeOverwrite: string | undefined,
     webContents: WebContents
   ) {
     return new Promise((resolve, reject) => {
@@ -104,7 +106,7 @@ export default class Exporter {
 
         const content = parser.serialize(
           c,
-          serializeCorrection(c, conditionalComments)
+          serializeCorrection(c, valueTypeOverwrite, conditionalComments)
         );
 
         // Add submission files folder
@@ -132,6 +134,7 @@ export default class Exporter {
     workspace: string,
     parser: Parser,
     corrections: Correction[],
+    valueTypeOverwrite: string | undefined,
     conditionalComments: ConditionalComment[] = []
   ) {
     const zip = new AdmZip();
@@ -139,7 +142,7 @@ export default class Exporter {
     corrections.forEach((c) => {
       const content = parser.serialize(
         c,
-        serializeCorrection(c, conditionalComments)
+        serializeCorrection(c, valueTypeOverwrite, conditionalComments)
       );
 
       // Add rating file
