@@ -326,13 +326,15 @@ test('getConditionalCommentForValue 4', () => {
 });
 
 test('serializeCorrection', () => {
-  expect(serializeCorrection(correctionTestData2, conditionalComments)).toBe(
+  expect(
+    serializeCorrection(correctionTestData2, undefined, conditionalComments)
+  ).toBe(
     'Task 1: 3.5/5 points\n\tTask 1.1: 2/3 points\n\tTask 1.2: 1.5/2 points\n\t\tthis is a test comment, a really long test comment, a really really long\n\t\tone, i wonder how long it really is,\n\t\tit still goes on,\n\t\tthat is insane this is the longest comment in the history of comments,\n\t\tmaybe ever\nTask 2: 5/5 points\n\nThis is a test annotation :)\n\nGut!\n'
   );
 });
 
 test('serializeCorrection 2', () => {
-  expect(serializeCorrection(correctionTestData2)).toBe(
+  expect(serializeCorrection(correctionTestData2, undefined)).toBe(
     'Task 1: 3.5/5 points\n\tTask 1.1: 2/3 points\n\tTask 1.2: 1.5/2 points\n\t\tthis is a test comment, a really long test comment, a really really long\n\t\tone, i wonder how long it really is,\n\t\tit still goes on,\n\t\tthat is insane this is the longest comment in the history of comments,\n\t\tmaybe ever\nTask 2: 5/5 points\n\nThis is a test annotation :)\n'
   );
 });
