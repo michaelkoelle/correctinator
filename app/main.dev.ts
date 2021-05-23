@@ -22,7 +22,6 @@ import AutoCorrection from './autocorrection';
 import { RECEIVE_FILE_PATH, REQUEST_FILE_PATH } from './constants/OpenFileIPC';
 
 let mainWindow: BrowserWindow | null = null;
-let bgWindow: BrowserWindow | null = null;
 let file = '';
 
 if (process.env.NODE_ENV === 'production') {
@@ -47,19 +46,6 @@ const installExtensions = async () => {
   ).catch(console.log);
 };
 
-function createBgWindow() {
-  bgWindow = new BrowserWindow({
-    show: false,
-    webPreferences: {
-      nodeIntegration: true,
-    },
-  });
-  bgWindow.loadURL(`file://${__dirname}/background.html`);
-  bgWindow.on('closed', () => {
-    bgWindow = null;
-  });
-}
-
 const createWindow = async () => {
   if (
     process.env.NODE_ENV === 'development' ||
@@ -75,6 +61,13 @@ const createWindow = async () => {
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
   };
+
+  ipcMain.on('bg-ready', (event, win) => {
+    const { sender } = event;
+    console.log('Background worker ready!', win);
+    sender.send('transferMainWindow', 'test');
+    // send reference to main window
+  });
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -107,15 +100,11 @@ const createWindow = async () => {
   });
 
   mainWindow.on('closed', () => {
-    bgWindow?.close();
     mainWindow = null;
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
-
-  // Create background worker window
-  if (bgWindow === null) createBgWindow();
 
   new AppUpdater();
   new Backup();
