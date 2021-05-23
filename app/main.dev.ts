@@ -22,6 +22,7 @@ import AutoCorrection from './autocorrection';
 import { RECEIVE_FILE_PATH, REQUEST_FILE_PATH } from './constants/OpenFileIPC';
 
 let mainWindow: BrowserWindow | null = null;
+let bgWindow: BrowserWindow | null = null;
 let file = '';
 
 if (process.env.NODE_ENV === 'production') {
@@ -45,6 +46,19 @@ const installExtensions = async () => {
     extensions.map((name) => installer.default(installer[name], forceDownload))
   ).catch(console.log);
 };
+
+function createBgWindow() {
+  bgWindow = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+  bgWindow.loadURL(`file://${__dirname}/background.html`);
+  bgWindow.on('closed', () => {
+    bgWindow = null;
+  });
+}
 
 const createWindow = async () => {
   if (
@@ -93,11 +107,15 @@ const createWindow = async () => {
   });
 
   mainWindow.on('closed', () => {
+    bgWindow?.close();
     mainWindow = null;
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
+
+  // Create background worker window
+  if (bgWindow === null) createBgWindow();
 
   new AppUpdater();
   new Backup();
