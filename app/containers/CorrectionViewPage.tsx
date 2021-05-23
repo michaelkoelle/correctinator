@@ -153,7 +153,7 @@ export default function CorrectionViewPage() {
             </DialogContentText>
             {sheets.length > 0 ? (
               <DialogContentText style={{ textAlign: 'center' }}>
-                Have you forgot to assign a correction schema?
+                Have you forgot to assign a task schema?
               </DialogContentText>
             ) : (
               <DialogContentText style={{ textAlign: 'center' }}>
