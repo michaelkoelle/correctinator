@@ -11,12 +11,15 @@ import DialogContent from '@material-ui/core/DialogContent';
 import WarningRoundedIcon from '@material-ui/icons/WarningRounded';
 import {
   CircularProgress,
+  Collapse,
   Grid,
+  IconButton,
   List,
   ListItem,
   ListItemSecondaryAction,
   ListItemText,
   Switch,
+  TextField,
   useTheme,
 } from '@material-ui/core';
 import { ipcRenderer, IpcRendererEvent, remote } from 'electron';
@@ -38,6 +41,8 @@ import {
 } from '../model/SettingsSlice';
 import OutputFormatSelect from '../components/OutputFormatSelect';
 import ConditionalCommentSettings from '../components/ConditionalCommentSettings';
+import Correction from '../model/Correction';
+import { selectSheetById } from '../model/SheetSlice';
 
 type ExportModalProps = ModalProps & {
   sheetId: string;
@@ -64,6 +69,7 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
   const [exportProgress, setExportProgress] = useState<
     ExportProgress | undefined
   >(undefined);
+  const [path, setPath] = useState<string | undefined>();
 
   function closeExportDialog() {
     if (exportState === ExportState.EXPORT_NOT_STARTED) {
@@ -108,6 +114,7 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
       });
 
       if (p !== undefined && p?.trim().length > 0) {
+        setPath(p);
         setExportState(ExportState.EXPORT_STARTED);
 
         ipcRenderer.send(ExportIPC.EXPORT_START, {
@@ -161,7 +168,15 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
       content = (
         <Dialog {...props} fullWidth>
           <DialogTitleWithCloseIcon onClose={closeExportDialog}>
-            <Typography variant="h5">Export Corrections</Typography>
+            <Typography variant="h5">
+              {`Export${
+                `: ${
+                  correctionsToExport.find(
+                    (c) => c.submission.sheet.id === sheetId
+                  ).submission.sheet.name
+                }` || ' Corrections'
+              }`}
+            </Typography>
           </DialogTitleWithCloseIcon>
           <DialogContent
             dividers
@@ -177,6 +192,47 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
                   <OutputFormatSelect />
                 </ListItemSecondaryAction>
               </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Value Type Overwrite"
+                  secondary="Enable overwrite for the value type e.g. points"
+                />
+                <ListItemSecondaryAction>
+                  <Switch
+                    edge="end"
+                    onChange={() =>
+                      dispatch(
+                        settingsSetExport({
+                          ...settings,
+                          valueTypeOverrideEnabled: !settings.valueTypeOverrideEnabled,
+                        })
+                      )
+                    }
+                    checked={settings.valueTypeOverrideEnabled}
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+              <Collapse in={settings.valueTypeOverrideEnabled}>
+                <ListItem>
+                  <ListItemText primary="" secondary="" />
+                  <ListItemSecondaryAction>
+                    <TextField
+                      label="Value Type"
+                      variant="outlined"
+                      size="small"
+                      value={settings.valueTypeOverride}
+                      onChange={(event) =>
+                        dispatch(
+                          settingsSetExport({
+                            ...settings,
+                            valueTypeOverride: event.target.value,
+                          })
+                        )
+                      }
+                    />
+                  </ListItemSecondaryAction>
+                </ListItem>
+              </Collapse>
               <ListItem>
                 <ListItemText
                   primary="Conditional Comment"
@@ -197,13 +253,13 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
                   />
                 </ListItemSecondaryAction>
               </ListItem>
-              {settings.conditionalCommentEnabled && (
+              <Collapse in={settings.conditionalCommentEnabled}>
                 <ListItem>
                   <ConditionalCommentSettings
                     showLabel={settings.conditionalCommentEnabled}
                   />
                 </ListItem>
-              )}
+              </Collapse>
               {correctionsToExport.filter(
                 (c) => c.rating_done === false || c.status !== Status.Done
               ).length > 0 && (
@@ -297,11 +353,9 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
                       ) : (
                         <b>Check file: </b>
                       )}
-                      {
-                        exportProgress.steps[exportProgress.stepIndex].files[
-                          exportProgress.fileIndex
-                        ]
-                      }
+                      {exportProgress.steps[exportProgress.stepIndex].files[
+                        exportProgress.fileIndex
+                      ].replace(/(.{20})..+/, '$1…')}
                     </Typography>
                   </Grid>
                 </>
@@ -350,10 +404,31 @@ const ExportModal: FC<ExportModalProps> = ({ ...props }) => {
               <Grid item>
                 <Typography gutterBottom>Export was successful!</Typography>
               </Grid>
-              <Grid item style={{ marginBottom: '-5px' }}>
-                <Button onClick={close} variant="outlined">
-                  CLOSE
-                </Button>
+              <Grid
+                item
+                container
+                justify="center"
+                alignItems="center"
+                spacing={2}
+                style={{ marginBottom: '-5px' }}
+              >
+                <Grid item>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      if (path) remote.shell.showItemInFolder(path);
+                      close();
+                    }}
+                  >
+                    Show exported file
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <IconButton style={{ padding: '2px' }} onClick={close}>
+                    <CloseIcon style={{ width: '1.5rem', height: '1.5rem' }} />
+                  </IconButton>
+                </Grid>
               </Grid>
             </Grid>
           </DialogContent>

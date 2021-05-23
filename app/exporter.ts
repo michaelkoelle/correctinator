@@ -66,6 +66,10 @@ export default class Exporter {
           files: corrections.map((c) => c.submission.name),
         },
         {
+          name: 'Finalizing archive',
+          files: [Path.basename(zipPath)],
+        },
+        {
           name: 'Verifying files',
           files: corrections.map((c) => parser.getConfigFileName(c)),
         },
@@ -125,6 +129,11 @@ export default class Exporter {
         });
       });
 
+      webContents.send(EXPORT_PROGRESS, {
+        steps,
+        stepIndex: 1,
+        fileIndex: 0,
+      });
       archive.finalize();
     });
   }
@@ -196,7 +205,7 @@ export default class Exporter {
     const validation = corrections.map((c, i) => {
       const progress: ExportProgress = {
         steps,
-        stepIndex: 1,
+        stepIndex: 2,
         fileIndex: i,
       };
       webContents.send(EXPORT_PROGRESS, progress);
