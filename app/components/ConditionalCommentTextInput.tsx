@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import { IconButton, TextField } from '@material-ui/core';
 import CancelIcon from '@material-ui/icons/Cancel';
+import { relative } from 'path';
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import ConditionalComment from '../model/ConditionalComment';
@@ -22,7 +23,7 @@ const ConditionalCommentTextInput = (
   const dispatch = useDispatch();
   const [hoverDeleteButton, setHoverDeleteButton] = useState(false);
   return (
-    <>
+    <div style={{ position: 'relative' }}>
       <TextField
         id={`comment-${i}`}
         label={`Score ≥ ${Math.round(c.minPercentage * 100)}%`}
@@ -40,8 +41,8 @@ const ConditionalCommentTextInput = (
           )
         }
         style={{
-          width: '110px',
-          marginRight: '-6px',
+          width: '130px',
+          marginRight: '8px',
           marginTop: '16px',
         }}
         onMouseEnter={() => setHoverDeleteButton(true)}
@@ -55,16 +56,16 @@ const ConditionalCommentTextInput = (
         onMouseLeave={() => setHoverDeleteButton(false)}
         style={{
           padding: '0px',
-          position: 'relative',
-          top: '5px',
-          right: '7px',
+          position: 'absolute',
+          top: '6px',
+          right: '-2px',
           opacity: hoverDeleteButton ? 1 : 0,
           transition: 'opacity 150ms ease-out',
         }}
       >
         <CancelIcon />
       </IconButton>
-    </>
+    </div>
   );
 };
 export default ConditionalCommentTextInput;
