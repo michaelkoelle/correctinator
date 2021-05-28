@@ -281,7 +281,9 @@ const UpdaterModal: FC<UpdaterModalProps> = ({ ...props }) => {
                     await shell.openExternal(
                       `https://github.com/koellemichael/correctinator/releases/download/v${updateInfo?.version}/${updateInfo?.files[1].url}`
                     );
-                    remote.app.quit();
+                    setTimeout(() => {
+                      remote.app.quit();
+                    }, 2000);
                   }}
                 >
                   Download
