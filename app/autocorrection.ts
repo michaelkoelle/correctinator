@@ -41,7 +41,13 @@ type MultipleSolutionsFound = {
 type Solution = SingleSolutionFound | MultipleSolutionsFound | NoSolutionFound;
 
 export default class AutoCorrection {
+  public static tempDir = 'auto_correction_temp';
+
   constructor() {
+    if (!fs.existsSync(AutoCorrection.tempDir)) {
+      fs.mkdirSync(AutoCorrection.tempDir);
+    }
+
     ipcMain.on(AUTOCORRECTION_START, (event: IpcMainEvent, arg) => {
       const { sender } = event;
       AutoCorrection.autoCorrectSingleChoiceTasksOfSheet(
@@ -171,7 +177,8 @@ export default class AutoCorrection {
       const { submission } = c;
       const txtFiles = loadFilesFromWorkspaceMainProcess(
         submission.name,
-        workspace
+        workspace,
+        AutoCorrection.tempDir
       ).filter((f) => Path.extname(f) === '.txt');
 
       // Extract the student solution from every .txt files

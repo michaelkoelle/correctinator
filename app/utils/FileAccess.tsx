@@ -134,14 +134,15 @@ export function deleteEverythingInDir(dir: string) {
 
 export function loadFilesFromWorkspace(
   submissionName: string,
-  workspace: string
+  workspace: string,
+  dir = 'temp'
 ): string[] {
   if (!fs.existsSync(workspace) || Path.extname(workspace) !== '.cor') {
     return [];
   }
   const tempPaths: string[] = [];
   const userDataPath: string = remote.app.getPath('userData');
-  const tempDir = Path.join(userDataPath, 'temp');
+  const tempDir = Path.join(userDataPath, dir);
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
@@ -293,14 +294,15 @@ export function exportWorkspace(zipPath: string, workspace: string) {
 
 export function loadFilesFromWorkspaceMainProcess(
   submissionName: string,
-  workspace: string
+  workspace: string,
+  dir = 'temp'
 ): string[] {
   if (!fs.existsSync(workspace) || Path.extname(workspace) !== '.cor') {
     return [];
   }
   const tempPaths: string[] = [];
   const userDataPath: string = app.getPath('userData');
-  const tempDir = Path.join(userDataPath, 'temp');
+  const tempDir = Path.join(userDataPath, dir);
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
