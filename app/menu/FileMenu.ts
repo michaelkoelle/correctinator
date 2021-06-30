@@ -1,6 +1,12 @@
-import { OpenDialogReturnValue, remote, SaveDialogReturnValue } from 'electron';
+import {
+  ipcRenderer,
+  OpenDialogReturnValue,
+  remote,
+  SaveDialogReturnValue,
+} from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
+import * as BackupIPC from '../constants/BackupIPC';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
 import {
@@ -35,9 +41,19 @@ const buildFileMenu = (
       dispatch(reloadState());
     }
   };
-  const backupPaths = fs
+  const backupPaths: { path: string; date: Date }[] = fs
     .readdirSync(Path.join(remote.app.getPath('userData'), 'Backup'))
-    .filter((p) => workspace && p.includes(Path.basename(workspace)));
+    .filter((path) => workspace && path.includes(Path.basename(workspace)))
+    .map((path) => {
+      const fullPath = Path.join(
+        remote.app.getPath('userData'),
+        'Backup',
+        path
+      );
+      const stats = fs.statSync(fullPath);
+      const date = new Date(stats.mtimeMs);
+      return { path, date };
+    });
 
   return {
     label: 'File',
@@ -123,30 +139,54 @@ const buildFileMenu = (
         },
       },
       {
-        label: 'Restore Backup',
-        disabled: backupPaths.length <= 0,
-        submenu: backupPaths.map((path) => {
-          return {
-            label: path,
+        label: 'Backups',
+        submenu: [
+          {
+            label: 'Force Backup',
             click: async () => {
-              const fullPath = Path.join(
-                remote.app.getPath('userData'),
-                'Backup',
-                path
-              );
-              if (fs.existsSync(fullPath)) {
-                showModal(ConfirmationDialog, {
-                  title: 'Restore Backup?',
-                  text: `Do you really want to restore backup "${path}"?`,
-                  onConfirm: () => {
-                    fs.renameSync(fullPath, workspace);
-                    dispatch(reloadState());
-                  },
-                });
-              }
+              ipcRenderer.send(BackupIPC.BACKUP_ONCE, workspace);
             },
-          };
-        }),
+          },
+          {
+            label: 'Restore Backup',
+            disabled: backupPaths.length <= 0,
+            submenu: backupPaths.map((backup) => {
+              const now = new Date();
+              const diff = now.getTime() - backup.date.getTime();
+              const mins = Math.round(diff / 60000);
+              return {
+                label: `${backup.path} ${
+                  mins === 0 ? '(now)' : `(${mins} min ago)`
+                }`,
+                click: async () => {
+                  const fullPath = Path.join(
+                    remote.app.getPath('userData'),
+                    'Backup',
+                    backup.path
+                  );
+                  if (fs.existsSync(fullPath)) {
+                    showModal(ConfirmationDialog, {
+                      title: 'Restore Backup?',
+                      text: `Do you really want to restore backup "${backup.path}"?`,
+                      onConfirm: () => {
+                        fs.renameSync(fullPath, workspace);
+                        dispatch(reloadState());
+                      },
+                    });
+                  }
+                },
+              };
+            }),
+          },
+          {
+            label: 'Show Backups Folder',
+            click: async () => {
+              remote.shell.openPath(
+                Path.join(remote.app.getPath('userData'), 'Backup')
+              );
+            },
+          },
+        ],
       },
       {
         label: 'Close file',

@@ -1,5 +1,4 @@
-import { MenuItemConstructorOptions, remote, shell } from 'electron';
-import * as Path from 'path';
+import { MenuItemConstructorOptions, shell } from 'electron';
 import ReleaseNotesModal from '../modals/ReleaseNotesModal';
 import UpdaterModal from '../modals/UpdaterModal';
 
@@ -17,15 +16,6 @@ const buildHelpMenu = (showModal): MenuItemConstructorOptions => {
         label: 'Release Notes',
         async click() {
           showModal(ReleaseNotesModal);
-        },
-      },
-      { type: 'separator' },
-      {
-        label: 'Backups Folder',
-        click: async () => {
-          remote.shell.openPath(
-            Path.join(remote.app.getPath('userData'), 'Backup')
-          );
         },
       },
       { type: 'separator' },
