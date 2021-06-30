@@ -30,7 +30,7 @@ export function onInitializeSheet(
 
   showModal(
     ConfirmationDialog,
-    StartCorrectionDialog(showModal, selectedSheet)
+    StartCorrectionDialog(showModal, selectedSheet, tasks)
   );
 }
 
