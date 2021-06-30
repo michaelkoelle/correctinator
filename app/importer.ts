@@ -440,7 +440,6 @@ export default class Importer {
         const fileName = base;
         const fileDir = `${submissionId}/files`;
         const fullPath = `${fileDir}/${fileName}`;
-        console.log(fullPath);
         if (zip.getEntry(fullPath) === null) {
           zip.addLocalFile(file, fileDir, fileName);
         } else {
