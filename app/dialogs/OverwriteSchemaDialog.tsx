@@ -28,7 +28,10 @@ export function onInitializeSheet(
     dispatch(save());
   }
 
-  showModal(ConfirmationDialog, StartCorrectionDialog(selectedSheet));
+  showModal(
+    ConfirmationDialog,
+    StartCorrectionDialog(showModal, selectedSheet)
+  );
 }
 
 const OverwriteSchemaDialog = (
