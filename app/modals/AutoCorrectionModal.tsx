@@ -32,6 +32,8 @@ type AutoCorrectionModalProps = ModalProps & {
 
 enum AutoCorrectionState {
   AUTOCORRECTION_STARTED,
+  AUTOCORRECTION_CANCEL_PENDING,
+  AUTOCORRECTION_CANCELED,
   AUTOCORRECTION_SUCCESSFUL,
   AUTOCORRECTION_FAILED,
 }
@@ -136,6 +138,68 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
     ) => {
       setAutoCorrectionProgress(progress);
     };
+    const handleAutoCorrectionCancelPending = (_event: IpcRendererEvent) => {
+      setAutoCorrectionState(AutoCorrectionState.AUTOCORRECTION_CANCEL_PENDING);
+    };
+
+    const handleAutoCorrectionCanceled = (_event: IpcRendererEvent, result) => {
+      const {
+        attemptedCorrectionIds,
+        finishedCorrectionIds,
+        totalCorrectedRatings,
+        taskCount,
+        subCount,
+      } = result;
+
+      setSummary({
+        taskCount,
+        subCount,
+        percent: subCount / attemptedCorrectionIds.length,
+      });
+
+      setAutoCorrectionState(AutoCorrectionState.AUTOCORRECTION_CANCELED);
+
+      // Flag Ratings as auto corrected
+      if (totalCorrectedRatings) {
+        dispatch(
+          ratingsUpdateMany(
+            totalCorrectedRatings.map(
+              (r: { ratingId: string; value: number }) => {
+                return {
+                  id: r.ratingId,
+                  changes: { value: r.value, autoCorrected: true },
+                };
+              }
+            )
+          )
+        );
+      }
+
+      // Flag corrections as auto correction attempted
+      dispatch(
+        correctionsUpdateMany(
+          attemptedCorrectionIds.map((cId: string) => {
+            return { id: cId, changes: { autoCorrectionAttempted: true } };
+          })
+        )
+      );
+
+      // Update status of now finished corrections
+      if (finishedCorrectionIds) {
+        dispatch(
+          correctionsUpdateMany(
+            finishedCorrectionIds.map((cId: string) => {
+              return { id: cId, changes: { status: Status.Done } };
+            })
+          )
+        );
+      }
+
+      // Save changes
+      if (autosave) {
+        dispatch(save());
+      }
+    };
 
     ipcRenderer.on(
       AutoCorrectionIPC.AUTOCORRECTION_SUCCESSFUL,
@@ -146,11 +210,18 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
       handleAutoCorrectionFailed
     );
     ipcRenderer.on(AutoCorrectionIPC.AUTOCORRECTION_PROGRESS, handleProgress);
+    ipcRenderer.on(
+      AutoCorrectionIPC.AUTOCORRECTION_CANCEL_PENDING,
+      handleAutoCorrectionCancelPending
+    );
+    ipcRenderer.on(
+      AutoCorrectionIPC.AUTOCORRECTION_CANCELED,
+      handleAutoCorrectionCanceled
+    );
     ipcRenderer.send(AutoCorrectionIPC.AUTOCORRECTION_START, {
       corrections,
       workspace,
     });
-
     return () => {
       ipcRenderer.removeListener(
         AutoCorrectionIPC.AUTOCORRECTION_SUCCESSFUL,
@@ -205,6 +276,18 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
                       {autoCorrectionProgress.name.replace(/(.{20})..+/, '$1…')}
                     </Typography>
                   </Grid>
+                  <Grid item>
+                    <Button
+                      onClick={() => {
+                        ipcRenderer.send(
+                          AutoCorrectionIPC.AUTOCORRECTION_CANCEL
+                        );
+                      }}
+                      variant="outlined"
+                    >
+                      CANCEL
+                    </Button>
+                  </Grid>
                 </>
               ) : (
                 <>
@@ -223,7 +306,82 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
         </Dialog>
       );
       break;
+    case AutoCorrectionState.AUTOCORRECTION_CANCEL_PENDING:
+      content = (
+        <Dialog {...props}>
+          <DialogContent style={{ padding: '20px', minWidth: '270px' }}>
+            <Grid
+              item
+              container
+              direction="column"
+              justify="center"
+              alignItems="center"
+              spacing={2}
+              style={{ height: '100%' }}
+            >
+              <Grid item>
+                <CircularProgress size={30} />
+              </Grid>
+              <Grid item>
+                <Typography gutterBottom>
+                  Canceling auto correction...
+                </Typography>
+              </Grid>
+            </Grid>
+          </DialogContent>
+        </Dialog>
+      );
+      break;
     case AutoCorrectionState.AUTOCORRECTION_SUCCESSFUL:
+      content = (
+        <Dialog {...props}>
+          <DialogContent style={{ padding: '20px' }}>
+            <Grid
+              item
+              container
+              direction="column"
+              justify="center"
+              alignItems="center"
+              spacing={2}
+              style={{ height: '100%', marginTop: '5px' }}
+            >
+              <Grid item>
+                <CheckIcon
+                  style={{
+                    background:
+                      theme.palette.type === 'dark'
+                        ? theme.palette.success.dark
+                        : theme.palette.success.light,
+                    width: '30px',
+                    height: '30px',
+                    padding: '5px',
+                    borderRadius: '50%',
+                  }}
+                />
+              </Grid>
+              <Grid item>
+                <Typography gutterBottom>
+                  <b>Auto Correction Summary:</b>
+                </Typography>
+              </Grid>
+              <Grid item>
+                <Typography gutterBottom style={{ marginTop: '-20px' }}>
+                  {`Corrected Submissions: ${summary.subCount} (${
+                    Math.round(summary.percent * 100 * 10) / 10.0
+                  }%, ${summary.taskCount} Tasks)`}
+                </Typography>
+              </Grid>
+              <Grid item style={{ marginBottom: '-5px' }}>
+                <Button onClick={close} variant="outlined">
+                  CLOSE
+                </Button>
+              </Grid>
+            </Grid>
+          </DialogContent>
+        </Dialog>
+      );
+      break;
+    case AutoCorrectionState.AUTOCORRECTION_CANCELED:
       content = (
         <Dialog {...props}>
           <DialogContent style={{ padding: '20px' }}>

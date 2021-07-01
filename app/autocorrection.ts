@@ -2,6 +2,9 @@ import { ipcMain, IpcMainEvent, WebContents } from 'electron';
 import fs from 'fs';
 import * as Path from 'path';
 import {
+  AUTOCORRECTION_CANCEL,
+  AUTOCORRECTION_CANCELED,
+  AUTOCORRECTION_CANCEL_PENDING,
   AUTOCORRECTION_PROGRESS,
   AUTOCORRECTION_START,
   AUTOCORRECTION_SUCCESSFUL,
@@ -43,6 +46,8 @@ type Solution = SingleSolutionFound | MultipleSolutionsFound | NoSolutionFound;
 export default class AutoCorrection {
   public static tempDir = 'auto_correction_temp';
 
+  public cancelRequest = false;
+
   constructor() {
     if (!fs.existsSync(AutoCorrection.tempDir)) {
       fs.mkdirSync(AutoCorrection.tempDir);
@@ -50,11 +55,19 @@ export default class AutoCorrection {
 
     ipcMain.on(AUTOCORRECTION_START, (event: IpcMainEvent, arg) => {
       const { sender } = event;
-      AutoCorrection.autoCorrectSingleChoiceTasksOfSheet(
+      // Set cancel request to false
+      this.cancelRequest = false;
+      this.autoCorrectSingleChoiceTasksOfSheet(
         arg.corrections,
         arg.workspace,
         sender
       );
+    });
+
+    ipcMain.on(AUTOCORRECTION_CANCEL, (event: IpcMainEvent, arg) => {
+      const { sender } = event;
+      this.cancelRequest = true;
+      sender.send(AUTOCORRECTION_CANCEL_PENDING);
     });
   }
 
@@ -151,7 +164,7 @@ export default class AutoCorrection {
     return correctedRatings;
   }
 
-  static autoCorrectSingleChoiceTasksOfSheet(
+  private autoCorrectSingleChoiceTasksOfSheet(
     corrections: Correction[],
     workspace: string,
     sender: WebContents
@@ -167,64 +180,81 @@ export default class AutoCorrection {
       ratingId: string;
       value: number;
     }[] = [];
-    corrections.forEach((c, i) => {
-      sender.send(AUTOCORRECTION_PROGRESS, {
-        index: i,
-        total: corrections.length,
-        name: c.submission.name,
-      });
 
-      const { submission } = c;
-      const txtFiles = loadFilesFromWorkspaceMainProcess(
-        submission.name,
-        workspace,
-        AutoCorrection.tempDir
-      ).filter((f) => Path.extname(f) === '.txt');
-
-      // Extract the student solution from every .txt files
-      const texts: string[] = txtFiles.map((f) => {
-        return fs.readFileSync(f, { encoding: 'utf8' });
-      });
-
-      // For Every student solution try to correct it
-      const { sheet } = submission;
-      if (sheet && sheet.tasks && c.ratings) {
-        const tasks: SingleChoiceTask[] = getRateableTasks(
-          sheet.tasks
-        ).filter((t) => isSingleChoiceTask(t)) as SingleChoiceTask[];
-        const correctedRatings = AutoCorrection.autoCorrection(
-          tasks,
-          texts,
-          c.ratings
-        );
-        totalCorrectedRatings.push(...correctedRatings);
-        taskCount += correctedRatings.length;
-
-        if (correctedRatings.length > 0) {
-          subCount += 1;
+    try {
+      corrections.forEach((c, i) => {
+        if (this.cancelRequest) {
+          throw new Error('Canceled upon user request!');
         }
 
-        // if all ratings of the correction are autocorrected status is set to done
-        if (
-          c.ratings.filter((rating) => {
-            return !rating.autoCorrected;
-          }).length === 0
-        ) {
-          finishedCorrectionIds.push(c.id);
+        sender.send(AUTOCORRECTION_PROGRESS, {
+          index: i,
+          total: corrections.length,
+          name: c.submission.name,
+        });
+
+        const { submission } = c;
+        const txtFiles = loadFilesFromWorkspaceMainProcess(
+          submission.name,
+          workspace,
+          AutoCorrection.tempDir
+        ).filter((f) => Path.extname(f) === '.txt');
+
+        // Extract the student solution from every .txt files
+        const texts: string[] = txtFiles.map((f) => {
+          return fs.readFileSync(f, { encoding: 'utf8' });
+        });
+
+        // For Every student solution try to correct it
+        const { sheet } = submission;
+        if (sheet && sheet.tasks && c.ratings) {
+          const tasks: SingleChoiceTask[] = getRateableTasks(
+            sheet.tasks
+          ).filter((t) => isSingleChoiceTask(t)) as SingleChoiceTask[];
+          const correctedRatings = AutoCorrection.autoCorrection(
+            tasks,
+            texts,
+            c.ratings
+          );
+          totalCorrectedRatings.push(...correctedRatings);
+          taskCount += correctedRatings.length;
+
+          if (correctedRatings.length > 0) {
+            subCount += 1;
+          }
+
+          // if all ratings of the correction are autocorrected status is set to done
+          if (
+            c.ratings.filter((rating) => {
+              return !rating.autoCorrected;
+            }).length === 0
+          ) {
+            finishedCorrectionIds.push(c.id);
+          }
         }
-      }
 
-      attemptedCorrectionIds.push(c.id);
-    });
+        attemptedCorrectionIds.push(c.id);
+      });
 
-    sender.send(AUTOCORRECTION_SUCCESSFUL, {
-      attemptedCorrectionIds,
-      finishedCorrectionIds:
-        finishedCorrectionIds.length > 0 ? finishedCorrectionIds : undefined,
-      totalCorrectedRatings:
-        totalCorrectedRatings.length > 0 ? totalCorrectedRatings : undefined,
-      taskCount,
-      subCount,
-    });
+      sender.send(AUTOCORRECTION_SUCCESSFUL, {
+        attemptedCorrectionIds,
+        finishedCorrectionIds:
+          finishedCorrectionIds.length > 0 ? finishedCorrectionIds : undefined,
+        totalCorrectedRatings:
+          totalCorrectedRatings.length > 0 ? totalCorrectedRatings : undefined,
+        taskCount,
+        subCount,
+      });
+    } catch (e) {
+      sender.send(AUTOCORRECTION_CANCELED, {
+        attemptedCorrectionIds,
+        finishedCorrectionIds:
+          finishedCorrectionIds.length > 0 ? finishedCorrectionIds : undefined,
+        totalCorrectedRatings:
+          totalCorrectedRatings.length > 0 ? totalCorrectedRatings : undefined,
+        taskCount,
+        subCount,
+      });
+    }
   }
 }
