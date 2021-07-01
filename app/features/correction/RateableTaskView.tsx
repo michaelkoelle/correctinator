@@ -93,18 +93,24 @@ function RateableTaskView(props: RateableTaskViewProps) {
               justify="space-between"
             >
               <Grid item>
-                <Box width="5em">
-                  <TextField
-                    id="value"
-                    name="value"
-                    type="number"
-                    value={rating.value}
-                    inputProps={{ min: 0, max: task.max, step: task.step }}
-                    onChange={onChangeValue}
-                    size="small"
-                    variant="outlined"
-                  />
-                </Box>
+                <TextField
+                  id="value"
+                  name="value"
+                  type="number"
+                  value={rating.value}
+                  inputProps={{
+                    min: 0,
+                    max: task.max,
+                    step: task.step,
+                    style: {
+                      width: '3.5em',
+                      textAlign: 'center',
+                    },
+                  }}
+                  onChange={onChangeValue}
+                  size="small"
+                  variant="outlined"
+                />
               </Grid>
               <Grid item>
                 <Typography>/</Typography>
