@@ -142,7 +142,7 @@ const buildFileMenu = (
         label: 'Backups',
         submenu: [
           {
-            label: 'Force Backup',
+            label: 'Create Backup',
             click: async () => {
               ipcRenderer.send(BackupIPC.BACKUP_ONCE, workspace);
             },
