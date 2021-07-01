@@ -51,7 +51,9 @@ const buildFileMenu = (
         path
       );
       const stats = fs.statSync(fullPath);
-      const date = new Date(stats.mtimeMs);
+      const date = new Date(
+        process.platform === 'win32' ? stats.atimeMs : stats.mtimeMs
+      );
       return { path, date };
     });
 

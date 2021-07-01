@@ -1,6 +1,7 @@
 import fs from 'fs';
 import * as Path from 'path';
 import { app, ipcMain, WebContents } from 'electron';
+import dateFormat from 'dateformat';
 import * as BackupIPC from './constants/BackupIPC';
 
 export default class Backup {
@@ -63,7 +64,10 @@ export default class Backup {
       const fileName =
         this.iteration >= 0
           ? `${Path.basename(this.path)}.bak${this.iteration + 1}`
-          : `${Path.basename(this.path)}.bak${new Date().toISOString()}`;
+          : `${Path.basename(this.path)}.bak${dateFormat(
+              new Date(),
+              'yyyymmddHHMMss'
+            )}`;
       const dest = Path.join(Backup.backupDir, fileName);
 
       try {
@@ -96,7 +100,9 @@ export default class Backup {
       const path = Path.join(Backup.backupDir, p);
       if (fs.existsSync(path)) {
         const stats = fs.statSync(path);
-        const date = new Date(stats.mtimeMs);
+        const date = new Date(
+          process.platform === 'win32' ? stats.atimeMs : stats.mtimeMs
+        );
         const now = new Date();
         const diff = now.getTime() - date.getTime();
         if (diff >= this.retention) {
