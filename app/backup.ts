@@ -66,7 +66,13 @@ export default class Backup {
           : `${Path.basename(this.path)}.bak${new Date().toISOString()}`;
       const dest = Path.join(Backup.backupDir, fileName);
 
-      fs.copyFileSync(this.path, dest);
+      try {
+        fs.copyFileSync(this.path, dest);
+      } catch (err) {
+        if (this.webContents !== undefined) {
+          this.webContents.send(BackupIPC.BACKUP_FAILED, err);
+        }
+      }
 
       if (this.webContents !== undefined) {
         // TODO: check if backup was really successful
