@@ -132,22 +132,31 @@ export function deleteEverythingInDir(dir: string) {
   }
 }
 
-export function loadFilesFromWorkspace(
+export function loadFilesFromWorkspaceToUserDataDir(
   submissionName: string,
   workspace: string,
+  userDataPath: string,
   dir = 'temp'
 ): string[] {
   if (!fs.existsSync(workspace) || Path.extname(workspace) !== '.cor') {
     return [];
   }
   const tempPaths: string[] = [];
-  const userDataPath: string = remote.app.getPath('userData');
   const tempDir = Path.join(userDataPath, dir);
+
+  // Create temp dir
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
   }
 
+  // Delete everything in tempDir
   deleteEverythingInDir(tempDir);
+
+  // Create submission dir
+  const dest = Path.join(tempDir, submissionName);
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest);
+  }
 
   const zip = new AdmZip(workspace);
   zip
@@ -159,11 +168,39 @@ export function loadFilesFromWorkspace(
       );
     })
     .forEach((entry) => {
-      const path = Path.join(tempDir, entry.name);
-      zip.extractEntryTo(entry, tempDir, false, true);
+      const path = Path.join(tempDir, submissionName, entry.name);
+      zip.extractEntryTo(entry, dest, false, true);
       tempPaths.push(path);
     });
   return tempPaths;
+}
+
+export function loadFilesFromWorkspace(
+  submissionName: string,
+  workspace: string,
+  dir = 'temp'
+): string[] {
+  const userDataPath: string = remote.app.getPath('userData');
+  return loadFilesFromWorkspaceToUserDataDir(
+    submissionName,
+    workspace,
+    userDataPath,
+    dir
+  );
+}
+
+export function loadFilesFromWorkspaceMainProcess(
+  submissionName: string,
+  workspace: string,
+  dir = 'temp'
+): string[] {
+  const userDataPath: string = app.getPath('userData');
+  return loadFilesFromWorkspaceToUserDataDir(
+    submissionName,
+    workspace,
+    userDataPath,
+    dir
+  );
 }
 
 export function deleteCorrectionFromWorkspace(
@@ -290,38 +327,4 @@ export function exportWorkspace(zipPath: string, workspace: string) {
   const zip = new AdmZip();
   zip.addLocalFolder(workspace);
   zip.writeZip(zipPath);
-}
-
-export function loadFilesFromWorkspaceMainProcess(
-  submissionName: string,
-  workspace: string,
-  dir = 'temp'
-): string[] {
-  if (!fs.existsSync(workspace) || Path.extname(workspace) !== '.cor') {
-    return [];
-  }
-  const tempPaths: string[] = [];
-  const userDataPath: string = app.getPath('userData');
-  const tempDir = Path.join(userDataPath, dir);
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir);
-  }
-
-  deleteEverythingInDir(tempDir);
-
-  const zip = new AdmZip(workspace);
-  zip
-    .getEntries()
-    .filter((entry) => {
-      return (
-        Path.dirname(entry.entryName).replaceAll('\\', '/') ===
-        Path.join(submissionName, 'files').replaceAll('\\', '/')
-      );
-    })
-    .forEach((entry) => {
-      const path = Path.join(tempDir, entry.name);
-      zip.extractEntryTo(entry, tempDir, false, true);
-      tempPaths.push(path);
-    });
-  return tempPaths;
 }
