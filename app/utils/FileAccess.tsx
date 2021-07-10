@@ -16,9 +16,9 @@ import {
 } from '../features/workspace/workspaceSlice';
 import { reportSaved } from '../model/SaveSlice';
 
-export function createDirectoryInWorkspace(dir: string, workspace) {
+export function createDirectoryInWorkspace(dirName: string, workspace: string) {
   const zip = new AdmZip(workspace);
-  zip.addFile(dir, Buffer.alloc(0));
+  zip.addFile(`${dirName}/`, Buffer.alloc(0));
   zip.writeZip();
 }
 
@@ -168,7 +168,11 @@ export function loadFilesFromWorkspaceToUserDataDir(
       );
     })
     .forEach((entry) => {
-      const path = Path.join(tempDir, submissionName, entry.name);
+      const path = Path.join(
+        tempDir,
+        submissionName,
+        Path.basename(entry.name)
+      );
       zip.extractEntryTo(entry, dest, false, true);
       tempPaths.push(path);
     });

@@ -45,6 +45,12 @@ export type ImportConflicts = {
 };
 
 export default class Importer {
+  private static FILE_DIR_NAME = 'files';
+
+  private static CONFIG_NAME = 'config.json';
+
+  private static ENCODING: BufferEncoding = 'utf8';
+
   private mainWindow: BrowserWindow;
 
   private index = 0;
@@ -86,7 +92,6 @@ export default class Importer {
         return;
       }
       createNewCorFile(p);
-      // dispatch(workspaceSetPath(p));
       workspace = p;
     }
 
@@ -154,7 +159,7 @@ export default class Importer {
         index: this.index,
         total: this.total,
       });
-      const content = fs.readFileSync(importPath, 'utf8');
+      const content = fs.readFileSync(importPath, Importer.ENCODING);
       const correction: Correction = parser.deserialize(
         content,
         Path.basename(Path.dirname(importPath))
@@ -216,7 +221,7 @@ export default class Importer {
         index: this.index,
         total: this.total,
       });
-      const content = zipEntry.getData().toString('utf8');
+      const content = zipEntry.getData().toString(Importer.ENCODING);
       const correction: Correction = parser.deserialize(
         content,
         Path.basename(Path.dirname(zipEntry.entryName))
@@ -263,12 +268,14 @@ export default class Importer {
     sender: WebContents
   ) {
     const submissionName = correction.submission.name;
+    const fileDir = Path.join(submissionName, Importer.FILE_DIR_NAME);
+    const configPath = Path.join(submissionName, Importer.CONFIG_NAME);
 
     // Create correction directory in workspace
-    createDirectoryInWorkspace(`${submissionName}/`, workspace);
+    createDirectoryInWorkspace(submissionName, workspace);
 
     // Create file folder and copy submission files
-    createDirectoryInWorkspace(`${submissionName}/files/`, workspace);
+    createDirectoryInWorkspace(fileDir, workspace);
 
     // This is not really modular, other parsers could use a different folder structure -> need to add new parser method
     const files: string[] = getAllFilesInDirectory(Path.dirname(path)).filter(
@@ -282,14 +289,14 @@ export default class Importer {
     );
 
     correction.submission.files = targetFiles.map((f) => {
-      return { path: Path.parse(f).base, unread: true };
+      return { path: Path.basename(f), unread: true };
     });
 
     // Save config file
     const { entities } = normalize(correction, CorrectionSchema);
     addFileToWorkspace(
-      `${submissionName}/config.json`,
-      Buffer.from(JSON.stringify(entities), 'utf8'),
+      configPath,
+      Buffer.from(JSON.stringify(entities)),
       workspace
     );
 
@@ -305,9 +312,11 @@ export default class Importer {
     sender: WebContents
   ) {
     const submissionName = correction.submission.name;
+    const fileDir = Path.join(submissionName, Importer.FILE_DIR_NAME);
+    const configPath = Path.join(submissionName, Importer.CONFIG_NAME);
 
     // Create correction directory in workspace
-    createDirectoryInWorkspace(`${submissionName}/`, workspace);
+    createDirectoryInWorkspace(submissionName, workspace);
     const zipEntries = zip.getEntries();
     const files: string[] = zipEntries
       .filter(
@@ -318,7 +327,7 @@ export default class Importer {
       )
       .map((entry) => entry.entryName);
 
-    createDirectoryInWorkspace(`${submissionName}/files/`, workspace);
+    createDirectoryInWorkspace(fileDir, workspace);
     const targetFiles: string[] = [];
     files.forEach((file) => {
       sender.send(IMPORT_PROGRESS, {
@@ -326,25 +335,23 @@ export default class Importer {
         index: this.index,
         total: this.total,
       });
-      const filesDir: string = Path.join(submissionName, 'files');
-      const { base } = Path.parse(file);
-      const fileName = base;
+      const filePath: string = Path.join(fileDir, Path.basename(file));
       const buffer: Buffer | null = zip.readFile(file);
       if (buffer != null) {
-        addFileToWorkspace(`${filesDir}/${fileName}`, buffer, workspace);
-        targetFiles.push(`${filesDir}/${fileName}`);
+        addFileToWorkspace(filePath, buffer, workspace);
+        targetFiles.push(filePath);
       }
     });
 
     correction.submission.files = targetFiles.map((f) => {
-      return { path: Path.parse(f).base, unread: true };
+      return { path: Path.basename(f), unread: true };
     });
 
     // Save config file
     const { entities } = normalize(correction, CorrectionSchema);
     addFileToWorkspace(
-      `${submissionName}/config.json`,
-      Buffer.from(JSON.stringify(entities), 'utf8'),
+      configPath,
+      Buffer.from(JSON.stringify(entities), Importer.ENCODING),
       workspace
     );
 
@@ -370,7 +377,7 @@ export default class Importer {
           total: this.total,
         });
         const zipEntry = zip.getEntry(c.path);
-        const content = zipEntry.getData().toString('utf8');
+        const content = zipEntry.getData().toString(Importer.ENCODING);
         const parser: Parser = instanciateParser(c.parser);
         const correction: Correction = parser.deserialize(
           content,
@@ -396,7 +403,7 @@ export default class Importer {
           index: this.index,
           total: this.total,
         });
-        const content = fs.readFileSync(c.path, 'utf8');
+        const content = fs.readFileSync(c.path, Importer.ENCODING);
         const parser: Parser = instanciateParser(c.parser);
         const correction: Correction = parser.deserialize(
           content,
@@ -430,23 +437,25 @@ export default class Importer {
     const zip = new AdmZip(workspace);
     const targetFiles: string[] = [];
     files.forEach((file) => {
+      // Send import progress
       sender.send(IMPORT_PROGRESS, {
         name: Path.basename(file),
         index: this.index,
         total: this.total,
       });
-      const { base } = Path.parse(file);
+
+      // Copy submission file
       if (submissionId) {
-        const fileName = base;
-        const fileDir = `${submissionId}/files`;
-        const fullPath = `${fileDir}/${fileName}`;
-        if (zip.getEntry(fullPath) === null) {
+        const fileName = Path.basename(file);
+        const fileDir = Path.join(submissionId, Importer.FILE_DIR_NAME);
+        const filePath = Path.join(fileDir, fileName);
+        if (zip.getEntry(filePath) === null) {
           zip.addLocalFile(file, fileDir, fileName);
         } else {
-          zip.deleteFile(fullPath);
+          zip.deleteFile(filePath);
           zip.addLocalFile(file, fileDir, fileName);
         }
-        targetFiles.push(fullPath);
+        targetFiles.push(filePath);
       }
     });
     zip.writeZip();
