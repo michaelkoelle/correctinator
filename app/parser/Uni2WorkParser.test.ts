@@ -1,6 +1,7 @@
 import Correction from '../model/Correction';
 import Status from '../model/Status';
 import Parser from './Parser';
+import ParserType from './ParserType';
 import Uni2WorkParser, { Uni2WorkDataStructure } from './Uni2WorkParser';
 
 const parser: Parser = new Uni2WorkParser();
@@ -10,6 +11,32 @@ const u2wTestString1 = `
 ---
 # Meta-Informationen zur Korrektur (werden beim Hochladen ignoriert)
 term: SoSe 2020
+school: Institut für Informatik
+course: Rechnerarchitektur
+sheet:
+  name: Online-Hausarbeit 5
+  type: normal
+  grading:
+    max: 10
+    type: points
+rated_by: John Doe
+rated_at: null
+
+# Abgabenummer; wird beim Hochladen mit dem Dateinamen abgeglichen
+submission: uwazxvya2akrnnc2
+
+# Bewertung
+points: null # TODO: Hier die Punktezahl statt null eintragen (bis zu zwei Nachkommastellen, Punkt als Dezimalseparator; z.B. 17.03)
+rating_done: false # TODO: Von false auf true setzen, sobald Bewertung abgeschlossen; sonst Korrektur für die Studierenden nicht sichtbar und keine Anrechnung auf Prüfungsbonus
+
+# TODO: Korrektur-Kommentar für die Studierenden unterhalb der Abtrennung (...) eintragen
+...`;
+
+const u2wTestString4 = `
+%YAML 1.2
+---
+# Meta-Informationen zur Korrektur (werden beim Hochladen ignoriert)
+term: Winter 2021/22
 school: Institut für Informatik
 course: Rechnerarchitektur
 sheet:
@@ -84,8 +111,58 @@ const correctionTestData1: Correction = {
   },
   // note: { text: '' },
   // annotation: { text: '' },
+  parserOptions: {
+    fileName: 'bewertung_uwazxvya2akrnnc2.txt',
+    language: 'de',
+    type: ParserType.Uni2Work,
+  },
 };
 correctionTestData1.submission.correction = correctionTestData1;
+
+const correctionTestData4: Correction = {
+  id: '5475c708-3ced-5ff5-ad51-a1c12f8a2757',
+  submission: {
+    id: 'd519b90c-6b6e-5d67-9e0d-318f05693b01',
+    name: 'uwazxvya2akrnnc2',
+    sheet: {
+      id: 'cbce52d6-5bba-599d-ba60-273d23ef3d2e',
+      name: 'Online-Hausarbeit 5',
+      type: 'normal',
+      maxValue: 10,
+      valueType: 'points',
+      school: {
+        id: '344bd582-e110-53f6-a10c-6a14d6a7e291',
+        name: 'Institut für Informatik',
+      },
+      term: {
+        id: '2bb8000f-5fed-5a2e-a43d-a0435b3476d8',
+        year: 2021,
+        summerterm: false,
+      },
+      course: {
+        id: '73ae54b7-afdd-5912-a5d0-a1dd488fe912',
+        name: 'Rechnerarchitektur',
+      },
+    },
+  },
+  corrector: {
+    id: 'b3aa67d2-4ae3-5441-860a-88ab5391673d',
+    name: 'John Doe',
+  },
+  status: Status.Todo,
+  location: {
+    id: '148bdfa9-7596-5319-a197-ead64880df40',
+    name: null,
+  },
+  // note: { text: '' },
+  // annotation: { text: '' },
+  parserOptions: {
+    fileName: 'rating_uwazxvya2akrnnc2.txt',
+    language: 'en',
+    type: ParserType.Uni2Work,
+  },
+};
+correctionTestData4.submission.correction = correctionTestData4;
 
 const u2wTestString2 = `term: SoSe 2020
 school: Institut für Informatik
@@ -339,6 +416,40 @@ test('serializeTerm WiSe 2020/21', () => {
   ).toBe(u2wTestData2.term);
 });
 
+test('serializeTerm SoSe 2021 eng', () => {
+  expect(
+    Uni2WorkParser.serializeTerm(
+      {
+        id: 'b91bb5ff-1141-53f7-96b5-2cafc53ce6ea',
+        year: 2021,
+        summerterm: true,
+      },
+      {
+        fileName: 'rating_uwazxvya2akrnnc2.txt',
+        language: 'en',
+        type: ParserType.Uni2Work,
+      }
+    )
+  ).toBe('Summer 2021');
+});
+
+test('serializeTerm WiSe 2020/21 eng', () => {
+  expect(
+    Uni2WorkParser.serializeTerm(
+      {
+        id: 'cc47b29b-a507-533f-b4db-1fee84ed81fb',
+        year: 2021,
+        summerterm: false,
+      },
+      {
+        fileName: 'rating_uwazxvya2akrnnc2.txt',
+        language: 'en',
+        type: ParserType.Uni2Work,
+      }
+    )
+  ).toBe('Winter 2021/22');
+});
+
 test('deserializeTerm SoSe 2020', () => {
   expect(Uni2WorkParser.deserializeTerm(u2wTestData1.term)).toStrictEqual({
     id: 'b91bb5ff-1141-53f7-96b5-2cafc53ce6ea',
@@ -351,6 +462,22 @@ test('deserializeTerm WiSe 2020/21', () => {
   expect(Uni2WorkParser.deserializeTerm(u2wTestData2.term)).toStrictEqual({
     id: 'cc47b29b-a507-533f-b4db-1fee84ed81fb',
     year: 2020,
+    summerterm: false,
+  });
+});
+
+test('deserializeTerm SoSe 2021 eng', () => {
+  expect(Uni2WorkParser.deserializeTerm('Summer 2021')).toStrictEqual({
+    id: '230fe0c4-e9cc-5515-9101-2449f3b96dec',
+    year: 2021,
+    summerterm: true,
+  });
+});
+
+test('deserializeTerm WiSe 2021/22 eng', () => {
+  expect(Uni2WorkParser.deserializeTerm('Winter 2021/22')).toStrictEqual({
+    id: '2bb8000f-5fed-5a2e-a43d-a0435b3476d8',
+    year: 2021,
     summerterm: false,
   });
 });
@@ -424,6 +551,16 @@ test('deserialize Correction u2wTestData1', () => {
       'bewertung_uwazxvya2akrnnc2.txt'
     )
   ).toMatchObject(correctionTestData1);
+});
+
+test('deserialize Correction u2wTestData4', () => {
+  expect(
+    parser.deserialize(
+      u2wTestString4,
+      'uwazxvya2akrnnc2',
+      'rating_uwazxvya2akrnnc2.txt'
+    )
+  ).toMatchObject(correctionTestData4);
 });
 
 test('serialize correctionTestData2', () => {
