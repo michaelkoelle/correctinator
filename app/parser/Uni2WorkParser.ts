@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import * as YAML from 'yaml';
-import Parser, { ParserType } from './Parser';
+import Parser from './Parser';
 import UUID from '../utils/UUID';
 import Term from '../model/Term';
 import Correction from '../model/Correction';
@@ -10,6 +10,8 @@ import Location from '../model/Location';
 import Course from '../model/Course';
 import School from '../model/School';
 import Rating from '../model/Rating';
+import ParserOptions from './ParserOptions';
+import ParserType from './ParserType';
 
 export type Uni2WorkDataStructure = {
   term: string;
@@ -39,9 +41,13 @@ export type Uni2WorkDataStructure = {
 };
 
 export default class Uni2WorkParser implements Parser {
-  public configFilePattern = /bewertung_([a-z0-9]{16})\.txt/g;
+  public configFilePattern = /(bewertung|rating)_([a-z0-9]{16})\.txt/g;
 
-  public deserialize(text: string, dirName: string): Correction {
+  public deserialize(
+    text: string,
+    dirName: string,
+    fileName: string
+  ): Correction {
     const [configText, ...rest] = text.split('...');
     const u2wDoc = YAML.parseDocument(configText);
 
@@ -86,6 +92,11 @@ export default class Uni2WorkParser implements Parser {
       corrector: Uni2WorkParser.deserializeCorrector(u2wData.rated_by),
       status: Uni2WorkParser.deserializeStatus(u2wData.rating_done),
       location: Uni2WorkParser.deserializeLocation(u2wData.rated_at),
+      parserOptions: {
+        type: ParserType.Uni2Work,
+        language: fileName.includes('rating') ? 'en' : 'de',
+        fileName,
+      },
     };
 
     // Exam Sheet
@@ -105,7 +116,7 @@ export default class Uni2WorkParser implements Parser {
   public static deserializeTerm(term: string): Term {
     // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
     // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
-    const termPattern = /(wise|sose)\s*(\d{4})/i;
+    const termPattern = /(wise|sose|Winter|Summer)\s*(\d{4})/i;
     const summertermPattern = /sose/gi;
     const termGroups = term.match(termPattern);
     if (termGroups === null) {
@@ -121,8 +132,16 @@ export default class Uni2WorkParser implements Parser {
     };
   }
 
-  public static serializeTerm(term: Term): string {
-    return `${term.summerterm ? 'SoSe' : 'WiSe'} ${term.year}${
+  public static serializeTerm(term: Term, options?: ParserOptions): string {
+    let summerterm = 'SoSe';
+    let winterterm = 'WiSe';
+
+    if (options?.language === 'en') {
+      summerterm = 'Summer';
+      winterterm = 'Winter';
+    }
+
+    return `${term.summerterm ? summerterm : winterterm} ${term.year}${
       term.summerterm ? '' : `/${String(term.year + 1).slice(-2)}`
     }`;
   }
@@ -165,7 +184,10 @@ export default class Uni2WorkParser implements Parser {
 
   public serialize(correction: Correction, tasksAndComments = ''): string {
     const u2wData: Uni2WorkDataStructure = {
-      term: Uni2WorkParser.serializeTerm(correction.submission.sheet.term),
+      term: Uni2WorkParser.serializeTerm(
+        correction.submission.sheet.term,
+        correction.parserOptions
+      ),
       school: correction.submission.sheet.school.name,
       course: correction.submission.sheet.course.name,
       sheet: {
@@ -199,7 +221,10 @@ export default class Uni2WorkParser implements Parser {
   }
 
   getConfigFileName(correction: Correction): string {
-    return `bewertung_${correction.submission.name}.txt`;
+    return (
+      correction.parserOptions?.fileName ||
+      `bewertung_${correction.submission.name}.txt`
+    );
   }
 
   getType(): ParserType {
