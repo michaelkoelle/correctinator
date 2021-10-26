@@ -1,4 +1,5 @@
-import Parser, { ParserType } from './Parser';
+import Parser from './Parser';
+import ParserType from './ParserType';
 import Uni2WorkParser from './Uni2WorkParser';
 
 const instanciateParser = (type: ParserType): Parser => {

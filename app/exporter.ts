@@ -11,10 +11,11 @@ import {
 } from './constants/ExportIPC';
 import ConditionalComment from './model/ConditionalComment';
 import Correction from './model/Correction';
-import Parser, { ParserType } from './parser/Parser';
+import Parser from './parser/Parser';
 import instanciateParser from './parser/ParserUtil';
 import { serializeCorrection } from './utils/Formatter';
 import { loadFilesFromWorkspaceMainProcess } from './utils/FileAccess';
+import ParserType from './parser/ParserType';
 
 export interface ExportProgress {
   steps: {

@@ -6,7 +6,7 @@ import {
   selectSettingsExport,
   settingsSetExport,
 } from '../model/SettingsSlice';
-import { ParserType } from '../parser/Parser';
+import ParserType from '../parser/ParserType';
 
 const OutputFormatSelect = () => {
   const dispatch = useDispatch();
