@@ -83,6 +83,7 @@ export default class Importer {
     // Create new workspace file if no workspace is allocated yet
     if (workspacePath.length === 0) {
       const p: string | undefined = dialog.showSaveDialogSync(this.mainWindow, {
+        defaultPath: `${Path.parse(path).name}.cor`,
         filters: [{ name: 'Correctinator', extensions: ['cor'] }],
       });
       if (!p) {
