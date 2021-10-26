@@ -117,7 +117,7 @@ export default class Uni2WorkParser implements Parser {
     // More detailed: 1. WiSe|SoSe 2. Century e.g. 20 3. Year start 4. Year end (only WiSe)
     // const termPattern = /(wise|sose)\s*(\d{2})(\d{2})(?:\/(\d{2}))?/gi;
     const termPattern = /(wise|sose|Winter|Summer)\s*(\d{4})/i;
-    const summertermPattern = /sose/gi;
+    const summertermPattern = /sose|Summer/gi;
     const termGroups = term.match(termPattern);
     if (termGroups === null) {
       throw new Error(`Could not parse term!`);
