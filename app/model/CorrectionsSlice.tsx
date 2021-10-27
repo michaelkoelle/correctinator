@@ -3,6 +3,7 @@ import {
   createAction,
   createEntityAdapter,
   createSlice,
+  EntityState,
 } from '@reduxjs/toolkit';
 import { normalize } from 'normalizr';
 import Correction from './Correction';
@@ -56,7 +57,9 @@ export const {
   selectEntities: selectCorrectionEntities,
   selectAll: selectAllCorrections,
   selectTotal: selectTotalCorrections,
-} = adapter.getSelectors((state: any) => state.corrections);
+} = adapter.getSelectors(
+  (state: { corrections: EntityState<CorrectionEntity> }) => state.corrections
+);
 
 export function upsertCorrection(correction: Correction) {
   return (dispatch) => {

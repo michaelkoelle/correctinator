@@ -48,7 +48,7 @@ export default class Uni2WorkParser implements Parser {
     dirName: string,
     fileName: string
   ): Correction {
-    const [configText, ...rest] = text.split('...');
+    const configText = text.split('...')[0];
     const u2wDoc = YAML.parseDocument(configText);
 
     if (u2wDoc.errors.length > 0) {

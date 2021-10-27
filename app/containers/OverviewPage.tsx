@@ -2,6 +2,6 @@
 import React from 'react';
 import Overview from '../features/overview/Overview';
 
-export default function OverviewPage(props: any) {
+export default function OverviewPage(props) {
   return <Overview {...props} />;
 }

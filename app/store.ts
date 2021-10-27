@@ -33,6 +33,7 @@ const persistConfig = {
 
 export const history = createHashHistory();
 const combinedReducer = createRootReducer(history);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rootReducer: any = persistReducer(persistConfig, combinedReducer);
 export type RootState = ReturnType<typeof rootReducer>;
 
@@ -100,4 +101,4 @@ export const configuredStore = (initialState?: RootState) => {
 export type Store = ReturnType<typeof configuredStore>;
 export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;
 // eslint-disable-next-line import/prefer-default-export
-export const useAppDispatch = () => useDispatch<any>();
+export const useAppDispatch = () => useDispatch<unknown>();

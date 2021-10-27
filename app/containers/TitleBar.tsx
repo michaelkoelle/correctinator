@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { useTheme, Snackbar } from '@material-ui/core';
 import { remote } from 'electron';
 import { Alert } from '@material-ui/lab';
+import { MenuItem } from 'frameless-titlebar/dist/title-bar/typings';
 import {
   selectRecentPaths,
   selectWorkspacePath,
@@ -109,7 +110,7 @@ export default function TitleBar(props: TitleBarProps) {
             recentPaths,
             setOpenFileError,
             setReload
-          ) as any
+          ) as MenuItem[] | undefined
         }
         theme={{
           bar: {

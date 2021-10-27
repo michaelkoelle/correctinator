@@ -27,7 +27,6 @@ import {
 } from '../model/Selectors';
 
 import Sheet from '../model/Sheet';
-import { sheetsUpsertOne } from '../model/SheetSlice';
 import { serializeTerm } from '../utils/Formatter';
 import './SplitPane.css';
 
@@ -64,6 +63,7 @@ export default function CorrectionViewPage() {
         );
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
 
   function handleCloseDialog() {

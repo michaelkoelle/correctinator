@@ -29,7 +29,7 @@ const slice = createSlice({
     [loadCorrections.type]: (state, action) => {
       adapter.upsertMany(state, action.payload.schools);
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
@@ -41,7 +41,9 @@ export const {
   selectEntities: selectSchoolEntities,
   selectAll: selectAllSchools,
   selectTotal: selectTotalSchools,
-} = adapter.getSelectors((state: any) => state.schools);
+} = adapter.getSelectors(
+  (state: { schools: EntityState<School> }) => state.schools
+);
 
 export const {
   schoolsAddOne,

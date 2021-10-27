@@ -127,6 +127,7 @@ const ImportModal: FC<ImportModalProps> = ({ ...props }) => {
       ipcRenderer.removeListener(ImportIPC.IMPORT_FAILED, handleImportFailed);
       ipcRenderer.removeListener(ImportIPC.IMPORT_PROGRESS, handleProgress);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   let content;

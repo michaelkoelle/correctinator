@@ -52,6 +52,7 @@ const ReleaseNotesModal: FC<ReleaseNotesModalProps> = ({ ...props }) => {
       .catch(() => {
         setLoading(false);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   let content: JSX.Element;

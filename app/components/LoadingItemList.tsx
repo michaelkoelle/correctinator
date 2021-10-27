@@ -1,16 +1,20 @@
 import { List, ListItem } from '@material-ui/core';
 import React from 'react';
-import LoadingItem from './LoadingItem';
+import LoadingItem, { LoadingItemProps } from './LoadingItem';
 
-export default function LoadingItemList(props: any): JSX.Element {
+type LoadingItemListProps = {
+  progress: (LoadingItemProps & { active: boolean })[];
+};
+
+export default function LoadingItemList(
+  props: LoadingItemListProps
+): JSX.Element {
   const { progress } = props;
-  const activeItems = progress.filter(
-    (item: { active: boolean }) => item.active
-  );
+  const activeItems = progress.filter((item) => item.active);
 
   return (
     <List>
-      {activeItems.map((item: { message: string; complete: boolean }) => {
+      {activeItems.map((item) => {
         return (
           <ListItem key={item.message}>
             <LoadingItem message={item.message} complete={item.complete} />

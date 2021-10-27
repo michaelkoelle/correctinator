@@ -2,6 +2,7 @@
 import {
   createEntityAdapter,
   createSlice,
+  EntityState,
   PayloadAction,
 } from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
@@ -46,7 +47,7 @@ const slice = createSlice({
     }, */
   },
   extraReducers: {
-    [loadCorrections.type]: (state: any, action) => {
+    [loadCorrections.type]: (state: EntityState<TaskEntity>, action) => {
       if (action.payload.tasks !== undefined) {
         adapter.upsertMany(state, action.payload.tasks);
       }
@@ -105,4 +106,6 @@ export const {
   selectEntities: selectTaskEntities,
   selectAll: selectAllTasks,
   selectTotal: selectTotalTasks,
-} = adapter.getSelectors((state: any) => state.tasks);
+} = adapter.getSelectors(
+  (state: { tasks: EntityState<TaskEntity> }) => state.tasks
+);

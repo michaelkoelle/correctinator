@@ -29,7 +29,7 @@ const slice = createSlice({
         adapter.upsertMany(state, action.payload.annotations);
       }
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
@@ -53,6 +53,8 @@ export const {
   selectEntities: selectAnnotationEntities,
   selectAll: selectAllAnnotations,
   selectTotal: selectTotalAnnotations,
-} = adapter.getSelectors((state: any) => state.annotations);
+} = adapter.getSelectors(
+  (state: { annotations: EntityState<Annotation> }) => state.annotations
+);
 
 export default slice.reducer;

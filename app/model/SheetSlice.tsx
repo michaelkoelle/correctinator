@@ -1,5 +1,9 @@
 /* eslint-disable import/no-cycle */
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import {
+  createEntityAdapter,
+  createSlice,
+  EntityState,
+} from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import SheetEntity from './SheetEntity';
 
@@ -50,4 +54,6 @@ export const {
   selectEntities: selectSheetEntities,
   selectAll: selectAllSheets,
   selectTotal: selectTotalSheets,
-} = adapter.getSelectors((state: any) => state.sheets);
+} = adapter.getSelectors(
+  (state: { sheets: EntityState<SheetEntity> }) => state.sheets
+);

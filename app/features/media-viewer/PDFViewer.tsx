@@ -28,8 +28,10 @@ export default function PDFViewer(props: ViewerProps) {
     const textLayers = document.querySelectorAll(
       '.react-pdf__Page__textContent'
     );
-    textLayers.forEach((layer: any) => {
-      const { style } = layer;
+    textLayers.forEach((layer) => {
+      const { style } = (layer as unknown) as {
+        style: { top: string; left: string; transform: string };
+      };
       style.top = '0';
       style.left = '0';
       style.transform = '';

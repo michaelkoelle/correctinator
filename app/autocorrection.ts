@@ -64,7 +64,7 @@ export default class AutoCorrection {
       );
     });
 
-    ipcMain.on(AUTOCORRECTION_CANCEL, (event: IpcMainEvent, arg) => {
+    ipcMain.on(AUTOCORRECTION_CANCEL, (event: IpcMainEvent) => {
       const { sender } = event;
       this.cancelRequest = true;
       sender.send(AUTOCORRECTION_CANCEL_PENDING);

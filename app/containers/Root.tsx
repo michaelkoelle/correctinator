@@ -6,6 +6,7 @@ import { AnyAction, EnhancedStore } from '@reduxjs/toolkit';
 import Providers from './Providers';
 
 type Props = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   store: EnhancedStore<any, AnyAction, any[]>;
   history: History;
 };
