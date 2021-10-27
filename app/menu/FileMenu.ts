@@ -192,6 +192,7 @@ const buildFileMenu = (
       },
       {
         label: 'Close file',
+        disabled: !workspace,
         click: async () => {
           unsavedChangesDialog('');
         },
