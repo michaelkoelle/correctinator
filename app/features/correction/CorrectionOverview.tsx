@@ -49,6 +49,7 @@ export default function CorrectionOverview(props: CorrectionOverviewProps) {
         correction.status === Status.Marked
       )
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
 
   const handleClick = () => {

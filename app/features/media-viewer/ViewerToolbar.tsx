@@ -113,6 +113,7 @@ export default function ViewerToolbar(props: ViewerToolbarProps) {
     return () => {
       window.removeEventListener('wheel', handleScrollEvent);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

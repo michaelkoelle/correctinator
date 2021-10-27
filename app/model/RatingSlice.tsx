@@ -3,7 +3,6 @@ import {
   createEntityAdapter,
   createSlice,
   EntityState,
-  PayloadAction,
 } from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import RatingEntity from './RatingEntity';
@@ -32,7 +31,7 @@ const slice = createSlice({
         adapter.upsertMany(state, action.payload.ratings);
       }
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
@@ -44,7 +43,9 @@ export const {
   selectEntities: selectRatingEntities,
   selectAll: selectAllRatings,
   selectTotal: selectTotalRatings,
-} = adapter.getSelectors((state: any) => state.ratings);
+} = adapter.getSelectors(
+  (state: { ratings: EntityState<RatingEntity> }) => state.ratings
+);
 
 export const {
   ratingsAddOne,

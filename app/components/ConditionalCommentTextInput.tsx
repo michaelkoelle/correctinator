@@ -2,7 +2,6 @@
 /* eslint-disable react/prop-types */
 import { IconButton, TextField } from '@material-ui/core';
 import CancelIcon from '@material-ui/icons/Cancel';
-import { relative } from 'path';
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import ConditionalComment from '../model/ConditionalComment';

@@ -1,5 +1,9 @@
 /* eslint-disable import/no-cycle */
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import {
+  createEntityAdapter,
+  createSlice,
+  EntityState,
+} from '@reduxjs/toolkit';
 import CommentEntity from './CommentEntity';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 
@@ -49,6 +53,8 @@ export const {
   selectEntities: selectCommentsEntities,
   selectAll: selectAllComments,
   selectTotal: selectTotalComments,
-} = adapter.getSelectors((state: any) => state.comments);
+} = adapter.getSelectors(
+  (state: { comments: EntityState<CommentEntity> }) => state.comments
+);
 
 export default slice.reducer;

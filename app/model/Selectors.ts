@@ -13,8 +13,7 @@ import {
   SheetsSchema,
 } from './NormalizationSchema';
 import Sheet from './Sheet';
-import SheetEntity from './SheetEntity';
-import { selectAllSheets, selectSheetIds } from './SheetSlice';
+import { selectSheetIds } from './SheetSlice';
 
 export const selectAllEntities = createSelector(
   [

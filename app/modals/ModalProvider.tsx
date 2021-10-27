@@ -16,8 +16,9 @@ const ModalContext = createContext<
 
 export default function ModalProvider(props: ModalProviderProps) {
   const { children } = props;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [Modal, setModal] = useState<any>(null);
-  const [modalOptions, setModalOptions] = useState<any>(null);
+  const [modalOptions, setModalOptions] = useState<unknown>(null);
 
   const openModal = <T extends unknown>(
     component: FC<T & ModalProps>,

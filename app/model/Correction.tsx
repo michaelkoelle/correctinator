@@ -6,6 +6,7 @@ import Note from './Note';
 import Annotation from './Annotation';
 import Submission from './Submission';
 import Rating from './Rating';
+import ParserOptions from '../parser/ParserOptions';
 
 type Correction = {
   id: string;
@@ -18,6 +19,7 @@ type Correction = {
   annotation?: Annotation;
   timeElapsed?: number;
   autoCorrectionAttempted?: boolean;
+  parserOptions?: ParserOptions;
 };
 
 export default Correction;

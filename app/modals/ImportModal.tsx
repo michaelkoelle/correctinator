@@ -26,12 +26,12 @@ import {
 import { CorrectionsSchema } from '../model/NormalizationSchema';
 import { loadCorrections } from '../model/CorrectionsSlice';
 import CircularProgressWithLabel from '../components/CircularProgressWithLabel';
-import { ParserType } from '../parser/Parser';
 // eslint-disable-next-line import/no-cycle
 import OverwriteDuplicateSubmissionsDialog from '../dialogs/OverwriteDuplicateSubmissionsDialog';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import { save } from '../utils/FileAccess';
 import { selectSettingsGeneral } from '../model/SettingsSlice';
+import ParserType from '../parser/ParserType';
 
 type ImportModalProps = ModalProps & {
   path?: string;
@@ -127,6 +127,7 @@ const ImportModal: FC<ImportModalProps> = ({ ...props }) => {
       ipcRenderer.removeListener(ImportIPC.IMPORT_FAILED, handleImportFailed);
       ipcRenderer.removeListener(ImportIPC.IMPORT_PROGRESS, handleProgress);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   let content;

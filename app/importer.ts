@@ -10,7 +10,7 @@ import {
 } from 'electron';
 import { normalize } from 'normalizr';
 import Correction from './model/Correction';
-import Parser, { ParserType } from './parser/Parser';
+import Parser from './parser/Parser';
 import instanciateParser from './parser/ParserUtil';
 import {
   IMPORT_CONFLICTS,
@@ -27,6 +27,7 @@ import {
   getAllFilesInDirectory,
 } from './utils/FileAccess';
 import { CorrectionSchema } from './model/NormalizationSchema';
+import ParserType from './parser/ParserType';
 
 export interface ImportProgress {
   name: string;
@@ -82,6 +83,7 @@ export default class Importer {
     // Create new workspace file if no workspace is allocated yet
     if (workspacePath.length === 0) {
       const p: string | undefined = dialog.showSaveDialogSync(this.mainWindow, {
+        defaultPath: `${Path.parse(path).name}.cor`,
         filters: [{ name: 'Correctinator', extensions: ['cor'] }],
       });
       if (!p) {
@@ -162,7 +164,8 @@ export default class Importer {
       const content = fs.readFileSync(importPath, Importer.ENCODING);
       const correction: Correction = parser.deserialize(
         content,
-        Path.basename(Path.dirname(importPath))
+        Path.basename(Path.dirname(importPath)),
+        Path.basename(importPath)
       );
 
       // Were the submissions already imported?
@@ -224,7 +227,8 @@ export default class Importer {
       const content = zipEntry.getData().toString(Importer.ENCODING);
       const correction: Correction = parser.deserialize(
         content,
-        Path.basename(Path.dirname(zipEntry.entryName))
+        Path.basename(Path.dirname(zipEntry.entryName)),
+        Path.basename(zipEntry.entryName)
       );
 
       // Were the submissions already imported?
@@ -381,7 +385,8 @@ export default class Importer {
         const parser: Parser = instanciateParser(c.parser);
         const correction: Correction = parser.deserialize(
           content,
-          Path.basename(Path.dirname(c.path))
+          Path.basename(Path.dirname(c.path)),
+          Path.basename(c.path)
         );
         corrections.push(
           this.ingestCorrectionFromZip(
@@ -407,7 +412,8 @@ export default class Importer {
         const parser: Parser = instanciateParser(c.parser);
         const correction: Correction = parser.deserialize(
           content,
-          Path.basename(Path.dirname(c.path))
+          Path.basename(Path.dirname(c.path)),
+          Path.basename(c.path)
         );
         corrections.push(
           this.ingestCorrectionFromFolder(

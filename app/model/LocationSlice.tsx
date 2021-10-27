@@ -31,7 +31,7 @@ const slice = createSlice({
         adapter.upsertMany(state, action.payload.locations);
       }
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
@@ -43,7 +43,9 @@ export const {
   selectEntities: selectLocationEntities,
   selectAll: selectAllLocations,
   selectTotal: selectTotalLocations,
-} = adapter.getSelectors((state: any) => state.locations);
+} = adapter.getSelectors(
+  (state: { locations: EntityState<Location> }) => state.locations
+);
 
 export const {
   locationsAddOne,

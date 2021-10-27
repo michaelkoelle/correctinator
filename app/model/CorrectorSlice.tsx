@@ -29,7 +29,7 @@ const slice = createSlice({
     [loadCorrections.type]: (state, action) => {
       adapter.upsertMany(state, action.payload.correctors);
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
@@ -41,7 +41,9 @@ export const {
   selectEntities: selectCorrectorEntities,
   selectAll: selectAllCorrectors,
   selectTotal: selectTotalCorrectors,
-} = adapter.getSelectors((state: any) => state.correctors);
+} = adapter.getSelectors(
+  (state: { correctors: EntityState<Corrector> }) => state.correctors
+);
 
 export const {
   correctorsAddOne,

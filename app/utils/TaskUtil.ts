@@ -35,19 +35,21 @@ export function getTaskType(task: Task | TaskEntity): TaskType {
   return TaskType.Parent;
 }
 
-export function hasTasksWithZeroMax(ts: Task[] | TaskEntity[]): boolean {
-  const test: Task | TaskEntity = (ts as any).find((t: Task | TaskEntity) => {
-    if (isRateableTask(t)) {
-      if (t.max === 0) {
-        return true;
+export function hasTasksWithZeroMax(ts: (Task | TaskEntity)[]): boolean {
+  const test: Task | TaskEntity | undefined = ts.find(
+    (t: Task | TaskEntity) => {
+      if (isRateableTask(t)) {
+        if (t.max === 0) {
+          return true;
+        }
+      } else if (isSingleChoiceTask(t)) {
+        if (t.answer.value === 0) {
+          return true;
+        }
       }
-    } else if (isSingleChoiceTask(t)) {
-      if (t.answer.value === 0) {
-        return true;
-      }
+      return false;
     }
-    return false;
-  });
+  );
   return test !== undefined;
 }
 
@@ -70,22 +72,6 @@ export function getTopLevelTasks(tasks: Task[]): Task[] {
   });
 
   return top;
-}
-
-export function removeTaskIds(tasks: Task[], res: any = []) {
-  tasks.forEach((t) => {
-    if (isParentTask(t)) {
-      const { id, ...rest } = t;
-      const temp: any = { ...rest };
-      temp.tasks = removeTaskIds(t.tasks);
-      res.push(temp);
-    } else {
-      const { id, ...rest } = t;
-      const temp = { ...rest };
-      res.push(temp);
-    }
-  });
-  return res;
 }
 
 export function flatMapTask(pt: ParentTask, list: Task[] = []) {

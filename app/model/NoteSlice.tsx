@@ -29,7 +29,7 @@ const slice = createSlice({
         adapter.upsertMany(state, action.payload.notes);
       }
     },
-    [deleteEntities.type]: (state, action) => {
+    [deleteEntities.type]: (state) => {
       adapter.removeAll(state);
     },
   },
@@ -53,6 +53,6 @@ export const {
   selectEntities: selectNoteEntities,
   selectAll: selectAllNotes,
   selectTotal: selectTotalNotes,
-} = adapter.getSelectors((state: any) => state.notes);
+} = adapter.getSelectors((state: { notes: EntityState<Note> }) => state.notes);
 
 export default slice.reducer;

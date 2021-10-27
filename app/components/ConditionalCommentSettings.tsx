@@ -2,16 +2,14 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import { Theme, withStyles } from '@material-ui/core/styles';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import Typography from '@material-ui/core/Typography';
 import {
-  Fade,
   Grid,
   IconButton,
   Paper,
   Slider,
-  Tooltip,
+  Theme,
   useTheme,
 } from '@material-ui/core';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,7 +20,12 @@ import {
   settingsUpdateConditionalCommentValue,
 } from '../model/SettingsSlice';
 
-function ValueLabelComponent(props: any) {
+function ValueLabelComponent(props: {
+  children;
+  value: number;
+  comments: string[];
+  theme: Theme;
+}) {
   const { children, value, comments, theme } = props;
   return (
     <>

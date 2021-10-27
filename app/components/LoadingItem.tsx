@@ -2,7 +2,12 @@ import { Grid, CircularProgress, Typography } from '@material-ui/core';
 import React from 'react';
 import DoneIcon from '@material-ui/icons/Done';
 
-export default function LoadingItem(props: any): JSX.Element {
+export type LoadingItemProps = {
+  complete: boolean;
+  message: string;
+};
+
+export default function LoadingItem(props: LoadingItemProps): JSX.Element {
   const { complete, message } = props;
   const loadingIcon = complete ? (
     <DoneIcon style={{ fill: 'black' }} />

@@ -138,7 +138,7 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
     ) => {
       setAutoCorrectionProgress(progress);
     };
-    const handleAutoCorrectionCancelPending = (_event: IpcRendererEvent) => {
+    const handleAutoCorrectionCancelPending = () => {
       setAutoCorrectionState(AutoCorrectionState.AUTOCORRECTION_CANCEL_PENDING);
     };
 
@@ -236,9 +236,10 @@ const AutoCorrectionModal: FC<AutoCorrectionModalProps> = ({ ...props }) => {
         handleProgress
       );
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  let content;
+  let content: JSX.Element | null;
 
   switch (autoCorrectionState) {
     case AutoCorrectionState.AUTOCORRECTION_STARTED:

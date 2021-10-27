@@ -31,7 +31,6 @@ import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import { ModalProps } from './ModalProvider';
 import { selectCorrectionsBySheetId } from '../model/Selectors';
 import * as ExportIPC from '../constants/ExportIPC';
-import { ParserType } from '../parser/Parser';
 import { ExportProgress } from '../exporter';
 import CircularProgressWithLabel from '../components/CircularProgressWithLabel';
 import Status from '../model/Status';
@@ -41,8 +40,7 @@ import {
 } from '../model/SettingsSlice';
 import OutputFormatSelect from '../components/OutputFormatSelect';
 import ConditionalCommentSettings from '../components/ConditionalCommentSettings';
-import Correction from '../model/Correction';
-import { selectSheetById } from '../model/SheetSlice';
+import ParserType from '../parser/ParserType';
 
 type ExportModalProps = ModalProps & {
   sheetId: string;

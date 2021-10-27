@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ParserType } from '../parser/Parser';
+import ParserType from '../parser/ParserType';
 import ConditionalComment from './ConditionalComment';
 import { Theme } from './Theme';
 
