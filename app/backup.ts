@@ -1,6 +1,6 @@
 import fs from 'fs';
 import * as Path from 'path';
-import { app, ipcMain, WebContents } from 'electron';
+import { app, BrowserWindow, ipcMain, WebContents } from 'electron';
 import dateFormat from 'dateformat';
 import * as BackupIPC from './constants/BackupIPC';
 
@@ -19,7 +19,11 @@ export default class Backup {
 
   private webContents: Electron.WebContents | undefined;
 
-  constructor() {
+  private mainWindow: BrowserWindow | null = null;
+
+  constructor(mainWindow: BrowserWindow | null) {
+    this.mainWindow = mainWindow;
+
     if (!fs.existsSync(Backup.backupDir)) {
       fs.mkdirSync(Backup.backupDir);
     }
@@ -58,6 +62,9 @@ export default class Backup {
   }
 
   public makeBackup() {
+    if (!this.mainWindow) {
+      return;
+    }
     this.deleteOldBackups();
 
     if (this.path) {

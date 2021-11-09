@@ -107,7 +107,7 @@ const createWindow = async () => {
   menuBuilder.buildMenu();
 
   new AppUpdater();
-  new Backup();
+  new Backup(mainWindow);
   new Importer(mainWindow);
   new Exporter();
   new AutoCorrection();
