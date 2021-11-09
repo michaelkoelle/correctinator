@@ -20,6 +20,7 @@ import LoadNewFileEffect from './effects/LoadNewFileEffect';
 import BackupEffect from './effects/BackupEffect';
 import CheckForUpdatesEffect from './effects/CheckForUpdatesEffect';
 import RequestFilePathEffect from './effects/RequestFilePathEffect';
+import WorkspaceEffect from './effects/WorkspaceEffect';
 
 export default function Routes() {
   const dispatch = useDispatch();
@@ -31,6 +32,10 @@ export default function Routes() {
   const [reload, setReload] = useState<boolean>(false);
 
   useEffect(CheckForUpdatesEffect(showModal), []);
+  useEffect(WorkspaceEffect(dispatch, workspacePath), [
+    dispatch,
+    workspacePath,
+  ]);
   useEffect(RequestFilePathEffect(), []);
   useEffect(LoadNewFileEffect(dispatch, showModal, unsavedChanges), [
     dispatch,
