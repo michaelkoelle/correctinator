@@ -210,7 +210,9 @@ export default class Importer {
     const zipEntryDesc = zip.getEntries();
     const configFiles = zipEntryDesc.filter(
       (entry) =>
-        !entry.isDirectory && entry.entryName.match(parser.configFilePattern)
+        !entry.isDirectory &&
+        !entry.entryName.includes('MACOSX') &&
+        Path.basename(entry.entryName).match(parser.configFilePattern)
     );
     this.total = configFiles.length;
 
