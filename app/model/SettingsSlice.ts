@@ -12,6 +12,11 @@ export interface BackupSettings {
   enabled: boolean;
 }
 
+export interface CorrectionSettings {
+  taskCorrectText: string;
+  taskIncorrectText: string;
+}
+
 export interface MediaViewerSettings {
   showFileName: boolean;
   cycleFiles: boolean;
@@ -28,6 +33,7 @@ export interface ExportSettings {
 export interface SettingsState {
   general: GeneralSettings;
   backup: BackupSettings;
+  correction: CorrectionSettings;
   mediaViewer: MediaViewerSettings;
   export: ExportSettings;
 }
@@ -41,6 +47,10 @@ const settingsSlice = createSlice({
     },
     backup: {
       enabled: true,
+    },
+    correction: {
+      taskCorrectText: 'korrekt',
+      taskIncorrectText: 'fehlt',
     },
     mediaViewer: {
       showFileName: true,
@@ -61,6 +71,9 @@ const settingsSlice = createSlice({
   reducers: {
     settingsSetGeneral(state, action: PayloadAction<GeneralSettings>) {
       state.general = action.payload;
+    },
+    settingsSetCorrection(state, action: PayloadAction<CorrectionSettings>) {
+      state.correction = action.payload;
     },
     settingsSetBackup(state, action: PayloadAction<BackupSettings>) {
       state.backup = action.payload;
@@ -103,6 +116,8 @@ export const selectSettingsGeneral = (state): GeneralSettings =>
   state.settings.general;
 export const selectSettingsBackup = (state): BackupSettings =>
   state.settings.backup;
+export const selectSettingsCorrection = (state): CorrectionSettings =>
+  state.settings.correction;
 export const selectSettingsMediaViewer = (state): MediaViewerSettings =>
   state.settings.mediaViewer;
 export const selectSettingsExport = (state): ExportSettings =>
@@ -111,6 +126,7 @@ export const selectSettings = (state) => state.settings;
 export const {
   settingsSetGeneral,
   settingsSetBackup,
+  settingsSetCorrection,
   settingsSetMediaViewer,
   settingsSetExport,
   settingsAddConditionalComment,

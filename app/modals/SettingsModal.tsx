@@ -11,6 +11,7 @@ import GeneralSettingsList from './settings/GeneralSettingsList';
 import BackupSettingsList from './settings/BackupSettingsList';
 import MediaViewerSettingsList from './settings/MediaViewerSettingsList';
 import ExportSettingsList from './settings/ExportSettingsList';
+import CorrectionSettingsList from './settings/CorrectionSettingsList';
 
 type SettingsModalProps = ModalProps;
 
@@ -34,6 +35,8 @@ const SettingsModal: FC<SettingsModalProps> = ({ ...props }) => {
         <GeneralSettingsList />
         <Divider variant="middle" component="div" />
         <BackupSettingsList />
+        <Divider variant="middle" component="div" />
+        <CorrectionSettingsList />
         <Divider variant="middle" component="div" />
         <MediaViewerSettingsList />
         <Divider variant="middle" component="div" />
