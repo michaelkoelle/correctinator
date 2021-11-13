@@ -10,11 +10,15 @@ import {
 } from '@material-ui/core';
 import { CheckCircleOutline, HighlightOff } from '@material-ui/icons';
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { commentsUpdateOne } from '../../model/CommentSlice';
 import RateableTask from '../../model/RateableTask';
 import Rating from '../../model/Rating';
 import { ratingsUpdateOne } from '../../model/RatingSlice';
+import {
+  CorrectionSettings,
+  selectSettingsCorrection,
+} from '../../model/SettingsSlice';
 import TaskCommentInput from './TaskCommentInput';
 
 type RateableTaskViewProps = {
@@ -25,6 +29,7 @@ type RateableTaskViewProps = {
 
 function RateableTaskView(props: RateableTaskViewProps) {
   const { task, type, rating } = props;
+  const settings: CorrectionSettings = useSelector(selectSettingsCorrection);
   const dispatch = useDispatch();
 
   function onChangeValue(e) {
@@ -47,7 +52,7 @@ function RateableTaskView(props: RateableTaskViewProps) {
     dispatch(
       commentsUpdateOne({
         id: rating.comment.id,
-        changes: { text: '' },
+        changes: { text: settings.taskCorrectText ?? '' },
       })
     );
   }
@@ -62,7 +67,7 @@ function RateableTaskView(props: RateableTaskViewProps) {
     dispatch(
       commentsUpdateOne({
         id: rating.comment.id,
-        changes: { text: 'Missing Solution' },
+        changes: { text: settings.taskIncorrectText ?? 'Missing Solution' },
       })
     );
   }
