@@ -9,12 +9,13 @@ type Props = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   store: EnhancedStore<any, AnyAction, any[]>;
   history: History;
+  location: any;
 };
 
-const Root = ({ store, history }: Props) => {
+const Root = ({ store, history, location }: Props) => {
   return (
     <Provider store={store}>
-      <Providers history={history} />
+      <Providers history={history} location={location} />
     </Provider>
   );
 };

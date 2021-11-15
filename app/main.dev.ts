@@ -22,6 +22,7 @@ import AutoCorrection from './autocorrection';
 import { RECEIVE_FILE_PATH, REQUEST_FILE_PATH } from './constants/OpenFileIPC';
 
 let mainWindow: BrowserWindow | null = null;
+let launcherWindow: BrowserWindow | null = null;
 let file = '';
 
 if (process.env.NODE_ENV === 'production') {
@@ -83,7 +84,24 @@ const createWindow = async () => {
     },
   });
 
-  mainWindow.loadURL(`file://${__dirname}/app.html`);
+  launcherWindow = new BrowserWindow({
+    title: 'Launcher',
+    show: false,
+    width: 800,
+    height: 600,
+    icon: getAssetPath('icon.png'),
+    minWidth: 800, // set a min width!
+    minHeight: 600, // and a min height!
+    // Remove the window frame from windows applications
+    frame: false,
+    webPreferences: {
+      nodeIntegration: true,
+    },
+  });
+
+  launcherWindow.loadURL(`file://${__dirname}/app.html?launcher`);
+
+  mainWindow.loadURL(`file://${__dirname}/app.html?app`);
 
   // @TODO: Use 'ready-to-show' event
   //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
@@ -92,10 +110,22 @@ const createWindow = async () => {
       throw new Error('"mainWindow" is not defined');
     }
     if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
+      // mainWindow.minimize();
     } else {
-      mainWindow.show();
-      mainWindow.focus();
+      // mainWindow.show();
+      // mainWindow.focus();
+    }
+  });
+
+  launcherWindow.webContents.on('did-finish-load', () => {
+    if (!launcherWindow) {
+      throw new Error('"mainWindow" is not defined');
+    }
+    if (process.env.START_MINIMIZED) {
+      launcherWindow.minimize();
+    } else {
+      launcherWindow.show();
+      launcherWindow.focus();
     }
   });
 

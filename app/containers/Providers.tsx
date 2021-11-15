@@ -4,17 +4,18 @@ import { useSelector } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 import { History } from 'history';
 import { CssBaseline, ThemeProvider } from '@material-ui/core';
-import Routes from '../Routes';
 import ModalProvider from '../modals/ModalProvider';
 import createTheme from '../theme';
 import { selectSettingsGeneral } from '../model/SettingsSlice';
 import SystemThemeUpdateEffect from '../effects/SystemThemeUpdateEffect';
+import ViewManager from '../components/ViewManager';
 
 type Props = {
   history: History;
+  location: any;
 };
 
-const Providers = ({ history }: Props) => {
+const Providers = ({ history, location }: Props) => {
   const { theme } = useSelector(selectSettingsGeneral);
   const [, setCurrentTheme] = useState(createTheme(theme));
 
@@ -28,7 +29,9 @@ const Providers = ({ history }: Props) => {
       <CssBaseline />
       <ModalProvider>
         <ConnectedRouter history={history}>
-          <Routes />
+          <ViewManager
+            name={location.search.substr(1)} /* location={location} */
+          />
         </ConnectedRouter>
       </ModalProvider>
     </ThemeProvider>

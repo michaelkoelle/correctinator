@@ -15,7 +15,7 @@ import { ModalProps } from '../modals/ModalProvider';
 
 type ConfimationDialogProps = ModalProps & {
   title: string;
-  text: string;
+  text?: string;
   onConfirm: (dispatch?) => unknown;
   onReject?: (dispatch?) => unknown;
   onCancel?: undefined | ((dispatch?) => unknown);
@@ -33,9 +33,11 @@ const ConfirmationDialog: FC<ConfimationDialogProps> = ({
   return (
     <Dialog disableBackdropClick aria-labelledby="confirm-dialog" {...props}>
       <DialogTitle id="confirm-dialog">{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>{text}</DialogContentText>
-      </DialogContent>
+      {text && (
+        <DialogContent>
+          <DialogContentText>{text}</DialogContentText>
+        </DialogContent>
+      )}
       <DialogActions>
         <Button
           onClick={() => {
