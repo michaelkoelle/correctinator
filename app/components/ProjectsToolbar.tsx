@@ -98,7 +98,7 @@ export default function ProjectsToolbar(props: ProjectsToolbarProps) {
           onClick={() => handleNewFile()}
           style={{ marginTop: '10px' }}
         >
-          New File
+          New Project
         </Button>
       </Grid>
       <Grid item>
@@ -108,7 +108,7 @@ export default function ProjectsToolbar(props: ProjectsToolbarProps) {
           onClick={() => handleOpenFile()}
           style={{ marginTop: '10px', marginRight: '8px' }}
         >
-          Open File
+          Open
         </Button>
       </Grid>
     </Grid>
