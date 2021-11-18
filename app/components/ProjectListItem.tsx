@@ -11,6 +11,7 @@ import React, { useState } from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { useDispatch } from 'react-redux';
 import { ipcRenderer } from 'electron';
+import * as Path from 'path';
 import { projectsRemoveOne } from '../model/ProjectsSlice';
 import { useModal } from '../modals/ModalProvider';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
@@ -19,10 +20,11 @@ import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
 
 type ProjectListItemProps = {
   project: Project;
+  setOpenFileError: (open: boolean) => void;
 };
 
 export default function ProjectListItem(props: ProjectListItemProps) {
-  const { project } = props;
+  const { project, setOpenFileError } = props;
   const dispatch = useDispatch();
   const showModal = useModal();
 
@@ -30,6 +32,15 @@ export default function ProjectListItem(props: ProjectListItemProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenProject = () => {
+    if (
+      !fs.existsSync(project.path) ||
+      Path.parse(project.path).ext === 'cor'
+    ) {
+      dispatch(projectsRemoveOne(project.id));
+      setOpenFileError(true);
+      return;
+    }
+
     ipcRenderer.send(OPEN_MAIN_WINDOW, project.path);
   };
 
