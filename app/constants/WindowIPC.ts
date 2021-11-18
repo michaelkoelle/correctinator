@@ -1,0 +1,2 @@
+export const OPEN_MAIN_WINDOW = 'OPEN_MAIN_WINDOW';
+export const OPEN_LAUNCHER = 'OPEN_LAUNCHER';

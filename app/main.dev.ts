@@ -20,6 +20,7 @@ import Exporter from './exporter';
 import Importer from './importer';
 import AutoCorrection from './autocorrection';
 import { RECEIVE_FILE_PATH, REQUEST_FILE_PATH } from './constants/OpenFileIPC';
+import { OPEN_LAUNCHER, OPEN_MAIN_WINDOW } from './constants/WindowIPC';
 
 let mainWindow: BrowserWindow | null = null;
 let launcherWindow: BrowserWindow | null = null;
@@ -165,6 +166,17 @@ ipcMain.on(REQUEST_FILE_PATH, () => {
   } else {
     openWithFileHandler([file]);
   }
+});
+
+ipcMain.on(OPEN_MAIN_WINDOW, (_event, p: string) => {
+  launcherWindow?.hide();
+  mainWindow?.show();
+  openWithFileHandler([p]);
+});
+
+ipcMain.on(OPEN_LAUNCHER, () => {
+  mainWindow?.hide();
+  launcherWindow?.show();
 });
 
 app.on('open-file', (_event, filePath) => {

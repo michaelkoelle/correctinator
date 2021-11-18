@@ -10,10 +10,12 @@ import fs from 'fs';
 import React, { useState } from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { useDispatch } from 'react-redux';
+import { ipcRenderer } from 'electron';
 import { projectsRemoveOne } from '../model/ProjectsSlice';
 import { useModal } from '../modals/ModalProvider';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import Project from '../model/Project';
+import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
 
 type ProjectListItemProps = {
   project: Project;
@@ -27,7 +29,9 @@ export default function ProjectListItem(props: ProjectListItemProps) {
   const [hover, setHover] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
-  const handleOpenProject = () => {};
+  const handleOpenProject = () => {
+    ipcRenderer.send(OPEN_MAIN_WINDOW, project.path);
+  };
 
   const removeProjectFromList = () => {
     dispatch(projectsRemoveOne(project.id));

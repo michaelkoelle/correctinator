@@ -1,12 +1,18 @@
 import { Button, Grid, InputAdornment, TextField } from '@material-ui/core';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
-import { SaveDialogReturnValue, remote, OpenDialogReturnValue } from 'electron';
+import {
+  SaveDialogReturnValue,
+  remote,
+  OpenDialogReturnValue,
+  ipcRenderer,
+} from 'electron';
 import { useDispatch } from 'react-redux';
 import * as Path from 'path';
 import { createNewCorFile } from '../utils/FileAccess';
 import { projectsAddOne } from '../model/ProjectsSlice';
 import UUID from '../utils/UUID';
+import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
 
 type ProjectsToolbarProps = {
   setSearchTerm: (search: string | undefined) => void;
@@ -36,7 +42,7 @@ export default function ProjectsToolbar(props: ProjectsToolbarProps) {
         path,
       })
     );
-    // TODO:
+    ipcRenderer.send(OPEN_MAIN_WINDOW, path);
   };
 
   const handleNewFile = async () => {
@@ -60,7 +66,7 @@ export default function ProjectsToolbar(props: ProjectsToolbarProps) {
         path,
       })
     );
-    // TODO: Open project
+    ipcRenderer.send(OPEN_MAIN_WINDOW, path);
   };
 
   return (
@@ -73,7 +79,6 @@ export default function ProjectsToolbar(props: ProjectsToolbarProps) {
         }}
       >
         <TextField
-          id="filled-search"
           placeholder="Search projects"
           type="search"
           size="small"

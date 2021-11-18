@@ -7,6 +7,7 @@ import {
 import fs from 'fs';
 import * as Path from 'path';
 import * as BackupIPC from '../constants/BackupIPC';
+import { OPEN_LAUNCHER } from '../constants/WindowIPC';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
 import {
@@ -39,6 +40,7 @@ const buildFileMenu = (
     } else {
       dispatch(workspaceSetPath(path));
       dispatch(reloadState());
+      ipcRenderer.send(OPEN_LAUNCHER);
     }
   };
   const backupPaths: { path: string; date: Date }[] = fs
