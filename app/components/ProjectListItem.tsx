@@ -20,15 +20,15 @@ import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
 
 type ProjectListItemProps = {
   project: Project;
+  hover: boolean;
   setOpenFileError: (open: boolean) => void;
+  setHoverId: (id: string | undefined) => void;
 };
 
 export default function ProjectListItem(props: ProjectListItemProps) {
-  const { project, setOpenFileError } = props;
+  const { project, setOpenFileError, hover, setHoverId } = props;
   const dispatch = useDispatch();
   const showModal = useModal();
-
-  const [hover, setHover] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenProject = () => {
@@ -65,9 +65,9 @@ export default function ProjectListItem(props: ProjectListItemProps) {
   return (
     <>
       <ListItem
-        onMouseEnter={() => setHover(true)}
-        onMouseOver={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
+        onMouseEnter={() => setHoverId(project.id)}
+        onMouseOver={() => setHoverId(project.id)}
+        onMouseLeave={() => setHoverId(undefined)}
         onClick={() => handleOpenProject()}
         button
       >
