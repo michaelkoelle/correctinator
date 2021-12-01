@@ -3,36 +3,19 @@
 /* eslint-disable react/jsx-no-duplicate-props */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AceEditor from 'react-ace';
 import * as YAML from 'yaml';
 import AddIcon from '@material-ui/icons/Add';
-import AssignmentIcon from '@material-ui/icons/Assignment';
-import {
-  Button,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@material-ui/core';
-
+import { Button, Grid, Paper, Typography } from '@material-ui/core';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import { clipboard } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
 import {
-  schemaClearSelectedSheet,
-  schemaSetSelectedSheet,
   selectSchemaSelectedSheetId,
   selectSchemaTasks,
-  selectSchemaComments,
   selectSchemaRatings,
   selectSchemaEntities,
   schemaSetEntities,
@@ -40,37 +23,29 @@ import {
   schemaAddSimpleTask,
 } from '../../model/SchemaSlice';
 import { selectAllSheets } from '../../model/SheetSlice';
-import CommentEntity from '../../model/CommentEntity';
 import RatingEntity from '../../model/RatingEntity';
 import SheetEntity from '../../model/SheetEntity';
-import {
-  getMaxValueForTasks,
-  getTotalValueOfRatings,
-} from '../../utils/Formatter';
+import { getMaxValueForTasks } from '../../utils/Formatter';
 import { RatingsSchema, TasksSchema } from '../../model/NormalizationSchema';
 import TaskEntity from '../../model/TaskEntity';
-import { getTopLevelTasks, hasTasksWithZeroMax } from '../../utils/TaskUtil';
+import { getTopLevelTasks } from '../../utils/TaskUtil';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
 import SchemaTaskList from './SchemaTaskList';
 import { selectSettingsGeneral } from '../../model/SettingsSlice';
 import { shouldUseDarkColors } from '../../model/Theme';
 import { useModal } from '../../modals/ModalProvider';
-import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
-import OverwriteSchemaDialog, {
-  onInitializeSheet,
-} from '../../dialogs/OverwriteSchemaDialog';
 import CheckClipboardEffect from '../../effects/CheckClipboardEffect';
+import SchemaGeneratorToolbar from './SchemaGeneratorToolbar';
 
 export default function SchemaGenerator() {
   const dispatch = useDispatch();
   const showModal = useModal();
-  const { autosave, theme } = useSelector(selectSettingsGeneral);
+  const { theme } = useSelector(selectSettingsGeneral);
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
   const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
   const tasksEntity: TaskEntity[] = useSelector(selectSchemaTasks);
   const ratingsEntity: RatingEntity[] = useSelector(selectSchemaRatings);
-  const commentsEntity: CommentEntity[] = useSelector(selectSchemaComments);
   const clipboardOld = useSelector(selectSchemaClipboard);
   const entities = useSelector(selectSchemaEntities);
   const selectedSheet: SheetEntity | undefined = sheets.find(
@@ -88,57 +63,12 @@ export default function SchemaGenerator() {
   );
 
   const [type, setType] = useState('points');
+  const [advancedView, setAdvancedView] = useState<boolean>(false);
   const maxValueTasks: number = tasks
     ? getMaxValueForTasks(getTopLevelTasks(tasks))
     : 0;
   const maxValue: number = selectedSheet?.maxValue || maxValueTasks;
   const [skipCheck, setSkipCheck] = useState<boolean>(false);
-
-  function onSelectSheet(event) {
-    const sheetId = event.target.value;
-    if (event.target.value !== 'custom') {
-      dispatch(schemaSetSelectedSheet(sheetId));
-    } else {
-      dispatch(schemaClearSelectedSheet());
-    }
-  }
-
-  function onTypeChange(event: ChangeEvent<{ value: unknown }>) {
-    setType(event.target.value as string);
-  }
-
-  function onAssignSchema() {
-    onInitializeSheet(
-      dispatch,
-      showModal,
-      autosave,
-      selectedSheet,
-      tasks,
-      tasksEntity,
-      ratingsEntity,
-      commentsEntity
-    );
-  }
-
-  function onOverwriteSchema() {
-    showModal(
-      ConfirmationDialog,
-      OverwriteSchemaDialog(
-        showModal,
-        autosave,
-        selectedSheet,
-        tasks,
-        tasksEntity,
-        ratingsEntity,
-        commentsEntity
-      )
-    );
-  }
-
-  function onCopyToClipboard() {
-    setSkipCheck(true);
-    clipboard.writeText(YAML.stringify(entities));
-  }
 
   function onChange(newValue: string) {
     if (newValue !== null) {
@@ -194,7 +124,7 @@ export default function SchemaGenerator() {
           item
           container
           direction="column"
-          xs={8}
+          xs={advancedView ? 8 : 12}
           style={{
             flex: '1 1 0%',
             marginRight: '16px',
@@ -203,201 +133,23 @@ export default function SchemaGenerator() {
           <Grid
             item
             style={{
-              marginBottom: '8px',
+              marginBottom: '12px',
             }}
           >
-            <Paper
-              elevation={3}
-              style={{
-                padding: '16px',
-              }}
-            >
-              <Grid
-                container
-                direction="column"
-                justify="center"
-                alignItems="center"
-                spacing={2}
-              >
-                <Grid
-                  item
-                  container
-                  justify="space-between"
-                  // wrap="nowrap"
-                  alignItems="center"
-                  spacing={2}
-                >
-                  <Grid item>
-                    <FormControl size="small" variant="outlined">
-                      <InputLabel id="sheet-select-label">
-                        Schema for
-                      </InputLabel>
-                      <Select
-                        labelId="sheet-select-label"
-                        label="Schema for"
-                        value={selectedSheetId || 'custom schema'}
-                        onChange={onSelectSheet}
-                      >
-                        <MenuItem value="custom schema">Custom schema</MenuItem>
-                        {sheets.map((s) => {
-                          return (
-                            <MenuItem key={s.id} value={s.id}>
-                              {s.name}
-                            </MenuItem>
-                          );
-                        })}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item>
-                    <TextField
-                      variant="outlined"
-                      type="number"
-                      label="Value"
-                      size="small"
-                      style={{ width: '6em' }}
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      inputProps={{
-                        min: 0,
-                        step: 0.5,
-                      }}
-                      value={getTotalValueOfRatings(ratings)}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <TextField
-                      variant="outlined"
-                      type="number"
-                      label="Max"
-                      size="small"
-                      style={{ width: '6em' }}
-                      InputProps={{
-                        readOnly: true,
-                      }}
-                      inputProps={{
-                        min: 0,
-                        step: 0.5,
-                      }}
-                      value={maxValue}
-                      error={
-                        (selectedSheet &&
-                          (maxValue !== selectedSheet?.maxValue ||
-                            hasTasksWithZeroMax(tasksEntity) ||
-                            maxValue <= 0)) ||
-                        (!selectedSheet &&
-                          (hasTasksWithZeroMax(tasksEntity) || maxValue <= 0))
-                      }
-                    />
-                  </Grid>
-                  <Grid item>
-                    <TextField
-                      variant="outlined"
-                      label="Type"
-                      size="small"
-                      value={selectedSheet?.valueType || type}
-                      onChange={onTypeChange}
-                      InputProps={{
-                        readOnly: selectedSheet === undefined,
-                      }}
-                      style={{ width: '110px' }}
-                    />
-                  </Grid>
-                  {selectedSheet && (
-                    <Grid item>
-                      <Button
-                        onClick={
-                          selectedSheet &&
-                          selectedSheet.tasks &&
-                          selectedSheet.tasks.length > 0
-                            ? onOverwriteSchema
-                            : onAssignSchema
-                        }
-                        disabled={
-                          maxValueTasks !== selectedSheet?.maxValue ||
-                          hasTasksWithZeroMax(tasksEntity) ||
-                          maxValueTasks <= 0
-                        }
-                      >
-                        {selectedSheet &&
-                        selectedSheet.tasks &&
-                        selectedSheet.tasks.length > 0
-                          ? 'Overwrite'
-                          : 'Assign'}
-                      </Button>
-                    </Grid>
-                  )}
-                  <Grid item>
-                    <Tooltip title="Copy to clipboard">
-                      <span>
-                        <IconButton
-                          onClick={onCopyToClipboard}
-                          disabled={
-                            hasTasksWithZeroMax(tasksEntity) ||
-                            maxValueTasks <= 0
-                          }
-                          size="small"
-                        >
-                          <AssignmentIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  </Grid>
-                </Grid>
-                {selectedSheet &&
-                  selectedSheet?.maxValue - maxValueTasks !== 0 && (
-                    <Grid
-                      item
-                      container
-                      xs={12}
-                      justify="center"
-                      alignItems="center"
-                      style={{
-                        paddingBottom: hasTasksWithZeroMax(tasksEntity)
-                          ? '0px'
-                          : '8px',
-                      }}
-                    >
-                      <Grid item>
-                        <Typography color="error">
-                          {`${Math.abs(
-                            selectedSheet?.maxValue - maxValueTasks
-                          )} ${selectedSheet?.valueType || type} ${
-                            selectedSheet?.maxValue - maxValueTasks < 0
-                              ? 'too much'
-                              : 'remaining'
-                          }`}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  )}
-                {hasTasksWithZeroMax(tasksEntity) && (
-                  <Grid
-                    item
-                    container
-                    xs={12}
-                    justify="center"
-                    alignItems="center"
-                    style={{
-                      paddingTop:
-                        selectedSheet &&
-                        selectedSheet?.maxValue - maxValueTasks !== 0
-                          ? '0px'
-                          : '8px',
-                    }}
-                  >
-                    <Grid item>
-                      <Typography color="error">
-                        {`Some of the tasks have zero max ${
-                          selectedSheet?.valueType || type
-                        }`}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                )}
-              </Grid>
-            </Paper>
+            <SchemaGeneratorToolbar
+              sheets={sheets}
+              selectedSheetId={selectedSheetId}
+              ratings={ratings}
+              maxValue={maxValue}
+              selectedSheet={selectedSheet}
+              tasksEntity={tasksEntity}
+              tasks={tasks}
+              ratingsEntity={ratingsEntity}
+              maxValueTasks={maxValueTasks}
+              type={type}
+              setType={setType}
+              setSkipCheck={setSkipCheck}
+            />
           </Grid>
           <Grid item style={{ flex: '1 1 0%' }}>
             <Paper
@@ -437,31 +189,33 @@ export default function SchemaGenerator() {
             </Paper>
           </Grid>
         </Grid>
-        <Grid item xs={4} style={{ flex: '1 1 0%', marginRight: '16px' }}>
-          <Paper
-            elevation={3}
-            style={{
-              flex: '1 1 0%',
-              height: '0px',
-              minHeight: 'calc(100%)',
-              overflow: 'auto',
-            }}
-          >
-            <AceEditor
-              mode="yaml"
-              theme={shouldUseDarkColors(theme) ? 'twilight' : 'textmate'}
-              width="100%"
-              height="100%"
-              maxLines={Infinity}
-              value={entities ? YAML.stringify(entities) : ''}
-              onChange={onChange}
-              name="editor"
-              editorProps={{ $blockScrolling: true }}
-              style={{ flex: '1 1 0%', minHeight: '100%' }}
-              showPrintMargin={false}
-            />
-          </Paper>
-        </Grid>
+        {advancedView && (
+          <Grid item xs={4} style={{ flex: '1 1 0%', marginRight: '16px' }}>
+            <Paper
+              elevation={3}
+              style={{
+                flex: '1 1 0%',
+                height: '0px',
+                minHeight: 'calc(100%)',
+                overflow: 'auto',
+              }}
+            >
+              <AceEditor
+                mode="yaml"
+                theme={shouldUseDarkColors(theme) ? 'twilight' : 'textmate'}
+                width="100%"
+                height="100%"
+                maxLines={Infinity}
+                value={entities ? YAML.stringify(entities) : ''}
+                onChange={onChange}
+                name="editor"
+                editorProps={{ $blockScrolling: true }}
+                style={{ flex: '1 1 0%', minHeight: '100%' }}
+                showPrintMargin={false}
+              />
+            </Paper>
+          </Grid>
+        )}
       </Grid>
     </Grid>
   );
