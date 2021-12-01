@@ -40,7 +40,7 @@ export default function LauncherProjectsPage() {
             color: theme.palette.text.disabled,
           }}
         >
-          No projects yet! You can add a project with the button above!
+          No projects yet! You can add a project with the buttons above!
         </Typography>
       )}
       {searchTerm && projects.length === 0 && (
