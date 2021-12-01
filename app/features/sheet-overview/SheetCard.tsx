@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/destructuring-assignment */
 import {
   Button,
@@ -109,11 +110,17 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   }
 
   return (
-    <ListItem style={{ width: 'fit-content', margin: '0 auto' }}>
-      <Card elevation={4}>
+    <ListItem
+      style={{
+        width: '100%',
+        margin: '0 auto',
+        paddingLeft: '8px',
+        paddingRight: '8px',
+      }}
+    >
+      <Card elevation={4} style={{ width: '100%' }}>
         <CardHeader
-          // eslint-disable-next-line prettier/prettier
-          action={(
+          action={
             <>
               <IconButton onClick={onOpenMenu}>
                 <MoreVertIcon />
@@ -135,10 +142,8 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
                 </MenuItem>
               </Menu>
             </>
-            // eslint-disable-next-line prettier/prettier
-          )}
-          // eslint-disable-next-line prettier/prettier
-          subheader={(
+          }
+          subheader={
             <>
               <div>
                 {`${sheet.school.name} - ${sheet.course.name} ${
@@ -150,8 +155,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
                 ].join('-')}`}
               </div>
             </>
-            // eslint-disable-next-line prettier/prettier
-          )}
+          }
           title={sheet.name}
         />
         <CardContent>

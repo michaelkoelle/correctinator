@@ -2,21 +2,34 @@ import {
   Box,
   Button,
   ButtonGroup,
+  Divider,
   Grid,
   IconButton,
   Typography,
+  useTheme,
 } from '@material-ui/core';
-import RefreshIcon from '@material-ui/icons/Refresh';
-import React from 'react';
+import React, { useState } from 'react';
 import { remote } from 'electron';
-import { openDirectory, reloadState } from '../../utils/FileAccess';
+import { useSelector } from 'react-redux';
+import { openDirectory } from '../../utils/FileAccess';
 import SheetCardList from './SheetCardList';
 import { useAppDispatch } from '../../store';
 import { useModal } from '../../modals/ModalProvider';
 import ImportModal from '../../modals/ImportModal';
+import SheetsToolbar from '../../components/SheetToolbar';
+import { selectAllSheets } from '../../model/SheetSlice';
+import SheetEntity from '../../model/SheetEntity';
 
 export default function SheetOverview() {
   const dispatch = useAppDispatch();
+  const theme = useTheme();
+  const allSheets: SheetEntity[] = useSelector(selectAllSheets);
+  const [searchTerm, setSearchTerm] = useState<string | undefined>();
+
+  const sheets: SheetEntity[] = allSheets.filter((s) =>
+    searchTerm ? s.name.toLowerCase().includes(searchTerm.toLowerCase()) : true
+  );
+
   const showModal = useModal();
 
   async function onImportSubmissionsFolder() {
@@ -43,49 +56,67 @@ export default function SheetOverview() {
         height: 'calc(100% - 45px)', // 29px TitleBar + 16px Margin
         display: 'flex',
         flexDirection: 'column',
-        marginTop: '16px',
+        // marginTop: '8px',
       }}
     >
-      <Box>
-        <Grid
-          container
-          justify="center"
-          direction="column"
-          alignItems="center"
-          spacing={4}
-        >
-          <Grid item xs={12}>
-            <Typography variant="h1">Welcome!</Typography>
-          </Grid>
-          <Grid
-            item
-            container
-            xs={12}
-            justify="center"
-            direction="row"
-            alignItems="center"
-            spacing={4}
+      <SheetsToolbar setSearchTerm={setSearchTerm} />
+      <Divider
+        variant="middle"
+        style={{
+          margin: '16px 8px 8px 8px',
+        }}
+      />
+      {!searchTerm && sheets.length === 0 && (
+        <>
+          <Typography
+            style={{
+              width: '100%',
+              textAlign: 'center',
+              marginTop: '16px',
+              color: theme.palette.text.disabled,
+            }}
           >
+            No submissions imported yet! You can import submissions with the
+            buttons below!
+          </Typography>
+          <Grid container justify="center" alignItems="center">
             <Grid item>
-              <ButtonGroup variant="text">
-                <Button color="primary" onClick={onImportSubmissionsFolder}>
-                  Import submissions
-                </Button>
-                <Button color="primary" onClick={onImportSubmissionsZip}>
-                  (zip)
-                </Button>
-              </ButtonGroup>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => onImportSubmissionsFolder()}
+                style={{ marginTop: '10px', marginRight: '8px' }}
+              >
+                Import from Folder
+              </Button>
             </Grid>
             <Grid item>
-              <IconButton onClick={() => dispatch(reloadState())} size="small">
-                <RefreshIcon />
-              </IconButton>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => onImportSubmissionsZip()}
+                style={{ marginTop: '10px', marginRight: '8px' }}
+              >
+                Import from ZIP
+              </Button>
             </Grid>
           </Grid>
-        </Grid>
-      </Box>
+        </>
+      )}
+      {searchTerm && sheets.length === 0 && (
+        <Typography
+          style={{
+            width: '100%',
+            textAlign: 'center',
+            marginTop: '16px',
+            color: theme.palette.text.disabled,
+          }}
+        >
+          No matching sheets for your search term!
+        </Typography>
+      )}
       <Box flex="1 1 0%" display="flex" flexDirection="column" marginTop="8px">
-        <SheetCardList />
+        <SheetCardList sheets={sheets} />
       </Box>
     </div>
   );
