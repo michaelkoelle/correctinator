@@ -10,7 +10,6 @@ type ProjectsListProps = {
 
 export default function ProjectsList(props: ProjectsListProps) {
   const { projects } = props;
-  const [hoverId, setHoverId] = useState<string | undefined>(undefined);
   const [openFileError, setOpenFileError] = useState<boolean>(false);
 
   return (
@@ -25,8 +24,6 @@ export default function ProjectsList(props: ProjectsListProps) {
           <ProjectListItem
             key={p.id}
             project={p}
-            hover={p.id === hoverId}
-            setHoverId={setHoverId}
             setOpenFileError={setOpenFileError}
           />
         ))}

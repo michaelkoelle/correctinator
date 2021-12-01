@@ -23,6 +23,7 @@ import saveReducer from './model/SaveSlice';
 import overviewReducer from './model/OverviewSlice';
 import settingsReducer from './model/SettingsSlice';
 import projectsReducer from './model/ProjectsSlice';
+import launcherReducer from './model/LauncherSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
@@ -47,6 +48,7 @@ export default function createRootReducer(history: History) {
     save: saveReducer,
     overview: overviewReducer,
     settings: settingsReducer,
+    launcher: launcherReducer,
     projects: projectsReducer,
   });
 }

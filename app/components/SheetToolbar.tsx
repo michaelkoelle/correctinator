@@ -1,18 +1,10 @@
 import { Button, Grid, InputAdornment, TextField } from '@material-ui/core';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
-import {
-  SaveDialogReturnValue,
-  remote,
-  OpenDialogReturnValue,
-  ipcRenderer,
-} from 'electron';
-import { useDispatch } from 'react-redux';
-import * as Path from 'path';
-import { createNewCorFile } from '../utils/FileAccess';
-import { projectsAddOne } from '../model/ProjectsSlice';
-import UUID from '../utils/UUID';
-import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
+import { remote } from 'electron';
+import { openDirectory } from '../utils/FileAccess';
+import ImportModal from '../modals/ImportModal';
+import { useModal } from '../modals/ModalProvider';
 
 type SheetsToolbarProps = {
   setSearchTerm: (search: string | undefined) => void;
@@ -20,54 +12,25 @@ type SheetsToolbarProps = {
 
 export default function SheetsToolbar(props: SheetsToolbarProps) {
   const { setSearchTerm } = props;
-  const dispatch = useDispatch();
+  const showModal = useModal();
 
-  const handleOpenFile = async () => {
-    const returnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog(
-      remote.getCurrentWindow(),
-      {
-        filters: [{ name: 'Correctinator', extensions: ['cor'] }],
-        properties: ['openFile'],
-      }
-    );
-
-    if (returnValue.canceled || returnValue.filePaths.length !== 1) {
-      throw new Error('No directory selected');
+  async function onImportSubmissionsFolder() {
+    const path: string = await openDirectory();
+    if (path) {
+      showModal(ImportModal, { path });
     }
-    const path: string = returnValue.filePaths[0];
-    await dispatch(
-      projectsAddOne({
-        id: UUID.v5(path),
-        name: Path.parse(path).name,
-        path,
-      })
-    );
-    ipcRenderer.send(OPEN_MAIN_WINDOW, path);
-  };
+  }
 
-  const handleNewFile = async () => {
-    const returnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog(
-      remote.getCurrentWindow(),
-      {
-        filters: [{ name: 'Correctinator', extensions: ['cor'] }],
-      }
-    );
-
-    if (returnValue.canceled || !returnValue.filePath) {
-      throw new Error('No directory selected');
+  async function onImportSubmissionsZip() {
+    const dialogReturnValue = await remote.dialog.showOpenDialog({
+      filters: [{ name: 'Zip', extensions: ['zip'] }],
+      properties: ['openFile'],
+    });
+    const path = dialogReturnValue.filePaths[0];
+    if (path) {
+      showModal(ImportModal, { path });
     }
-
-    const path: string = returnValue.filePath;
-    createNewCorFile(path);
-    await dispatch(
-      projectsAddOne({
-        id: UUID.v5(path),
-        name: Path.parse(path).name,
-        path,
-      })
-    );
-    ipcRenderer.send(OPEN_MAIN_WINDOW, path);
-  };
+  }
 
   return (
     <Grid container alignItems="center" spacing={2}>
@@ -79,7 +42,7 @@ export default function SheetsToolbar(props: SheetsToolbarProps) {
         }}
       >
         <TextField
-          placeholder="Search projects"
+          placeholder="Search sheets"
           type="search"
           size="small"
           variant="standard"
@@ -100,7 +63,7 @@ export default function SheetsToolbar(props: SheetsToolbarProps) {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => handleNewFile()}
+          onClick={() => onImportSubmissionsFolder()}
           style={{ marginTop: '10px' }}
         >
           Import Folder
@@ -110,7 +73,7 @@ export default function SheetsToolbar(props: SheetsToolbarProps) {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => handleOpenFile()}
+          onClick={() => onImportSubmissionsZip()}
           style={{ marginTop: '10px', marginRight: '8px' }}
         >
           Import ZIP

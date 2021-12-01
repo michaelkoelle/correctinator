@@ -11,11 +11,17 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { TabPanel, TabContext } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
 import { useModal } from '../modals/ModalProvider';
 import SettingsModal from '../modals/SettingsModal';
 import { version } from '../package.json';
+import {
+  launcherSetTabIndex,
+  selectLauncherState,
+} from '../model/LauncherSlice';
+import LauncherTabs from '../model/LauncherTabs';
 import LauncherProjectsPage from './LauncherProjectsPage';
+import LauncherSheetsPage from './LauncherSheetsPage';
+import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 
 const useStyle = makeStyles({
   indicator: {
@@ -37,12 +43,9 @@ export default function LauncherNavigation(): JSX.Element {
   const dispatch = useDispatch();
   const showModal = useModal();
   const theme = useTheme();
-  const tabIndex = useSelector(selectTabIndex);
+  const { tabIndex } = useSelector(selectLauncherState);
+  const selectedFile = useSelector(selectWorkspacePath);
   const classes = useStyle();
-
-  function setTab(newValue) {
-    dispatch(setTabIndex(newValue));
-  }
 
   return (
     <Grid container wrap="nowrap" style={{ height: '100%' }}>
@@ -97,7 +100,7 @@ export default function LauncherNavigation(): JSX.Element {
               variant="standard"
               indicatorColor="primary"
               value={tabIndex}
-              onChange={(_e, v) => setTab(v)}
+              onChange={(_e, v) => dispatch(launcherSetTabIndex(v))}
               classes={{
                 indicator: classes.indicator,
               }}
@@ -111,6 +114,14 @@ export default function LauncherNavigation(): JSX.Element {
                   wrapper: classes.wrapper,
                 }}
               />
+              {selectedFile && (
+                <Tab
+                  label="Sheets"
+                  classes={{
+                    wrapper: classes.wrapper,
+                  }}
+                />
+              )}
             </Tabs>
             <IconButton
               style={{
@@ -136,10 +147,16 @@ export default function LauncherNavigation(): JSX.Element {
           }}
         >
           <TabPanel
-            value="0"
+            value={LauncherTabs.PROJECTS.toString()}
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
             <LauncherProjectsPage />
+          </TabPanel>
+          <TabPanel
+            value={LauncherTabs.SHEETS.toString()}
+            style={{ width: 'inherit', height: '100%', padding: '0px' }}
+          >
+            <LauncherSheetsPage />
           </TabPanel>
         </Grid>
       </TabContext>

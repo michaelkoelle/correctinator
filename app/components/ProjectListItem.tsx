@@ -9,43 +9,41 @@ import {
 import fs from 'fs';
 import React, { useState } from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import { useDispatch } from 'react-redux';
-import { ipcRenderer } from 'electron';
+import { useDispatch, useSelector } from 'react-redux';
 import * as Path from 'path';
 import { projectsRemoveOne } from '../model/ProjectsSlice';
 import { useModal } from '../modals/ModalProvider';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import Project from '../model/Project';
-import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
+import { launcherSetTabIndex } from '../model/LauncherSlice';
+import LauncherTabs from '../model/LauncherTabs';
+import {
+  selectWorkspacePath,
+  workspaceSetPath,
+} from '../features/workspace/workspaceSlice';
+import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
+import { reloadState } from '../utils/FileAccess';
+import { selectUnsavedChanges } from '../model/SaveSlice';
 
 type ProjectListItemProps = {
   project: Project;
-  hover: boolean;
   setOpenFileError: (open: boolean) => void;
-  setHoverId: (id: string | undefined) => void;
 };
 
 export default function ProjectListItem(props: ProjectListItemProps) {
-  const { project, setOpenFileError, hover, setHoverId } = props;
+  const { project, setOpenFileError } = props;
   const dispatch = useDispatch();
   const showModal = useModal();
+  const selectedFile = useSelector(selectWorkspacePath);
+  const unsavedChanges = useSelector(selectUnsavedChanges);
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-
-  const handleOpenProject = () => {
-    if (
-      !fs.existsSync(project.path) ||
-      Path.parse(project.path).ext === 'cor'
-    ) {
-      dispatch(projectsRemoveOne(project.id));
-      setOpenFileError(true);
-      return;
-    }
-
-    ipcRenderer.send(OPEN_MAIN_WINDOW, project.path);
-  };
+  const selected = selectedFile === project.path;
 
   const removeProjectFromList = () => {
     dispatch(projectsRemoveOne(project.id));
+    if (selected) {
+      dispatch(workspaceSetPath(''));
+    }
     setAnchorEl(null);
   };
 
@@ -55,6 +53,9 @@ export default function ProjectListItem(props: ProjectListItemProps) {
       onConfirm: () => {
         dispatch(projectsRemoveOne(project.id));
         if (fs.existsSync(project.path)) {
+          if (selected) {
+            dispatch(workspaceSetPath(''));
+          }
           fs.unlinkSync(project.path);
         }
       },
@@ -62,17 +63,45 @@ export default function ProjectListItem(props: ProjectListItemProps) {
     setAnchorEl(null);
   };
 
+  const loadNewFile = (path: string) => {
+    if (Path.extname(path) === '.cor') {
+      if (unsavedChanges) {
+        showModal(ConfirmationDialog, UnsavedChangesDialog(path));
+      } else {
+        dispatch(workspaceSetPath(path));
+        dispatch(reloadState());
+      }
+    }
+  };
+
+  const setSelectedFile = () => {
+    if (
+      !fs.existsSync(project.path) ||
+      Path.parse(project.path).ext === 'cor'
+    ) {
+      removeProjectFromList();
+      setOpenFileError(true);
+      return;
+    }
+
+    loadNewFile(project.path);
+  };
+
+  const setSelectedFileAndOpen = () => {
+    setSelectedFile();
+    dispatch(launcherSetTabIndex(LauncherTabs.SHEETS));
+  };
+
   return (
     <>
       <ListItem
-        onMouseEnter={() => setHoverId(project.id)}
-        onMouseOver={() => setHoverId(project.id)}
-        onMouseLeave={() => setHoverId(undefined)}
-        onClick={() => handleOpenProject()}
+        onClick={() => setSelectedFile()}
+        onDoubleClick={() => setSelectedFileAndOpen()}
+        selected={selected}
         button
       >
         <ListItemText primary={project.name} secondary={project.path} />
-        {hover && (
+        {selected && (
           <ListItemSecondaryAction>
             <IconButton
               edge="end"
