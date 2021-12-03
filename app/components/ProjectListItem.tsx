@@ -87,7 +87,7 @@ export default function ProjectListItem(props: ProjectListItemProps) {
     loadNewFile(project.path);
   };
 
-  const setSelectedFileAndOpen = () => {
+  const setSelectedFileAndSwitchToSheets = () => {
     setSelectedFile();
     dispatch(launcherSetTabIndex(LauncherTabs.SHEETS));
   };
@@ -95,8 +95,7 @@ export default function ProjectListItem(props: ProjectListItemProps) {
   return (
     <>
       <ListItem
-        onClick={() => setSelectedFile()}
-        onDoubleClick={() => setSelectedFileAndOpen()}
+        onClick={() => setSelectedFileAndSwitchToSheets()}
         selected={selected}
         button
       >
