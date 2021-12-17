@@ -40,6 +40,8 @@ import ExportModal from '../../modals/ExportModal';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 import ConfirmDeleteSheetDialog from '../../dialogs/ConfirmDeleteSheetDialog';
 import AutoCorrectionModal from '../../modals/AutoCorrectionModal';
+import { launcherSetTabIndex } from '../../model/LauncherSlice';
+import LauncherTabs from '../../model/LauncherTabs';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -80,7 +82,8 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
 
   function onCreateSchema() {
     dispatch(schemaSetSelectedSheet(sheet.id));
-    dispatch(setTabIndex(2));
+    // dispatch(setTabIndex(2));
+    dispatch(launcherSetTabIndex(LauncherTabs.SCHEMA));
   }
 
   function onOpenMenu(event) {
@@ -157,8 +160,9 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
             </>
           }
           title={sheet.name}
+          style={{ padding: '12px' }}
         />
-        <CardContent>
+        <CardContent style={{ padding: '4px 12px 4px 12px' }}>
           {notInitialized ? (
             <Typography variant="body2" color="textSecondary">
               <i
@@ -243,7 +247,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
             </Typography>
           ) : undefined}
         </CardContent>
-        <CardActions>
+        <CardActions style={{ padding: '4px' }}>
           <Grid container justify="space-between" alignItems="center">
             {notInitialized ? (
               <Grid item>

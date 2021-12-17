@@ -42,7 +42,8 @@ export default function LauncherTitleBar() {
     <div
       style={{
         position: 'relative',
-        zIndex: 9999,
+        // zIndex: 9999,
+        zIndex: 200,
       }}
     >
       <div

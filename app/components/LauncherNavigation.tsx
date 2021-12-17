@@ -6,8 +6,10 @@ import {
   Grid,
   Paper,
   useTheme,
+  Menu,
+  MenuItem,
 } from '@material-ui/core';
-import React from 'react';
+import React, { useState } from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { TabPanel, TabContext } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,12 +24,14 @@ import LauncherTabs from '../model/LauncherTabs';
 import LauncherProjectsPage from './LauncherProjectsPage';
 import LauncherSheetsPage from './LauncherSheetsPage';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import UpdaterModal from '../modals/UpdaterModal';
+import SchemaGenerator from '../features/schema-generator/SchemaGenerator';
 
 const useStyle = makeStyles({
   indicator: {
     left: '0px',
     width: '100%',
-    zIndex: 0,
+    // zIndex: 0,
     opacity: 0.5,
   },
   wrapper: {
@@ -46,6 +50,17 @@ export default function LauncherNavigation(): JSX.Element {
   const { tabIndex } = useSelector(selectLauncherState);
   const selectedFile = useSelector(selectWorkspacePath);
   const classes = useStyle();
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+
+  const onCheckForUpdates = () => {
+    setAnchorEl(null);
+    showModal(UpdaterModal, { showNotAvailiable: true });
+  };
+
+  const onSettings = () => {
+    setAnchorEl(null);
+    showModal(SettingsModal);
+  };
 
   return (
     <Grid container wrap="nowrap" style={{ height: '100%' }}>
@@ -59,7 +74,8 @@ export default function LauncherNavigation(): JSX.Element {
               boxShadow: '1px 2px 5px 0px rgba(0,0,0,0.2)',
               width: 'fit-content',
               position: 'relative',
-              zIndex: 9998,
+              // zIndex: 9998,
+              zIndex: 198,
             }}
             square
           >
@@ -122,6 +138,12 @@ export default function LauncherNavigation(): JSX.Element {
                   }}
                 />
               )}
+              <Tab
+                label="Schema"
+                classes={{
+                  wrapper: classes.wrapper,
+                }}
+              />
             </Tabs>
             <IconButton
               style={{
@@ -130,7 +152,7 @@ export default function LauncherNavigation(): JSX.Element {
                 margin: '5px',
               }}
               size="small"
-              onClick={() => showModal(SettingsModal)}
+              onClick={(e) => setAnchorEl(e.currentTarget)}
             >
               <SettingsIcon style={{ fill: theme.palette.text.disabled }} />
             </IconButton>
@@ -158,8 +180,24 @@ export default function LauncherNavigation(): JSX.Element {
           >
             <LauncherSheetsPage />
           </TabPanel>
+          <TabPanel
+            value={LauncherTabs.SCHEMA.toString()}
+            style={{ width: 'inherit', height: '100%', padding: '0px' }}
+          >
+            <SchemaGenerator />
+          </TabPanel>
         </Grid>
       </TabContext>
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+      >
+        <MenuItem onClick={() => onCheckForUpdates()}>
+          Check for Updates
+        </MenuItem>
+        <MenuItem onClick={() => onSettings()}>Settings</MenuItem>
+      </Menu>
     </Grid>
   );
 }
