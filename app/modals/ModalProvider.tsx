@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-pascal-case */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { createContext, FC, useContext, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import UUID from '../utils/UUID';
 
 interface ModalProviderProps {
