@@ -31,6 +31,7 @@ const MediaViewerSettingsList = () => {
         <ListItemSecondaryAction>
           <Switch
             edge="end"
+            color="primary"
             onChange={() =>
               dispatch(
                 settingsSetMediaViewer({
@@ -51,6 +52,7 @@ const MediaViewerSettingsList = () => {
         <ListItemSecondaryAction>
           <Switch
             edge="end"
+            color="primary"
             onChange={() =>
               dispatch(
                 settingsSetMediaViewer({

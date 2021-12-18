@@ -46,6 +46,7 @@ const GeneralSettingsList = () => {
         <ListItemSecondaryAction>
           <Switch
             edge="end"
+            color="primary"
             onChange={() =>
               dispatch(
                 settingsSetGeneral({
@@ -68,6 +69,7 @@ const GeneralSettingsList = () => {
             control={
               <Radio
                 checked={settings.theme === Theme.DARK}
+                color="primary"
                 onChange={handleThemeChange}
                 value={Theme.DARK}
               />
@@ -79,6 +81,7 @@ const GeneralSettingsList = () => {
             control={
               <Radio
                 checked={settings.theme === Theme.LIGHT}
+                color="primary"
                 onChange={handleThemeChange}
                 value={Theme.LIGHT}
                 size="small"
@@ -91,6 +94,7 @@ const GeneralSettingsList = () => {
             control={
               <Radio
                 checked={settings.theme === Theme.SYSTEM}
+                color="primary"
                 onChange={handleThemeChange}
                 value={Theme.SYSTEM}
               />

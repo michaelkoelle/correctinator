@@ -30,6 +30,7 @@ const BackupSettingsList = () => {
         <ListItemSecondaryAction>
           <Switch
             edge="end"
+            color="primary"
             onChange={() =>
               dispatch(
                 settingsSetBackup({

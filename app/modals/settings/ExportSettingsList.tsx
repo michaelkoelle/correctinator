@@ -43,6 +43,7 @@ const ExportSettingsList = () => {
         <ListItemSecondaryAction>
           <Switch
             edge="end"
+            color="primary"
             onChange={() =>
               dispatch(
                 settingsSetExport({
@@ -84,6 +85,7 @@ const ExportSettingsList = () => {
         <ListItemSecondaryAction>
           <Switch
             edge="end"
+            color="primary"
             onChange={() =>
               dispatch(
                 settingsSetExport({
