@@ -25,7 +25,6 @@ import LauncherProjectsPage from './LauncherProjectsPage';
 import LauncherSheetsPage from './LauncherSheetsPage';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 import UpdaterModal from '../modals/UpdaterModal';
-import SchemaGenerator from '../features/schema-generator/SchemaGenerator';
 
 const useStyle = makeStyles({
   indicator: {

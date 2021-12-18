@@ -6,15 +6,13 @@ import Dialog from '@material-ui/core/Dialog';
 import Typography from '@material-ui/core/Typography';
 import DialogContent from '@material-ui/core/DialogContent';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, DialogActions, Grid } from '@material-ui/core';
+import { DialogActions, Grid } from '@material-ui/core';
 import { denormalize } from 'normalizr';
-import { AddIcon } from '@material-ui/data-grid';
 import { clipboard } from 'electron';
 import { ModalProps, useModal } from './ModalProvider';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import SchemaGeneratorToolbar from '../features/schema-generator/SchemaGeneratorToolbar';
 import {
-  convertTask,
   schemaAddTask,
   selectSchemaClipboard,
   selectSchemaEntities,
