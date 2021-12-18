@@ -6,8 +6,7 @@ import { getMaxValueForTasks } from '../utils/Formatter';
 import {
   generateComment,
   generateRating,
-  generateSimpleTask,
-  generateSingleChoiceTask,
+  generateTask,
 } from '../utils/Generator';
 import {
   flatMapTasksFromSheetEntity,
@@ -269,7 +268,7 @@ export function convertTask(
   return (dispatch) => {
     switch (type) {
       case TaskType.Simple: {
-        const template = generateSimpleTask();
+        const template = generateTask(TaskType.Simple) as RateableTask;
         const simpleTask: RateableTask = {
           id: task.id,
           name: task.name,
@@ -281,7 +280,9 @@ export function convertTask(
         break;
       }
       case TaskType.SingleChoice: {
-        const template = generateSingleChoiceTask();
+        const template = generateTask(
+          TaskType.SingleChoice
+        ) as SingleChoiceTask;
         const singleChoiceTask: SingleChoiceTask = {
           id: task.id,
           name: task.name,
@@ -311,26 +312,30 @@ export function convertTask(
   };
 }
 
-export function schemaAddSubtask(
-  parentId: string,
-  task: RateableTask,
-  comment: CommentEntity,
-  rating: RatingEntity
-) {
-  return (dispatch, getState) => {
-    const state = getState();
-    const tasks = new Map<string, TaskEntity>(
-      Object.entries(state.schema.tasks)
-    );
+export function schemaAddTask(type: TaskType, parentId?: string) {
+  const task = generateTask(TaskType.Simple) as RateableTask;
+  const comment = generateComment(task);
+  const rating = generateRating(task, comment);
 
-    const parent = tasks.get(parentId);
-    if (parent) {
+  return (dispatch, getState) => {
+    // Logic to handle inserting a subtask
+    if (parentId) {
+      const state = getState();
+      const tasks = new Map<string, TaskEntity>(
+        Object.entries(state.schema.tasks)
+      );
+
+      const parent = tasks.get(parentId);
+
+      if (!parent) {
+        return;
+      }
+
       if (isParentTaskEntity(parent)) {
         // Add subtask to children
         const temp = { ...parent };
         temp.tasks = [...temp.tasks, task.id];
         dispatch(schemaUpsertTask(temp));
-        // tasks.set(parent.id, parent);
       } else {
         // Carry over max points, step, value and comment to subtask
         task.max = (parent as RateableTask).max;
@@ -352,30 +357,12 @@ export function schemaAddSubtask(
         // Convert Rateable Task to Parent Task
         dispatch(convertTask(parent, TaskType.Parent, task));
       }
-      dispatch(schemaUpsertTask(task));
-      dispatch(schemaUpsertComment(comment));
-      dispatch(schemaUpsertRating(rating));
     }
-  };
-}
 
-export function schemaAddSimpleSubtask(parentId: string) {
-  return (dispatch) => {
-    const task = generateSimpleTask();
-    const comment = generateComment(task);
-    const rating = generateRating(task, comment);
-    dispatch(schemaAddSubtask(parentId, task, comment, rating));
-  };
-}
-
-export function schemaAddSimpleTask() {
-  return (dispatch) => {
-    const task = generateSimpleTask();
-    const comment = generateComment(task);
-    const rating = generateRating(task, comment);
     dispatch(schemaUpsertComment(comment));
     dispatch(schemaUpsertRating(rating));
     dispatch(schemaUpsertTask(task));
+    dispatch(convertTask(task, type));
   };
 }
 
@@ -396,7 +383,7 @@ export function removeSchemaTaskById(id: string) {
           temp.tasks = t.tasks.filter((tId) => tId !== id);
           // If this was the only subtask, convert parent task to simple task
           if (temp.tasks.length <= 0) {
-            const template = generateSimpleTask();
+            const template = generateTask(TaskType.Simple) as RateableTask;
             const oldRatingValue = Object.values(state.ratings).find(
               (r) => r.task === task.id
             )?.value;

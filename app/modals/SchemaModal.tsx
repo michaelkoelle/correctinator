@@ -14,7 +14,8 @@ import { ModalProps, useModal } from './ModalProvider';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import SchemaGeneratorToolbar from '../features/schema-generator/SchemaGeneratorToolbar';
 import {
-  schemaAddSimpleTask,
+  convertTask,
+  schemaAddTask,
   selectSchemaClipboard,
   selectSchemaEntities,
   selectSchemaRatings,
@@ -32,6 +33,8 @@ import Rating from '../model/Rating';
 import Task from '../model/Task';
 
 import CheckClipboardEffect from '../effects/CheckClipboardEffect';
+import SplitButton from '../components/SplitButton';
+import TaskType from '../model/TaskType';
 
 type SchemaModalProps = ModalProps;
 
@@ -112,16 +115,19 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button
-          variant="contained"
-          color="primary"
-          size="small"
-          style={{ margin: '5px 0 10px 0' }}
-          onClick={() => dispatch(schemaAddSimpleTask())}
-        >
-          Add Task
-          <AddIcon style={{ margin: '0px 0px 2px 5px' }} />
-        </Button>
+        <SplitButton
+          style={{ margin: '5px 0 5px 0' }}
+          options={[
+            {
+              name: 'Add Simple Task',
+              onClick: () => dispatch(schemaAddTask(TaskType.Simple)),
+            },
+            {
+              name: 'Add Single Choice Task',
+              onClick: () => dispatch(schemaAddTask(TaskType.SingleChoice)),
+            },
+          ]}
+        />
       </DialogActions>
     </Dialog>
   );

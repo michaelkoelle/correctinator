@@ -5,12 +5,14 @@ import AddIcon from '@material-ui/icons/Add';
 import { Paper, IconButton, Button, Grid } from '@material-ui/core';
 import {
   removeSchemaTaskById,
-  schemaAddSimpleSubtask,
+  schemaAddTask,
   schemaClearSelectedTask,
   schemaSetSelectedTask,
   selectSchemaSelectedTaskId,
 } from '../../model/SchemaSlice';
 import Task from '../../model/Task';
+import SplitButton from '../../components/SplitButton';
+import TaskType from '../../model/TaskType';
 
 type SchemaTaskCardProps = {
   task: Task;
@@ -29,13 +31,10 @@ export default function SchemaTaskCard(props: SchemaTaskCardProps) {
   const INDENT_SIZE = 15;
   const marginLeft = `${depth * INDENT_SIZE}pt`;
 
-  function onDelete() {
+  function onDelete(event) {
+    event.stopPropagation();
+    event.preventDefault();
     dispatch(removeSchemaTaskById(task.id));
-  }
-
-  function onAddSubTask(e) {
-    e.stopPropagation();
-    dispatch(schemaAddSimpleSubtask(task.id));
   }
 
   function onSelection(e) {
@@ -97,17 +96,27 @@ export default function SchemaTaskCard(props: SchemaTaskCardProps) {
         }}
       >
         <Grid item>
-          <Button
-            onClick={onAddSubTask}
-            variant="contained"
-            size="small"
-            style={{
-              margin: '0 10px 0 0',
-            }}
-          >
-            Add subtask
-            <AddIcon fontSize="small" style={{ marginBottom: '3px' }} />
-          </Button>
+          <SplitButton
+            style={{ margin: '0 10px 0 0' }}
+            options={[
+              {
+                name: 'Add Simple Task',
+                onClick: (event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  dispatch(schemaAddTask(TaskType.Simple, task.id));
+                },
+              },
+              {
+                name: 'Add Single Choice Task',
+                onClick: (event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  dispatch(schemaAddTask(TaskType.SingleChoice, task.id));
+                },
+              },
+            ]}
+          />
         </Grid>
       </Grid>
     </Paper>
