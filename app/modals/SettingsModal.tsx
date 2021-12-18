@@ -4,7 +4,7 @@ import React, { FC } from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import Typography from '@material-ui/core/Typography';
 import DialogContent from '@material-ui/core/DialogContent';
-import { Divider } from '@material-ui/core';
+import { DialogActions, Divider } from '@material-ui/core';
 import { ModalProps } from './ModalProvider';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import GeneralSettingsList from './settings/GeneralSettingsList';
@@ -23,7 +23,7 @@ const SettingsModal: FC<SettingsModalProps> = ({ ...props }) => {
       {...props}
       fullWidth
       disableBackdropClick
-      style={{ paddingTop: '32px' }}
+      style={{ paddingTop: '16px' }}
     >
       <DialogTitleWithCloseIcon onClose={close}>
         <Typography variant="h5">Settings</Typography>

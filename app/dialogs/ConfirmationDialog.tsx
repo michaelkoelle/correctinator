@@ -45,6 +45,7 @@ const ConfirmationDialog: FC<ConfimationDialogProps> = ({
             onConfirm(dispatch);
           }}
           color="primary"
+          variant="contained"
           autoFocus
         >
           Yes
@@ -55,6 +56,7 @@ const ConfirmationDialog: FC<ConfimationDialogProps> = ({
             if (onReject) onReject(dispatch);
           }}
           color="primary"
+          variant="contained"
         >
           No
         </Button>
@@ -65,6 +67,7 @@ const ConfirmationDialog: FC<ConfimationDialogProps> = ({
               onCancel(dispatch);
             }}
             color="default"
+            variant="contained"
           >
             Cancel
           </Button>

@@ -2,6 +2,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { createContext, FC, useContext, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import UUID from '../utils/UUID';
 
 interface ModalProviderProps {
   children;
@@ -44,7 +45,7 @@ export default function ModalProvider(props: ModalProviderProps) {
       {children}
       {modalList.map((Modal, i) => (
         <Modal.component
-          key={uuidv4()}
+          key={UUID.v5(Modal.component.toString())}
           open={Boolean(Modal.component)}
           close={() => closeModal(i)}
           {...Modal.options}

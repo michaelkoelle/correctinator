@@ -42,6 +42,7 @@ import ConfirmDeleteSheetDialog from '../../dialogs/ConfirmDeleteSheetDialog';
 import AutoCorrectionModal from '../../modals/AutoCorrectionModal';
 import { launcherSetTabIndex } from '../../model/LauncherSlice';
 import LauncherTabs from '../../model/LauncherTabs';
+import SchemaModal from '../../modals/SchemaModal';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -83,7 +84,8 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   function onCreateSchema() {
     dispatch(schemaSetSelectedSheet(sheet.id));
     // dispatch(setTabIndex(2));
-    dispatch(launcherSetTabIndex(LauncherTabs.SCHEMA));
+    // dispatch(launcherSetTabIndex(LauncherTabs.SCHEMA));
+    showModal(SchemaModal);
   }
 
   function onOpenMenu(event) {

@@ -17,9 +17,9 @@ const CheckClipboardEffect = (
   function checkClipboard() {
     const text = clipboard.readText();
 
-    if (text.trim() === YAML.stringify(entities).trim()) {
-      dispatch(schemaSetClipboard(text));
-    }
+    // if (text.trim() === YAML.stringify(entities).trim()) {
+    dispatch(schemaSetClipboard(text));
+    // }
 
     if (
       text.trim().length === 0 ||

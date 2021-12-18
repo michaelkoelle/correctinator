@@ -138,12 +138,6 @@ export default function LauncherNavigation(): JSX.Element {
                   }}
                 />
               )}
-              <Tab
-                label="Schema"
-                classes={{
-                  wrapper: classes.wrapper,
-                }}
-              />
             </Tabs>
             <IconButton
               style={{
@@ -179,12 +173,6 @@ export default function LauncherNavigation(): JSX.Element {
             style={{ width: 'inherit', height: '100%', padding: '0px' }}
           >
             <LauncherSheetsPage />
-          </TabPanel>
-          <TabPanel
-            value={LauncherTabs.SCHEMA.toString()}
-            style={{ width: 'inherit', height: '100%', padding: '0px' }}
-          >
-            <SchemaGenerator />
           </TabPanel>
         </Grid>
       </TabContext>

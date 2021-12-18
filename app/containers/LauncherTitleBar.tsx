@@ -2,18 +2,21 @@
 import React, { useEffect, useState } from 'react';
 import FramelessTitlebar from 'frameless-titlebar';
 import 'setimmediate';
+import * as Path from 'path';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@material-ui/core';
 import { remote } from 'electron';
 import { version } from '../package.json';
 import { selectSettings, SettingsState } from '../model/SettingsSlice';
 import { shouldUseDarkColors } from '../model/Theme';
+import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
 
 const currentWindow = remote.getCurrentWindow();
 
 export default function LauncherTitleBar() {
   const theme = useTheme();
   const settings: SettingsState = useSelector(selectSettings);
+  const workspace: string = useSelector(selectWorkspacePath);
   const [maximized, setMaximized] = useState(currentWindow.isMaximized());
 
   // add window listeners for currentWindow
@@ -84,7 +87,9 @@ export default function LauncherTitleBar() {
             },
           },
         }}
-        title="Launcher"
+        title={`${
+          workspace.length > 0 ? `${Path.parse(workspace).name}` : 'Launcher'
+        }`}
         onClose={() => {
           currentWindow.close();
         }}

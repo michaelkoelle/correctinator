@@ -62,12 +62,7 @@ export default function SchemaGenerator() {
     entities
   );
 
-  const [type, setType] = useState('points');
   const [advancedView, setAdvancedView] = useState<boolean>(false);
-  const maxValueTasks: number = tasks
-    ? getMaxValueForTasks(getTopLevelTasks(tasks))
-    : 0;
-  const maxValue: number = selectedSheet?.maxValue || maxValueTasks;
   const [skipCheck, setSkipCheck] = useState<boolean>(false);
 
   function onChange(newValue: string) {
@@ -95,30 +90,25 @@ export default function SchemaGenerator() {
     [clipboardOld, skipCheck, entities]
   );
 
+  if (!selectedSheet) {
+    return <Typography>Error: sheet corrupted</Typography>;
+  }
+
   return (
     <Grid
       container
       direction="column"
       wrap="nowrap"
-      spacing={4}
-      style={{ height: 'calc(100% - 45px)', marginTop: '16px' }}
+      spacing={2}
+      // xs={12}
+      // style={{ height: 'calc(100% - 45px)' }}
     >
-      <Grid
-        container
-        direction="row"
-        justify="center"
-        alignItems="center"
-        spacing={2}
-      >
-        <Grid item style={{ margin: '0px 16px' }}>
-          <Typography variant="h3">Schema Generator</Typography>
-        </Grid>
-      </Grid>
       <Grid
         item
         container
-        wrap="nowrap"
-        style={{ flex: '1 1 0%', height: '0px' }}
+        style={{
+          flex: '1 1 0%',
+        }}
       >
         <Grid
           item
@@ -127,70 +117,52 @@ export default function SchemaGenerator() {
           xs={advancedView ? 8 : 12}
           style={{
             flex: '1 1 0%',
-            marginRight: '16px',
+            background: 'blue',
           }}
         >
           <Grid
             item
             style={{
-              marginBottom: '12px',
+              flex: '1 1 0%',
+              height: '0px',
+              background: 'green',
             }}
           >
-            <SchemaGeneratorToolbar
-              sheets={sheets}
-              selectedSheetId={selectedSheetId}
+            <SchemaTaskList
+              type={selectedSheet.valueType}
+              tasks={getTopLevelTasks(tasks)}
               ratings={ratings}
-              maxValue={maxValue}
-              selectedSheet={selectedSheet}
-              tasksEntity={tasksEntity}
-              tasks={tasks}
-              ratingsEntity={ratingsEntity}
-              maxValueTasks={maxValueTasks}
-              type={type}
-              setType={setType}
-              setSkipCheck={setSkipCheck}
+              depth={0}
             />
           </Grid>
-          <Grid item style={{ flex: '1 1 0%' }}>
-            <Paper
-              elevation={3}
-              style={{
-                flex: '1 1 0%',
-                height: '0px',
-                minHeight: 'calc(100%)',
-                overflow: 'auto',
-                // padding: '16px',
-              }}
-            >
-              <SchemaTaskList
-                type={selectedSheet ? selectedSheet.valueType : type}
-                tasks={getTopLevelTasks(tasks)}
-                ratings={ratings}
-                depth={0}
-              />
-              <Grid
-                container
-                direction="row"
-                justify="center"
-                alignItems="center"
+          <Grid
+            item
+            container
+            direction="row"
+            justify="center"
+            alignItems="center"
+          >
+            <Grid item>
+              <Button
+                variant="contained"
+                size="small"
+                style={{ margin: '5px 0 10px 0' }}
+                onClick={() => dispatch(schemaAddSimpleTask())}
               >
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    style={{ margin: '5px 0 10px 0' }}
-                    onClick={() => dispatch(schemaAddSimpleTask())}
-                  >
-                    Add Task
-                    <AddIcon style={{ margin: '0px 0px 2px 5px' }} />
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
+                Add Task
+                <AddIcon style={{ margin: '0px 0px 2px 5px' }} />
+              </Button>
+            </Grid>
           </Grid>
         </Grid>
         {advancedView && (
-          <Grid item xs={4} style={{ flex: '1 1 0%', marginRight: '16px' }}>
+          <Grid
+            item
+            xs={4}
+            style={{
+              flex: '1 1 0%',
+            }}
+          >
             <Paper
               elevation={3}
               style={{

@@ -1,5 +1,5 @@
 /* eslint-disable import/no-cycle */
-import { List, ListItem } from '@material-ui/core';
+import { List, ListItem, Typography, useTheme } from '@material-ui/core';
 import React from 'react';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
@@ -16,9 +16,38 @@ type TaskCorrectionList = {
 
 export default function SchemaTaskList(props: TaskCorrectionList) {
   const { tasks, ratings, type, depth, disableGutters = false } = props;
+  const theme = useTheme();
 
   return (
-    <List style={{ paddingBottom: disableGutters ? 0 : undefined }}>
+    <List
+      style={{
+        paddingBottom: disableGutters ? 0 : undefined,
+        height: '100%',
+      }}
+    >
+      {tasks?.length === 0 && (
+        <>
+          <Typography
+            style={{
+              width: '100%',
+              textAlign: 'center',
+              marginTop: '24px',
+              color: theme.palette.text.disabled,
+            }}
+          >
+            No tasks yet!
+          </Typography>
+          <Typography
+            style={{
+              width: '100%',
+              textAlign: 'center',
+              color: theme.palette.text.disabled,
+            }}
+          >
+            You can add a tasks with the button below!
+          </Typography>
+        </>
+      )}
       {tasks?.map((t: Task, i: number, a: Task[]) => {
         return (
           <ListItem
