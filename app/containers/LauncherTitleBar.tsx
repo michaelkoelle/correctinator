@@ -6,7 +6,6 @@ import * as Path from 'path';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@material-ui/core';
 import { remote } from 'electron';
-import { version } from '../package.json';
 import { selectSettings, SettingsState } from '../model/SettingsSlice';
 import { shouldUseDarkColors } from '../model/Theme';
 import { selectWorkspacePath } from '../features/workspace/workspaceSlice';

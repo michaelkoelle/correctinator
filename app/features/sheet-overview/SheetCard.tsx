@@ -40,8 +40,6 @@ import ExportModal from '../../modals/ExportModal';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 import ConfirmDeleteSheetDialog from '../../dialogs/ConfirmDeleteSheetDialog';
 import AutoCorrectionModal from '../../modals/AutoCorrectionModal';
-import { launcherSetTabIndex } from '../../model/LauncherSlice';
-import LauncherTabs from '../../model/LauncherTabs';
 import SchemaModal from '../../modals/SchemaModal';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {

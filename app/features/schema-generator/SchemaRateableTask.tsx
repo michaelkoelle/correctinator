@@ -14,19 +14,17 @@ import {
 } from '../../model/SchemaSlice';
 import RateableTask from '../../model/RateableTask';
 import TaskNameInput from './TaskNameInput';
-import SchemaTaskCard from './SchemaTaskCard';
 import SelectTaskType from './SelectTaskType';
 import Rating from '../../model/Rating';
 
 type SchemaRateableTaskProps = {
   task: RateableTask;
   rating: Rating;
-  depth: number;
   type: string;
 };
 
 export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
-  const { task, rating, type, depth } = props;
+  const { task, rating, type } = props;
   const dispatch = useDispatch();
 
   const [expanded, setExpanded] = React.useState(false);
@@ -91,7 +89,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
   }
 
   return (
-    <SchemaTaskCard task={task} depth={depth}>
+    <>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"
@@ -170,6 +168,6 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
           size="small"
         />
       </Collapse>
-    </SchemaTaskCard>
+    </>
   );
 }

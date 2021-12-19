@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import CancelIcon from '@material-ui/icons/Cancel';
-import AddIcon from '@material-ui/icons/Add';
-import { Paper, IconButton, Button, Grid } from '@material-ui/core';
+import { Paper, IconButton, Grid } from '@material-ui/core';
 import {
   removeSchemaTaskById,
   schemaAddTask,
@@ -100,7 +99,7 @@ export default function SchemaTaskCard(props: SchemaTaskCardProps) {
             style={{ margin: '0 10px 0 0' }}
             options={[
               {
-                name: 'Add Simple Task',
+                name: 'Add Task',
                 onClick: (event) => {
                   event.stopPropagation();
                   event.preventDefault();
@@ -108,7 +107,7 @@ export default function SchemaTaskCard(props: SchemaTaskCardProps) {
                 },
               },
               {
-                name: 'Add Single Choice Task',
+                name: 'Add Single Choice',
                 onClick: (event) => {
                   event.stopPropagation();
                   event.preventDefault();

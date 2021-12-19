@@ -18,7 +18,6 @@ import {
 } from '../../model/SchemaSlice';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 import TaskNameInput from './TaskNameInput';
-import SchemaTaskCard from './SchemaTaskCard';
 import SelectTaskType from './SelectTaskType';
 import Rating from '../../model/Rating';
 
@@ -26,13 +25,12 @@ type SchemaSingleChoiceTaskProps = {
   task: SingleChoiceTask;
   rating: Rating;
   type: string;
-  depth: number;
 };
 
 export default function SchemaSingleChoiceTask(
   props: SchemaSingleChoiceTaskProps
 ) {
-  const { task, rating, type, depth } = props;
+  const { task, rating, type } = props;
   const dispatch = useDispatch();
   const [expanded, setExpanded] = React.useState(false);
 
@@ -92,7 +90,7 @@ export default function SchemaSingleChoiceTask(
   }
 
   return (
-    <SchemaTaskCard task={task} depth={depth}>
+    <>
       <TaskNameInput task={task} />
       <TextField
         label="Value"
@@ -149,6 +147,6 @@ export default function SchemaSingleChoiceTask(
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <SelectTaskType task={task} />
       </Collapse>
-    </SchemaTaskCard>
+    </>
   );
 }

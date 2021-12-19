@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import routes from './constants/routes.json';
-import SchemeGeneratorPage from './containers/SchemeGeneratorPage';
 import OverviewPage from './containers/OverviewPage';
 import CorrectionViewPage from './containers/CorrectionViewPage';
 import SheetOverviewPage from './containers/SheetOverviewPage';
@@ -64,7 +63,6 @@ export default function Routes() {
         <Route path={routes.SHEETOVERVIEW} component={SheetOverviewPage} />
         <Route path={routes.CORRECTIONVIEW} component={CorrectionViewPage} />
         <Route path={routes.OVERVIEW} component={OverviewPage} />
-        <Route path={routes.SCHEMAGENERATOR} component={SchemeGeneratorPage} />
         <Route path={routes.HOME} component={NewHomePage} />
       </Switch>
     </>

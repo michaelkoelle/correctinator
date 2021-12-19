@@ -1,10 +1,8 @@
 import {
   Box,
   Button,
-  ButtonGroup,
   Divider,
   Grid,
-  IconButton,
   Typography,
   useTheme,
 } from '@material-ui/core';
@@ -13,7 +11,6 @@ import { remote } from 'electron';
 import { useSelector } from 'react-redux';
 import { openDirectory } from '../../utils/FileAccess';
 import SheetCardList from './SheetCardList';
-import { useAppDispatch } from '../../store';
 import { useModal } from '../../modals/ModalProvider';
 import ImportModal from '../../modals/ImportModal';
 import SheetsToolbar from '../../components/SheetToolbar';
@@ -21,7 +18,6 @@ import { selectAllSheets } from '../../model/SheetSlice';
 import SheetEntity from '../../model/SheetEntity';
 
 export default function SheetOverview() {
-  const dispatch = useAppDispatch();
   const theme = useTheme();
   const allSheets: SheetEntity[] = useSelector(selectAllSheets);
   const [searchTerm, setSearchTerm] = useState<string | undefined>();

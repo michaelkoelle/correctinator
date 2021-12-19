@@ -35,7 +35,7 @@ export default function SchemaTaskList(props: TaskCorrectionList) {
               color: theme.palette.text.disabled,
             }}
           >
-            No tasks yet!
+            No tasks specified yet!
           </Typography>
           <Typography
             style={{
@@ -44,7 +44,7 @@ export default function SchemaTaskList(props: TaskCorrectionList) {
               color: theme.palette.text.disabled,
             }}
           >
-            You can add a tasks with the button below!
+            You can add a tasks with the button above!
           </Typography>
         </>
       )}

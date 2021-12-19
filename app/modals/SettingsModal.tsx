@@ -4,7 +4,7 @@ import React, { FC } from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import Typography from '@material-ui/core/Typography';
 import DialogContent from '@material-ui/core/DialogContent';
-import { DialogActions, Divider } from '@material-ui/core';
+import { Divider } from '@material-ui/core';
 import { ModalProps } from './ModalProvider';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import GeneralSettingsList from './settings/GeneralSettingsList';

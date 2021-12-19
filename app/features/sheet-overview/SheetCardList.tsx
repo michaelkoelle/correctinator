@@ -1,4 +1,4 @@
-import { Box, List, ListItem, Paper, Typography } from '@material-ui/core';
+import { List } from '@material-ui/core';
 import React from 'react';
 import SheetEntity from '../../model/SheetEntity';
 import SheetCard from './SheetCard';

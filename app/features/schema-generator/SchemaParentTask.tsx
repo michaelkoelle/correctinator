@@ -10,7 +10,6 @@ import {
 } from '../../utils/Formatter';
 import { hasTasksWithZeroMax } from '../../utils/TaskUtil';
 import TaskNameInput from './TaskNameInput';
-import SchemaTaskCard from './SchemaTaskCard';
 // eslint-disable-next-line import/no-cycle
 import SchemaTaskList from './SchemaTaskList';
 
@@ -27,7 +26,7 @@ export default function SchemaParentTask(props: SchemaParentTaskProps) {
   const sumMax = getMaxValueForTasks(task.tasks);
 
   return (
-    <SchemaTaskCard task={task} depth={depth}>
+    <>
       <TaskNameInput task={task} />
       <TextField
         label="Inital"
@@ -67,6 +66,6 @@ export default function SchemaParentTask(props: SchemaParentTaskProps) {
         depth={depth + 1}
         disableGutters
       />
-    </SchemaTaskCard>
+    </>
   );
 }

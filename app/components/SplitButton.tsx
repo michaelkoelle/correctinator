@@ -24,10 +24,11 @@ export interface SplitButtonOption {
 export interface SplitButtonProps {
   options: SplitButtonOption[];
   style?: CSSProperties;
+  size?: 'small' | 'medium' | 'large';
 }
 
 export default function SplitButton(props: SplitButtonProps) {
-  const { options, style } = props;
+  const { options, style, size } = props;
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -65,19 +66,20 @@ export default function SplitButton(props: SplitButtonProps) {
         color="primary"
         ref={anchorRef}
         aria-label="split button"
-        size="small"
+        size={size}
         style={style}
       >
-        <Button onClick={options[selectedIndex].onClick}>
+        <Button onClick={options[selectedIndex].onClick} size={size}>
           {options[selectedIndex].name}
         </Button>
         <Button
           color="primary"
-          size="small"
+          size={size}
           aria-controls={open ? 'split-button-menu' : undefined}
           aria-expanded={open ? 'true' : undefined}
           aria-haspopup="menu"
           onClick={handleToggle}
+          style={{ padding: '0' }}
         >
           <ArrowDropDownIcon />
         </Button>
