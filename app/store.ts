@@ -21,6 +21,7 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { useDispatch } from 'react-redux';
+import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import createRootReducer from './rootReducer';
 import { reportChange } from './model/SaveSlice';
 
@@ -29,12 +30,13 @@ const persistConfig = {
   // whitelist: ['workspace'],
   blacklist: ['schema'],
   storage,
+  stateReconciler: autoMergeLevel2,
 };
 
 export const history = createHashHistory();
 const combinedReducer = createRootReducer(history);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rootReducer: any = persistReducer(persistConfig, combinedReducer);
+const rootReducer: any = persistReducer(persistConfig, combinedReducer as any);
 export type RootState = ReturnType<typeof rootReducer>;
 
 const router = routerMiddleware(history);
