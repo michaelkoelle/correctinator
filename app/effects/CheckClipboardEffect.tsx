@@ -1,5 +1,4 @@
 /* eslint-disable no-empty */
-import * as YAML from 'yaml';
 import { schemaSetClipboard } from '../model/SchemaSlice';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import PasteFromClipboardDialog from '../dialogs/PasteFromClipboardDialog';
@@ -17,14 +16,13 @@ const CheckClipboardEffect = (
 ) => {
   function checkClipboard() {
     const text = clipboard.readText();
-
-    // if (text.trim() === YAML.stringify(entities).trim()) {
-    dispatch(schemaSetClipboard(text));
-    // }
     // TODO: schauen ob gleich sind bis auf ids
     if (text.trim().length === 0 || text === clipboardOld) {
       return;
     }
+
+    dispatch(schemaSetClipboard(text));
+
     try {
       const newEntities = parseSchemaTasks(JSON.parse(text));
       if (newEntities.tasks && newEntities.ratings && newEntities.comments) {

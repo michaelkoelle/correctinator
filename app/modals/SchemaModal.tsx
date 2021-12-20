@@ -52,7 +52,7 @@ import OverwriteSchemaDialog, {
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import CommentEntity from '../model/CommentEntity';
 import { getMaxValueForTasks } from '../utils/Formatter';
-import { parseSchemaTasks, stringifySchemaTasks } from '../utils/SchemaUtil';
+import { stringifySchemaTasks } from '../utils/SchemaUtil';
 
 type SchemaModalProps = ModalProps;
 

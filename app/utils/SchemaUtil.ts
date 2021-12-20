@@ -3,7 +3,6 @@ import Task from '../model/Task';
 import RatingEntity from '../model/RatingEntity';
 import CommentEntity from '../model/CommentEntity';
 import { isParentTask } from './TaskUtil';
-import ParentTask from '../model/ParentTask';
 import ParentTaskEntity from '../model/ParentTaskEntity';
 import TaskEntity from '../model/TaskEntity';
 
