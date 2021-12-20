@@ -89,6 +89,7 @@ export default function SchemaGeneratorToolbar() {
               step: 0.5,
             }}
             value={getTotalValueOfRatings(ratings)}
+            error={getTotalValueOfRatings(ratings) > selectedSheet.maxValue}
           />
         </Grid>
         <Grid item>
@@ -107,12 +108,9 @@ export default function SchemaGeneratorToolbar() {
             }}
             value={maxValue}
             error={
-              (selectedSheet &&
-                (maxValue !== selectedSheet?.maxValue ||
-                  hasTasksWithZeroMax(tasksEntity) ||
-                  maxValue <= 0)) ||
-              (!selectedSheet &&
-                (hasTasksWithZeroMax(tasksEntity) || maxValue <= 0))
+              maxValueTasks !== selectedSheet.maxValue ||
+              hasTasksWithZeroMax(tasksEntity) ||
+              maxValue <= 0
             }
           />
         </Grid>

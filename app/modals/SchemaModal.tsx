@@ -44,7 +44,10 @@ import Rating from '../model/Rating';
 import Task from '../model/Task';
 import CheckClipboardEffect from '../effects/CheckClipboardEffect';
 import { shouldUseDarkColors } from '../model/Theme';
-import { selectSettingsGeneral } from '../model/SettingsSlice';
+import {
+  selectSettingsGeneral,
+  selectSettingsSchema,
+} from '../model/SettingsSlice';
 import OverwriteSchemaDialog, {
   onInitializeSheet,
 } from '../dialogs/OverwriteSchemaDialog';
@@ -52,6 +55,8 @@ import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import CommentEntity from '../model/CommentEntity';
 import { getMaxValueForTasks } from '../utils/Formatter';
 import { parseSchemaTasks, stringifySchemaTasks } from '../utils/SchemaUtil';
+import ChangeInitialValueMode from '../effects/ChangeInitialValueMode';
+import InitModeToggle from '../features/schema-generator/InitModeToggle';
 
 type SchemaModalProps = ModalProps;
 
@@ -59,6 +64,8 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
   const { close } = props;
   const dispatch = useDispatch();
   const showModal = useModal();
+  const settings = useSelector(selectSettingsSchema);
+  const { initMode } = settings;
   const { theme } = useSelector(selectSettingsGeneral);
   const sheets: SheetEntity[] = useSelector(selectAllSheets);
   const selectedSheetId: string = useSelector(selectSchemaSelectedSheetId);
@@ -187,6 +194,11 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
     [clipboardOld, skipCheck, entities]
   );
 
+  useEffect(
+    ChangeInitialValueMode(dispatch, initMode, ratingsEntity, tasksEntity),
+    [dispatch, initMode, ratingsEntity, tasksEntity]
+  );
+
   return (
     <Dialog
       {...props}
@@ -264,6 +276,7 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
             </ToggleButton>
           </span>
         </Tooltip>
+        <InitModeToggle />
         <div style={{ flex: '1 0 0', textAlign: 'center' }}>
           <Typography color="error">{getErrorMessage()}</Typography>
         </div>

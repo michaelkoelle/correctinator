@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import ParserType from '../parser/ParserType';
 import ConditionalComment from './ConditionalComment';
+import InitializationMode from './InitializationMode';
 import { Theme } from './Theme';
 
 export interface GeneralSettings {
@@ -10,6 +11,10 @@ export interface GeneralSettings {
 
 export interface BackupSettings {
   enabled: boolean;
+}
+
+export interface SchemaSettings {
+  initMode: InitializationMode;
 }
 
 export interface CorrectionSettings {
@@ -33,6 +38,7 @@ export interface ExportSettings {
 export interface SettingsState {
   general: GeneralSettings;
   backup: BackupSettings;
+  schema: SchemaSettings;
   correction: CorrectionSettings;
   mediaViewer: MediaViewerSettings;
   export: ExportSettings;
@@ -47,6 +53,9 @@ const settingsSlice = createSlice({
     },
     backup: {
       enabled: true,
+    },
+    schema: {
+      initMode: InitializationMode.MANUAL,
     },
     correction: {
       taskCorrectText: 'korrekt',
@@ -71,6 +80,9 @@ const settingsSlice = createSlice({
   reducers: {
     settingsSetGeneral(state, action: PayloadAction<GeneralSettings>) {
       state.general = action.payload;
+    },
+    settingsSetSchema(state, action: PayloadAction<SchemaSettings>) {
+      state.schema = action.payload;
     },
     settingsSetCorrection(state, action: PayloadAction<CorrectionSettings>) {
       state.correction = action.payload;
@@ -116,6 +128,8 @@ export const selectSettingsGeneral = (state): GeneralSettings =>
   state.settings.general;
 export const selectSettingsBackup = (state): BackupSettings =>
   state.settings.backup;
+export const selectSettingsSchema = (state): SchemaSettings =>
+  state.settings.schema;
 export const selectSettingsCorrection = (state): CorrectionSettings =>
   state.settings.correction;
 export const selectSettingsMediaViewer = (state): MediaViewerSettings =>
@@ -126,6 +140,7 @@ export const selectSettings = (state) => state.settings;
 export const {
   settingsSetGeneral,
   settingsSetBackup,
+  settingsSetSchema,
   settingsSetCorrection,
   settingsSetMediaViewer,
   settingsSetExport,

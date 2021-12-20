@@ -20,17 +20,6 @@ const CorrectionSettingsList = () => {
   const dispatch = useDispatch();
   const settings: CorrectionSettings = useSelector(selectSettingsCorrection);
 
-  if (!settings) {
-    // set default
-    dispatch(
-      settingsSetCorrection({
-        taskCorrectText: 'korrekt!',
-        taskIncorrectText: 'fehlt',
-      })
-    );
-    return null;
-  }
-
   return (
     <List subheader={<ListSubheader disableSticky>Correction</ListSubheader>}>
       <ListItem>

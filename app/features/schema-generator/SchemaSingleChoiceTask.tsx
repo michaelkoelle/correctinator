@@ -6,8 +6,9 @@ import {
   Collapse,
   IconButton,
   InputAdornment,
+  Tooltip,
 } from '@material-ui/core';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import styles from './TaskScheme.css';
 import {
@@ -20,6 +21,10 @@ import SingleChoiceTask from '../../model/SingleChoiceTask';
 import TaskNameInput from './TaskNameInput';
 import SelectTaskType from './SelectTaskType';
 import Rating from '../../model/Rating';
+import { selectSettingsSchema } from '../../model/SettingsSlice';
+import InitializationMode, {
+  getInitialValue,
+} from '../../model/InitializationMode';
 
 type SchemaSingleChoiceTaskProps = {
   task: SingleChoiceTask;
@@ -32,6 +37,7 @@ export default function SchemaSingleChoiceTask(
 ) {
   const { task, rating, type } = props;
   const dispatch = useDispatch();
+  const settings = useSelector(selectSettingsSchema);
   const [expanded, setExpanded] = React.useState(false);
 
   function onChangeValue(e: ChangeEvent<{ value: unknown }>) {
@@ -43,13 +49,14 @@ export default function SchemaSingleChoiceTask(
       value: newMax,
       text: temp.answer.text,
     };
-    if (rating.value > 0) {
+
+    if (rating.value > 0 || settings.initMode !== InitializationMode.MANUAL) {
       dispatch(
         schemaUpsertRating({
           id: rating.id,
           task: rating.task.id,
           comment: rating.comment.id,
-          value: newMax,
+          value: getInitialValue(settings.initMode, newMax, newMax),
         })
       );
     }
@@ -123,14 +130,25 @@ export default function SchemaSingleChoiceTask(
         variant="outlined"
         size="small"
       />
-      <Checkbox
-        title="Initial Value"
-        color="default"
-        checked={rating.value > 0}
-        style={{ marginTop: '4px' }}
-        onChange={onChangeChoiceValue}
-        onClick={(e) => e.stopPropagation()}
-      />
+      <Tooltip
+        title={
+          settings.initMode !== InitializationMode.MANUAL
+            ? 'Read-only because of Init Mode'
+            : 'Initial Value'
+        }
+      >
+        <span>
+          <Checkbox
+            title="Initial Value"
+            color="default"
+            checked={rating.value > 0}
+            style={{ marginTop: '4px' }}
+            onChange={onChangeChoiceValue}
+            onClick={(e) => e.stopPropagation()}
+            disabled={settings.initMode !== InitializationMode.MANUAL}
+          />
+        </span>
+      </Tooltip>
       <IconButton
         onClick={onExpand}
         aria-expanded={expanded}

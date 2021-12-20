@@ -3,7 +3,7 @@ import React, { ChangeEvent } from 'react';
 import TextField from '@material-ui/core/TextField';
 import { Collapse, IconButton, InputAdornment } from '@material-ui/core';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import styles from './TaskScheme.css';
 import {
   schemaClearSelectedTask,
@@ -16,6 +16,11 @@ import RateableTask from '../../model/RateableTask';
 import TaskNameInput from './TaskNameInput';
 import SelectTaskType from './SelectTaskType';
 import Rating from '../../model/Rating';
+import InitModeTooltip from './InitModeTooltip';
+import { selectSettingsSchema } from '../../model/SettingsSlice';
+import InitializationMode, {
+  getInitialValue,
+} from '../../model/InitializationMode';
 
 type SchemaRateableTaskProps = {
   task: RateableTask;
@@ -26,6 +31,7 @@ type SchemaRateableTaskProps = {
 export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
   const { task, rating, type } = props;
   const dispatch = useDispatch();
+  const settings = useSelector(selectSettingsSchema);
 
   const [expanded, setExpanded] = React.useState(false);
 
@@ -46,13 +52,16 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
     e.stopPropagation();
     const temp = { ...task };
     const newMax: number = parseFloat(e.target.value as string);
-    if (rating.value > newMax) {
+    if (
+      rating.value > newMax ||
+      settings.initMode !== InitializationMode.MANUAL
+    ) {
       dispatch(
         schemaUpsertRating({
           id: rating.id,
           task: rating.task.id,
           comment: rating.comment.id,
-          value: newMax,
+          value: getInitialValue(settings.initMode, newMax, newMax),
         })
       );
     }
@@ -91,23 +100,28 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
   return (
     <>
       <TaskNameInput task={task} />
-      <TextField
-        label="Inital Value"
-        id="value"
-        name="value"
-        style={{ width: `${type.length * 0.6 + 6}em` }}
-        type="number"
-        value={rating.value}
-        className={styles.fields}
-        InputProps={{
-          endAdornment: <InputAdornment position="end">{type}</InputAdornment>,
-        }}
-        inputProps={{ min: 0, max: task.max, step: task.step }}
-        onChange={onChangeValue}
-        onClick={(e) => e.stopPropagation()}
-        size="small"
-        variant="outlined"
-      />
+      <InitModeTooltip>
+        <TextField
+          label="Inital Value"
+          id="value"
+          name="value"
+          style={{ width: `${type.length * 0.6 + 6}em` }}
+          type="number"
+          value={rating.value}
+          className={styles.fields}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">{type}</InputAdornment>
+            ),
+            readOnly: settings.initMode !== InitializationMode.MANUAL,
+          }}
+          inputProps={{ min: 0, max: task.max, step: task.step }}
+          onChange={onChangeValue}
+          onClick={(e) => e.stopPropagation()}
+          size="small"
+          variant="outlined"
+        />
+      </InitModeTooltip>
       <TextField
         label="Max"
         id="max"
