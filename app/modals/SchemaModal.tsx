@@ -52,6 +52,7 @@ import OverwriteSchemaDialog, {
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import CommentEntity from '../model/CommentEntity';
 import { getMaxValueForTasks } from '../utils/Formatter';
+import { parseSchemaTasks, stringifySchemaTasks } from '../utils/SchemaUtil';
 
 type SchemaModalProps = ModalProps;
 
@@ -147,7 +148,15 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
 
   const onCopyToClipboard = () => {
     setSkipCheck(true);
-    clipboard.writeText(YAML.stringify(entities));
+    clipboard.writeText(
+      JSON.stringify(
+        stringifySchemaTasks(
+          getTopLevelTasks(tasks),
+          ratingsEntity,
+          commentsEntity
+        )
+      )
+    );
   };
 
   useEffect(

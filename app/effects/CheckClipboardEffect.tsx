@@ -3,6 +3,7 @@ import * as YAML from 'yaml';
 import { schemaSetClipboard } from '../model/SchemaSlice';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import PasteFromClipboardDialog from '../dialogs/PasteFromClipboardDialog';
+import { parseSchemaTasks } from '../utils/SchemaUtil';
 
 const CheckClipboardEffect = (
   dispatch,
@@ -20,16 +21,12 @@ const CheckClipboardEffect = (
     // if (text.trim() === YAML.stringify(entities).trim()) {
     dispatch(schemaSetClipboard(text));
     // }
-
-    if (
-      text.trim().length === 0 ||
-      text === clipboardOld ||
-      text.trim() === YAML.stringify(entities).trim()
-    ) {
+    // TODO: schauen ob gleich sind bis auf ids
+    if (text.trim().length === 0 || text === clipboardOld) {
       return;
     }
     try {
-      const newEntities = YAML.parse(text);
+      const newEntities = parseSchemaTasks(JSON.parse(text));
       if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
         dispatch(schemaSetClipboard(text));
         if (!skipCheck) {

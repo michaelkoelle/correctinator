@@ -1,5 +1,4 @@
 /* eslint-disable no-empty */
-import * as YAML from 'yaml';
 import RateableTask from '../model/RateableTask';
 import {
   schemaSetClipboard,
@@ -8,6 +7,7 @@ import {
 } from '../model/SchemaSlice';
 import SingleChoiceTask from '../model/SingleChoiceTask';
 import TaskEntity from '../model/TaskEntity';
+import { parseSchemaTasks } from '../utils/SchemaUtil';
 import {
   isParentTaskEntity,
   isRateableTask,
@@ -18,7 +18,7 @@ const PasteFromClipboardDialog = (clipboard, sheets) => {
   function onPasteFromClipboard(dispatch) {
     const text = clipboard.readText();
     try {
-      const newEntities = YAML.parse(text);
+      const newEntities = parseSchemaTasks(JSON.parse(text));
       if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
         const max = Object.entries<TaskEntity>(newEntities.tasks)
           .map(([, v]) => {
@@ -40,7 +40,22 @@ const PasteFromClipboardDialog = (clipboard, sheets) => {
         if (suitableSheet) {
           dispatch(schemaSetSelectedSheet(suitableSheet.id));
         }
-        dispatch(schemaSetEntities(newEntities));
+        dispatch(
+          schemaSetEntities({
+            tasks: newEntities.tasks.reduce((acc, v) => {
+              acc[v.id] = v;
+              return acc;
+            }, {}),
+            ratings: newEntities.ratings.reduce((acc, v) => {
+              acc[v.id] = v;
+              return acc;
+            }, {}),
+            comments: newEntities.comments.reduce((acc, v) => {
+              acc[v.id] = v;
+              return acc;
+            }, {}),
+          })
+        );
         dispatch(schemaSetClipboard(text));
       }
     } catch (error) {}
