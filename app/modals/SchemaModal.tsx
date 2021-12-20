@@ -4,7 +4,6 @@
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-github';
 import AceEditor from 'react-ace';
-import * as YAML from 'yaml';
 import React, { FC, useEffect, useState } from 'react';
 import Dialog from '@material-ui/core/Dialog';
 import ToggleButton from '@material-ui/lab/ToggleButton';
@@ -52,7 +51,7 @@ import OverwriteSchemaDialog, {
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import CommentEntity from '../model/CommentEntity';
 import { getMaxValueForTasks } from '../utils/Formatter';
-import { stringifySchemaTasks } from '../utils/SchemaUtil';
+import { parseSchemaTasks, stringifySchemaTasks } from '../utils/SchemaUtil';
 
 type SchemaModalProps = ModalProps;
 
@@ -93,9 +92,24 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
   function onChange(newValue: string) {
     if (newValue !== null) {
       try {
-        const newEntities = YAML.parse(newValue);
+        const newEntities = parseSchemaTasks(JSON.parse(newValue));
         if (newEntities.tasks && newEntities.ratings && newEntities.comments) {
-          dispatch(schemaSetEntities(newEntities));
+          dispatch(
+            schemaSetEntities({
+              tasks: newEntities.tasks.reduce((acc, v) => {
+                acc[v.id] = v;
+                return acc;
+              }, {}),
+              ratings: newEntities.ratings.reduce((acc, v) => {
+                acc[v.id] = v;
+                return acc;
+              }, {}),
+              comments: newEntities.comments.reduce((acc, v) => {
+                acc[v.id] = v;
+                return acc;
+              }, {}),
+            })
+          );
         }
         // eslint-disable-next-line no-empty
       } catch (error) {}
@@ -211,12 +225,22 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
           />
         ) : (
           <AceEditor
-            mode="yaml"
+            mode="json"
             theme={shouldUseDarkColors(theme) ? 'twilight' : 'textmate'}
             width="100%"
             height="100%"
             maxLines={Infinity}
-            value={entities ? YAML.stringify(entities) : ''}
+            value={
+              JSON.stringify(
+                stringifySchemaTasks(
+                  getTopLevelTasks(tasks),
+                  ratingsEntity,
+                  commentsEntity
+                ),
+                null,
+                '\t'
+              ) ?? ''
+            }
             onChange={onChange}
             name="editor"
             editorProps={{ $blockScrolling: true }}
