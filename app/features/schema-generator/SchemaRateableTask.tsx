@@ -92,7 +92,7 @@ export default function SchemaRateableTask(props: SchemaRateableTaskProps) {
     <>
       <TaskNameInput task={task} />
       <TextField
-        label="Inital"
+        label="Inital Value"
         id="value"
         name="value"
         style={{ width: `${type.length * 0.6 + 6}em` }}

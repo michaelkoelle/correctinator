@@ -93,7 +93,7 @@ export default function SchemaSingleChoiceTask(
     <>
       <TaskNameInput task={task} />
       <TextField
-        label="Value"
+        label="Max"
         id="max"
         name="max"
         style={{ width: `${type.length * 0.6 + 6}em` }}
@@ -124,7 +124,7 @@ export default function SchemaSingleChoiceTask(
         size="small"
       />
       <Checkbox
-        title="Initial"
+        title="Initial Value"
         color="default"
         checked={rating.value > 0}
         style={{ marginTop: '4px' }}
