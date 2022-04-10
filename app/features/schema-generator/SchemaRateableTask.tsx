@@ -11,13 +11,13 @@ import {
   schemaUpsertComment,
   schemaUpsertRating,
   schemaUpsertTask,
-} from '../../model/SchemaSlice';
+} from '../../slices/SchemaSlice';
 import RateableTask from '../../model/RateableTask';
 import TaskNameInput from './TaskNameInput';
 import SelectTaskType from './SelectTaskType';
 import Rating from '../../model/Rating';
 import InitModeTooltip from './InitModeTooltip';
-import { selectSettingsSchema } from '../../model/SettingsSlice';
+import { selectSettingsSchema } from '../../slices/SettingsSlice';
 import InitializationMode, {
   getInitialValue,
 } from '../../model/InitializationMode';

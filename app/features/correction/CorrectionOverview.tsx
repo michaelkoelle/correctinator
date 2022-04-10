@@ -19,11 +19,11 @@ import { clipboard } from 'electron';
 import { Alert } from '@material-ui/lab';
 import StatusIcon from '../../components/StatusIcon';
 import Status from '../../model/Status';
-import { correctionsUpdateOne } from '../../model/CorrectionsSlice';
+import { correctionsUpdateOne } from '../../slices/CorrectionsSlice';
 import Correction from '../../model/Correction';
 import { getTotalValueOfRatings, serializeTerm } from '../../utils/Formatter';
-import { selectCorrectionPageIndex } from '../../model/CorrectionPageSlice';
-import { notesUpdateOne, notesUpsertOne } from '../../model/NoteSlice';
+import { selectCorrectionPageIndex } from '../../slices/CorrectionPageSlice';
+import { notesUpdateOne, notesUpsertOne } from '../../slices/NoteSlice';
 
 type CorrectionOverviewProps = {
   correction: Correction | undefined;

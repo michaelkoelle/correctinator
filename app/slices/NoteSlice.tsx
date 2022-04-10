@@ -4,7 +4,7 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import Note from './Note';
+import Note from '../model/Note';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 
 const adapter = createEntityAdapter<Note>();
@@ -13,15 +13,15 @@ const slice = createSlice({
   name: 'notes',
   initialState: adapter.getInitialState(),
   reducers: {
-    notesAddOne: adapter.addOne,
-    notesAddMany: adapter.addMany,
-    notesUpdateOne: adapter.updateOne,
-    notesUpdateMany: adapter.updateMany,
-    notesRemoveOne: adapter.removeOne,
-    notesRemoveMany: adapter.removeMany,
-    notesRemoveAll: adapter.removeAll,
-    notesUpsertOne: adapter.upsertOne,
-    notesUpsertMany: adapter.upsertMany,
+    notesAddOne: (state, action) => adapter.addOne(state, action),
+    notesAddMany: (state, action) => adapter.addMany(state, action),
+    notesUpdateOne: (state, action) => adapter.updateOne(state, action),
+    notesUpdateMany: (state, action) => adapter.updateMany(state, action),
+    notesRemoveOne: (state, action) => adapter.removeOne(state, action),
+    notesRemoveMany: (state, action) => adapter.removeMany(state, action),
+    notesRemoveAll: (state) => adapter.removeAll(state),
+    notesUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    notesUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

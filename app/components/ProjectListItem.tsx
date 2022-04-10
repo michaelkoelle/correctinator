@@ -11,19 +11,19 @@ import React, { useState } from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Path from 'path';
-import { projectsRemoveOne } from '../model/ProjectsSlice';
+import { projectsRemoveOne } from '../slices/ProjectsSlice';
 import { useModal } from '../modals/ModalProvider';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import Project from '../model/Project';
-import { launcherSetTabIndex } from '../model/LauncherSlice';
+import { launcherSetTabIndex } from '../slices/LauncherSlice';
 import LauncherTabs from '../model/LauncherTabs';
 import {
   selectWorkspacePath,
   workspaceSetPath,
-} from '../features/workspace/workspaceSlice';
+} from '../slices/WorkspaceSlice';
 import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
 import { reloadState } from '../utils/FileAccess';
-import { selectUnsavedChanges } from '../model/SaveSlice';
+import { selectUnsavedChanges } from '../slices/SaveSlice';
 
 type ProjectListItemProps = {
   project: Project;

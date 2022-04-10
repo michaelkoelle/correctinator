@@ -10,7 +10,7 @@ import {
 import { useDispatch } from 'react-redux';
 import * as Path from 'path';
 import { createNewCorFile } from '../utils/FileAccess';
-import { projectsAddOne } from '../model/ProjectsSlice';
+import { projectsAddOne } from '../slices/ProjectsSlice';
 import UUID from '../utils/UUID';
 import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
 

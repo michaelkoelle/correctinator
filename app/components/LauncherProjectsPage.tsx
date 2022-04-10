@@ -2,7 +2,7 @@ import { Box, Divider, Typography, useTheme } from '@material-ui/core';
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import Project from '../model/Project';
-import { selectAllProjects } from '../model/ProjectsSlice';
+import { selectAllProjects } from '../slices/ProjectsSlice';
 import ProjectsList from './ProjectsList';
 import ProjectsToolbar from './ProjectsToolbar';
 

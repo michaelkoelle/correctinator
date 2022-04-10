@@ -5,7 +5,7 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
-import Location from './Location';
+import Location from '../model/Location';
 
 const adapter = createEntityAdapter<Location>({
   selectId: (location) => location.id,
@@ -15,15 +15,15 @@ const slice = createSlice({
   name: 'locations',
   initialState: adapter.getInitialState(),
   reducers: {
-    locationsAddOne: adapter.addOne,
-    locationsAddMany: adapter.addMany,
-    locationsUpdateOne: adapter.updateOne,
-    locationsUpdateMany: adapter.updateMany,
-    locationsRemoveOne: adapter.removeOne,
-    locationsRemoveMany: adapter.removeMany,
-    locationsRemoveAll: adapter.removeAll,
-    locationsUpsertOne: adapter.upsertOne,
-    locationsUpsertMany: adapter.upsertMany,
+    locationsAddOne: (state, action) => adapter.addOne(state, action),
+    locationsAddMany: (state, action) => adapter.addMany(state, action),
+    locationsUpdateOne: (state, action) => adapter.updateOne(state, action),
+    locationsUpdateMany: (state, action) => adapter.updateMany(state, action),
+    locationsRemoveOne: (state, action) => adapter.removeOne(state, action),
+    locationsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    locationsRemoveAll: (state) => adapter.removeAll(state),
+    locationsUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    locationsUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

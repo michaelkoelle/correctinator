@@ -8,7 +8,7 @@ import ConditionalComment from '../model/ConditionalComment';
 import {
   settingsRemoveConditionalComment,
   settingsUpdateConditionalCommentText,
-} from '../model/SettingsSlice';
+} from '../slices/SettingsSlice';
 
 interface ConditionalCommentTextInputProps {
   c: ConditionalComment;

@@ -14,7 +14,7 @@ import SheetCardList from './SheetCardList';
 import { useModal } from '../../modals/ModalProvider';
 import ImportModal from '../../modals/ImportModal';
 import SheetsToolbar from '../../components/SheetToolbar';
-import { selectAllSheets } from '../../model/SheetSlice';
+import { selectAllSheets } from '../../slices/SheetSlice';
 import SheetEntity from '../../model/SheetEntity';
 
 export default function SheetOverview() {

@@ -1,4 +1,4 @@
-import { initializeSheet } from '../model/SchemaSlice';
+import { initializeSheet } from '../slices/SchemaSlice';
 import { save } from '../utils/FileAccess';
 import { getTopLevelTasks } from '../utils/TaskUtil';
 import ConfirmationDialog from './ConfirmationDialog';

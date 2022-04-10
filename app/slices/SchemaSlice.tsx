@@ -14,22 +14,22 @@ import {
   isRateableTask,
   isSingleChoiceTask,
 } from '../utils/TaskUtil';
-import CommentEntity from './CommentEntity';
+import CommentEntity from '../model/CommentEntity';
 import { commentsRemoveMany, commentsUpsertMany } from './CommentSlice';
-import CorrectionEntity from './CorrectionEntity';
+import CorrectionEntity from '../model/CorrectionEntity';
 import { correctionsUpsertMany } from './CorrectionsSlice';
-import { TasksSchema } from './NormalizationSchema';
-import ParentTaskEntity from './ParentTaskEntity';
-import RateableTask from './RateableTask';
-import RatingEntity from './RatingEntity';
+import { TasksSchema } from '../model/NormalizationSchema';
+import ParentTaskEntity from '../model/ParentTaskEntity';
+import RateableTask from '../model/RateableTask';
+import RatingEntity from '../model/RatingEntity';
 import { ratingsRemoveMany, ratingsUpsertMany } from './RatingSlice';
 import { sheetsUpsertOne } from './SheetSlice';
-import SingleChoiceTask from './SingleChoiceTask';
-import Task from './Task';
-import TaskEntity from './TaskEntity';
+import SingleChoiceTask from '../model/SingleChoiceTask';
+import Task from '../model/Task';
+import TaskEntity from '../model/TaskEntity';
 import { tasksRemoveMany, tasksUpsertMany } from './TaskSlice';
-import TaskType from './TaskType';
-import SheetEntity from './SheetEntity';
+import TaskType from '../model/TaskType';
+import SheetEntity from '../model/SheetEntity';
 
 export interface SchemaState {
   selectedTaskId: string | undefined;

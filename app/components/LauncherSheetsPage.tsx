@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import SheetCardList from '../features/sheet-overview/SheetCardList';
 import SheetEntity from '../model/SheetEntity';
-import { selectAllSheets } from '../model/SheetSlice';
+import { selectAllSheets } from '../slices/SheetSlice';
 import SheetsToolbar from './SheetToolbar';
 
 export default function LauncherSheetsPage() {

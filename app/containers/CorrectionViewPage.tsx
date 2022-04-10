@@ -19,8 +19,8 @@ import {
   selectCorrectionPageIndex,
   selectCorrectionPageSheetId,
   selectCorrectionPageTimeStart,
-} from '../model/CorrectionPageSlice';
-import { correctionsUpdateOne } from '../model/CorrectionsSlice';
+} from '../slices/CorrectionPageSlice';
+import { correctionsUpdateOne } from '../slices/CorrectionsSlice';
 import {
   selectAllSheetsDenormalized,
   selectCorrectionsBySheetId,

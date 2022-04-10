@@ -21,12 +21,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
 import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
-import { setTabIndex } from '../../model/HomeSlice';
+import { setTabIndex } from '../../slices/HomeSlice';
 import Status from '../../model/Status';
 import { SheetSchema } from '../../model/NormalizationSchema';
-import { correctionPageSetSheetId } from '../../model/CorrectionPageSlice';
-import { schemaSetSelectedSheet } from '../../model/SchemaSlice';
-import { selectWorkspacePath } from '../workspace/workspaceSlice';
+import { correctionPageSetSheetId } from '../../slices/CorrectionPageSlice';
+import { schemaSetSelectedSheet } from '../../slices/SchemaSlice';
+import { selectWorkspacePath } from '../../slices/WorkspaceSlice';
 import SheetEntity from '../../model/SheetEntity';
 import {
   selectAllEntities,
@@ -34,7 +34,7 @@ import {
 } from '../../model/Selectors';
 import { msToTime } from '../../utils/TimeUtil';
 import { getRateableTasks, isSingleChoiceTask } from '../../utils/TaskUtil';
-import { selectSettingsGeneral } from '../../model/SettingsSlice';
+import { selectSettingsGeneral } from '../../slices/SettingsSlice';
 import { useModal } from '../../modals/ModalProvider';
 import ExportModal from '../../modals/ExportModal';
 import ConfirmationDialog from '../../dialogs/ConfirmationDialog';

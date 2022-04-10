@@ -6,7 +6,7 @@ import { History } from 'history';
 import { CssBaseline, ThemeProvider } from '@material-ui/core';
 import ModalProvider from '../modals/ModalProvider';
 import createTheme from '../theme';
-import { selectSettingsGeneral } from '../model/SettingsSlice';
+import { selectSettingsGeneral } from '../slices/SettingsSlice';
 import SystemThemeUpdateEffect from '../effects/SystemThemeUpdateEffect';
 import ViewManager from '../components/ViewManager';
 

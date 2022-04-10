@@ -19,11 +19,11 @@ import { version } from '../package.json';
 import {
   launcherSetTabIndex,
   selectLauncherState,
-} from '../model/LauncherSlice';
+} from '../slices/LauncherSlice';
 import LauncherTabs from '../model/LauncherTabs';
 import LauncherProjectsPage from './LauncherProjectsPage';
 import LauncherSheetsPage from './LauncherSheetsPage';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import { selectWorkspacePath } from '../slices/WorkspaceSlice';
 import UpdaterModal from '../modals/UpdaterModal';
 
 const useStyle = makeStyles({

@@ -1,4 +1,4 @@
-import { workspaceSetPath } from '../features/workspace/workspaceSlice';
+import { workspaceSetPath } from '../slices/WorkspaceSlice';
 import { reloadState, save } from '../utils/FileAccess';
 
 const UnsavedChangesDialog = (newFilePath) => {

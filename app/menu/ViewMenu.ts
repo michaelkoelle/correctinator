@@ -1,5 +1,5 @@
 import { MenuItemConstructorOptions, remote } from 'electron';
-import { settingsSetGeneral, SettingsState } from '../model/SettingsSlice';
+import { settingsSetGeneral, SettingsState } from '../slices/SettingsSlice';
 import { Theme } from '../model/Theme';
 
 const buildViewMenu = (

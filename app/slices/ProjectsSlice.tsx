@@ -3,7 +3,7 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import Project from './Project';
+import Project from '../model/Project';
 
 const adapter = createEntityAdapter<Project>();
 
@@ -11,15 +11,15 @@ const slice = createSlice({
   name: 'projects',
   initialState: adapter.getInitialState(),
   reducers: {
-    projectsAddOne: adapter.addOne,
-    projectsAddMany: adapter.addMany,
-    projectsUpdateOne: adapter.updateOne,
-    projectsUpdateMany: adapter.updateMany,
-    projectsRemoveOne: adapter.removeOne,
-    projectsRemoveMany: adapter.removeMany,
-    projectsRemoveAll: adapter.removeAll,
-    projectsUpsertOne: adapter.upsertOne,
-    projectsUpsertMany: adapter.upsertMany,
+    projectsAddOne: (state, action) => adapter.addOne(state, action),
+    projectsAddMany: (state, action) => adapter.addMany(state, action),
+    projectsUpdateOne: (state, action) => adapter.updateOne(state, action),
+    projectsUpdateMany: (state, action) => adapter.updateMany(state, action),
+    projectsRemoveOne: (state, action) => adapter.removeOne(state, action),
+    projectsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    projectsRemoveAll: (state) => adapter.removeAll(state),
+    projectsUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    projectsUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
 });
 

@@ -17,7 +17,7 @@ import InfoIcon from '@material-ui/icons/Info';
 import { TabPanel, TabContext } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import SheetOverviewPage from '../containers/SheetOverviewPage';
-import { selectTabIndex, setTabIndex } from '../model/HomeSlice';
+import { selectTabIndex, setTabIndex } from '../slices/HomeSlice';
 import CorrectionViewPage from '../containers/CorrectionViewPage';
 import OverviewPage from '../containers/OverviewPage';
 import { useModal } from '../modals/ModalProvider';

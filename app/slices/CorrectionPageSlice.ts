@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { workspaceSetPath } from '../features/workspace/workspaceSlice';
-import { selectCorrectionsBySheetId } from './Selectors';
+import { workspaceSetPath } from './WorkspaceSlice';
+import { selectCorrectionsBySheetId } from '../model/Selectors';
 
 export interface CorrectionPageState {
   sheetId: string | undefined;

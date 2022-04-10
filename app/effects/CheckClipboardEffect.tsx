@@ -1,5 +1,5 @@
 /* eslint-disable no-empty */
-import { schemaSetClipboard } from '../model/SchemaSlice';
+import { schemaSetClipboard } from '../slices/SchemaSlice';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import PasteFromClipboardDialog from '../dialogs/PasteFromClipboardDialog';
 import { parseSchemaTasks } from '../utils/SchemaUtil';

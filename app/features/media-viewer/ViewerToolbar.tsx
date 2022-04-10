@@ -22,7 +22,7 @@ import clamp from '../../utils/MathUtil';
 import {
   MediaViewerSettings,
   selectSettingsMediaViewer,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 
 type ViewerToolbarProps = {
   filePaths: string[];

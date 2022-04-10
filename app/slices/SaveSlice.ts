@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { workspaceSetPath } from '../features/workspace/workspaceSlice';
+import { workspaceSetPath } from './WorkspaceSlice';
 
 export interface SaveState {
   unsavedChanges: boolean;

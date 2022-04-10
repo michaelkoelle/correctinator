@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import LauncherTabs from './LauncherTabs';
+import LauncherTabs from '../model/LauncherTabs';
 
 export interface LauncherState {
   tabIndex: number;

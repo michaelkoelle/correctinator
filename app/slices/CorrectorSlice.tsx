@@ -5,7 +5,7 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
-import Corrector from './Corrector';
+import Corrector from '../model/Corrector';
 
 const adapter = createEntityAdapter<Corrector>({
   selectId: (corrector) => corrector.id,
@@ -15,15 +15,15 @@ const slice = createSlice({
   name: 'correctors',
   initialState: adapter.getInitialState(),
   reducers: {
-    correctorsAddOne: adapter.addOne,
-    correctorsAddMany: adapter.addMany,
-    correctorsUpdateOne: adapter.updateOne,
-    correctorsUpdateMany: adapter.updateMany,
-    correctorsRemoveOne: adapter.removeOne,
-    correctorsRemoveMany: adapter.removeMany,
-    correctorsRemoveAll: adapter.removeAll,
-    correctorsUpsertOne: adapter.upsertOne,
-    correctorsUpsertMany: adapter.upsertMany,
+    correctorsAddOne: (state, action) => adapter.addOne(state, action),
+    correctorsAddMany: (state, action) => adapter.addMany(state, action),
+    correctorsUpdateOne: (state, action) => adapter.updateOne(state, action),
+    correctorsUpdateMany: (state, action) => adapter.updateMany(state, action),
+    correctorsRemoveOne: (state, action) => adapter.removeOne(state, action),
+    correctorsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    correctorsRemoveAll: (state) => adapter.removeAll(state),
+    correctorsUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    correctorsUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

@@ -4,7 +4,7 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import CommentEntity from './CommentEntity';
+import CommentEntity from '../model/CommentEntity';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 
 const adapter = createEntityAdapter<CommentEntity>();
@@ -13,15 +13,15 @@ const slice = createSlice({
   name: 'comments',
   initialState: adapter.getInitialState(),
   reducers: {
-    commentsAddOne: adapter.addOne,
-    commentsAddMany: adapter.addMany,
-    commentsUpdateOne: adapter.updateOne,
-    commentsUpdateMany: adapter.updateMany,
-    commentsRemoveOne: adapter.removeOne,
-    commentsRemoveMany: adapter.removeMany,
-    commentsRemoveAll: adapter.removeAll,
-    commentsUpsertOne: adapter.upsertOne,
-    commentsUpsertMany: adapter.upsertMany,
+    commentsAddOne: (state, action) => adapter.addOne(state, action),
+    commentsAddMany: (state, action) => adapter.addMany(state, action),
+    commentsUpdateOne: (state, action) => adapter.updateOne(state, action),
+    commentsUpdateMany: (state, action) => adapter.updateMany(state, action),
+    commentsRemoveOne: (state, action) => adapter.removeOne(state, action),
+    commentsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    commentsRemoveAll: (state) => adapter.removeAll(state),
+    commentsUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    commentsUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

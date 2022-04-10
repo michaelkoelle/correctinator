@@ -4,7 +4,7 @@ import {
   createSlice,
   EntityState,
 } from '@reduxjs/toolkit';
-import Annotation from './Annotation';
+import Annotation from '../model/Annotation';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 
 const adapter = createEntityAdapter<Annotation>();
@@ -13,15 +13,15 @@ const slice = createSlice({
   name: 'annotations',
   initialState: adapter.getInitialState(),
   reducers: {
-    annotationsAddOne: adapter.addOne,
-    annotationsAddMany: adapter.addMany,
-    annotationsUpdateOne: adapter.updateOne,
-    annotationsUpdateMany: adapter.updateMany,
-    annotationsRemoveOne: adapter.removeOne,
-    annotationsRemoveMany: adapter.removeMany,
-    annotationsRemoveAll: adapter.removeAll,
-    annotationsUpsertOne: adapter.upsertOne,
-    annotationsUpsertMany: adapter.upsertMany,
+    annotationsAddOne: (state, action) => adapter.addOne(state, action),
+    annotationsAddMany: (state, action) => adapter.addMany(state, action),
+    annotationsUpdateOne: (state, action) => adapter.updateOne(state, action),
+    annotationsUpdateMany: (state, action) => adapter.updateMany(state, action),
+    annotationsRemoveOne: (state, action) => adapter.removeOne(state, action),
+    annotationsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    annotationsRemoveAll: (state) => adapter.removeAll(state),
+    annotationsUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    annotationsUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

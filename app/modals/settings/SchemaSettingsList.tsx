@@ -16,7 +16,7 @@ import {
   SchemaSettings,
   selectSettingsSchema,
   settingsSetSchema,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 
 const SchemaSettingsList = () => {
   const dispatch = useDispatch();

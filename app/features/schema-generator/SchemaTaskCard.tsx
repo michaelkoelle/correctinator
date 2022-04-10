@@ -8,7 +8,7 @@ import {
   schemaClearSelectedTask,
   schemaSetSelectedTask,
   selectSchemaSelectedTaskId,
-} from '../../model/SchemaSlice';
+} from '../../slices/SchemaSlice';
 import Task from '../../model/Task';
 import SplitButton from '../../components/SplitButton';
 import TaskType from '../../model/TaskType';

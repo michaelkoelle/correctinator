@@ -6,10 +6,10 @@ import BackupEffect from '../effects/BackupEffect';
 import CheckForUpdatesEffect from '../effects/CheckForUpdatesEffect';
 import SaveBeforeQuittingEffect from '../effects/SaveBeforeQuittingEffect';
 import WorkspaceEffect from '../effects/WorkspaceEffect';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import { selectWorkspacePath } from '../slices/WorkspaceSlice';
 import { useModal } from '../modals/ModalProvider';
-import { selectUnsavedChanges } from '../model/SaveSlice';
-import { selectSettingsBackup } from '../model/SettingsSlice';
+import { selectUnsavedChanges } from '../slices/SaveSlice';
+import { selectSettingsBackup } from '../slices/SettingsSlice';
 import LauncherTitleBar from './LauncherTitleBar';
 
 export default function Launcher() {

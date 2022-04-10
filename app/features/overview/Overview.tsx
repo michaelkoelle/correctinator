@@ -17,9 +17,9 @@ import TimeCurve from './TimeCurve';
 import {
   overviewSetSheetId,
   selectOverviewSheetId,
-} from '../../model/OverviewSlice';
+} from '../../slices/OverviewSlice';
 import { groupBy, zipCorrectionsAndMapToTime } from '../../utils/ArrayUtil';
-import { selectAllSheets } from '../../model/SheetSlice';
+import { selectAllSheets } from '../../slices/SheetSlice';
 import SheetEntity from '../../model/SheetEntity';
 import CorrectionTable from './CorrectionTable';
 

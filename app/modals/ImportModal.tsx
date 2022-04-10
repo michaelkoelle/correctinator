@@ -22,15 +22,15 @@ import Correction from '../model/Correction';
 import {
   selectWorkspacePath,
   workspaceSetPath,
-} from '../features/workspace/workspaceSlice';
+} from '../slices/WorkspaceSlice';
 import { CorrectionsSchema } from '../model/NormalizationSchema';
-import { loadCorrections } from '../model/CorrectionsSlice';
+import { loadCorrections } from '../slices/CorrectionsSlice';
 import CircularProgressWithLabel from '../components/CircularProgressWithLabel';
 // eslint-disable-next-line import/no-cycle
 import OverwriteDuplicateSubmissionsDialog from '../dialogs/OverwriteDuplicateSubmissionsDialog';
 import ConfirmationDialog from '../dialogs/ConfirmationDialog';
 import { save } from '../utils/FileAccess';
-import { selectSettingsGeneral } from '../model/SettingsSlice';
+import { selectSettingsGeneral } from '../slices/SettingsSlice';
 import ParserType from '../parser/ParserType';
 
 type ImportModalProps = ModalProps & {

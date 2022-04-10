@@ -16,7 +16,7 @@ import {
   GeneralSettings,
   selectSettingsGeneral,
   settingsSetGeneral,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 import { Theme } from '../../model/Theme';
 
 const GeneralSettingsList = () => {

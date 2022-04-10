@@ -14,7 +14,7 @@ import {
   BackupSettings,
   selectSettingsBackup,
   settingsSetBackup,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 
 const BackupSettingsList = () => {
   const dispatch = useDispatch();

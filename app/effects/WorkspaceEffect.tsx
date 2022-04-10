@@ -1,6 +1,6 @@
 import { EffectCallback } from 'react';
 import fs from 'fs';
-import { workspaceSetPath } from '../features/workspace/workspaceSlice';
+import { workspaceSetPath } from '../slices/WorkspaceSlice';
 import { reloadState } from '../utils/FileAccess';
 
 const WorkspaceEffect = (dispatch, workspacePath: string): EffectCallback => {

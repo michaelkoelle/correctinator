@@ -12,11 +12,11 @@ import { MenuItem } from 'frameless-titlebar/dist/title-bar/typings';
 import {
   selectRecentPaths,
   selectWorkspacePath,
-} from '../features/workspace/workspaceSlice';
-import { selectUnsavedChanges } from '../model/SaveSlice';
+} from '../slices/WorkspaceSlice';
+import { selectUnsavedChanges } from '../slices/SaveSlice';
 import { version } from '../package.json';
-import { selectSettings, SettingsState } from '../model/SettingsSlice';
-import { selectAllSheets } from '../model/SheetSlice';
+import { selectSettings, SettingsState } from '../slices/SettingsSlice';
+import { selectAllSheets } from '../slices/SheetSlice';
 import { useAppDispatch } from '../store';
 import { shouldUseDarkColors } from '../model/Theme';
 import buildMenu from '../menu/Menu';

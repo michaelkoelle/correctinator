@@ -5,9 +5,12 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Comment from '../../model/Comment';
 import CommentEntity from '../../model/CommentEntity';
-import { commentsUpdateOne, selectAllComments } from '../../model/CommentSlice';
+import {
+  commentsUpdateOne,
+  selectAllComments,
+} from '../../slices/CommentSlice';
 import RatingEntity from '../../model/RatingEntity';
-import { ratingsUpdateOne, selectAllRatings } from '../../model/RatingSlice';
+import { ratingsUpdateOne, selectAllRatings } from '../../slices/RatingSlice';
 
 type TaskCommentInputProps = {
   comment: Comment;

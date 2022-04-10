@@ -16,12 +16,12 @@ import {
   schemaSetSelectedTask,
   schemaUpsertRating,
   schemaUpsertTask,
-} from '../../model/SchemaSlice';
+} from '../../slices/SchemaSlice';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 import TaskNameInput from './TaskNameInput';
 import SelectTaskType from './SelectTaskType';
 import Rating from '../../model/Rating';
-import { selectSettingsSchema } from '../../model/SettingsSlice';
+import { selectSettingsSchema } from '../../slices/SettingsSlice';
 import InitializationMode, {
   getInitialValue,
 } from '../../model/InitializationMode';

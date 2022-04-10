@@ -1,5 +1,5 @@
-import { correctionPageSetSheetId } from '../model/CorrectionPageSlice';
-import { setTabIndex } from '../model/HomeSlice';
+import { correctionPageSetSheetId } from '../slices/CorrectionPageSlice';
+import { setTabIndex } from '../slices/HomeSlice';
 import SheetEntity from '../model/SheetEntity';
 import Task from '../model/Task';
 import { getRateableTasks, isSingleChoiceTask } from '../utils/TaskUtil';

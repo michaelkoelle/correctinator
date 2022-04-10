@@ -23,7 +23,7 @@ import storage from 'redux-persist/lib/storage';
 import { useDispatch } from 'react-redux';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import createRootReducer from './rootReducer';
-import { reportChange } from './model/SaveSlice';
+import { reportChange } from './slices/SaveSlice';
 
 const persistConfig = {
   key: 'root',

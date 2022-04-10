@@ -11,7 +11,7 @@ import {
   selectSchemaRatings,
   selectSchemaSelectedSheetId,
   selectSchemaTasks,
-} from '../../model/SchemaSlice';
+} from '../../slices/SchemaSlice';
 import RatingEntity from '../../model/RatingEntity';
 import SheetEntity from '../../model/SheetEntity';
 import {
@@ -23,7 +23,7 @@ import { getTopLevelTasks, hasTasksWithZeroMax } from '../../utils/TaskUtil';
 import Rating from '../../model/Rating';
 import Task from '../../model/Task';
 import { TasksSchema, RatingsSchema } from '../../model/NormalizationSchema';
-import { selectAllSheets } from '../../model/SheetSlice';
+import { selectAllSheets } from '../../slices/SheetSlice';
 import SplitButton from '../../components/SplitButton';
 import TaskType from '../../model/TaskType';
 

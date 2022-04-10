@@ -15,7 +15,7 @@ import {
   MediaViewerSettings,
   selectSettingsMediaViewer,
   settingsSetMediaViewer,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 
 const MediaViewerSettingsList = () => {
   const dispatch = useDispatch();

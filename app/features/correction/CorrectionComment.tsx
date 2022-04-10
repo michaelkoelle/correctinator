@@ -5,9 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   annotationsUpdateOne,
   annotationsUpsertOne,
-} from '../../model/AnnotationSlice';
+} from '../../slices/AnnotationSlice';
 import Correction from '../../model/Correction';
-import { correctionsUpdateOne } from '../../model/CorrectionsSlice';
+import { correctionsUpdateOne } from '../../slices/CorrectionsSlice';
 
 type CorrectionCommentProps = {
   correction: Correction | undefined;

@@ -6,9 +6,9 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import { normalize } from 'normalizr';
-import Correction from './Correction';
-import CorrectionEntity from './CorrectionEntity';
-import { CorrectionsSchema } from './NormalizationSchema';
+import Correction from '../model/Correction';
+import CorrectionEntity from '../model/CorrectionEntity';
+import { CorrectionsSchema } from '../model/NormalizationSchema';
 
 export const loadCorrections = createAction<unknown>('loadCorrections');
 export const deleteEntities = createAction<void>('deleteEntities');
@@ -19,15 +19,15 @@ const slice = createSlice({
   name: 'corrections',
   initialState: adapter.getInitialState(),
   reducers: {
-    correctionsAddOne: adapter.addOne,
-    correctionsAddMany: adapter.addMany,
-    correctionsUpdateOne: adapter.updateOne,
-    correctionsUpdateMany: adapter.updateMany,
-    correctionsRemoveOne: adapter.removeOne,
-    correctionsRemoveMany: adapter.removeMany,
-    correctionsRemoveAll: adapter.removeAll,
-    correctionsUpsertOne: adapter.upsertOne,
-    correctionsUpsertMany: adapter.upsertMany,
+    correctionsAddOne: (state, action) => adapter.addOne(state, action),
+    correctionsAddMany: (state, action) => adapter.addMany(state, action),
+    correctionsUpdateOne: (state, action) => adapter.updateOne(state, action),
+    correctionsUpdateMany: (state, action) => adapter.updateMany(state, action),
+    correctionsRemoveOne: (state, action) => adapter.removeOne(state, action),
+    correctionsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    correctionsRemoveAll: (state) => adapter.removeAll(state),
+    correctionsUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    correctionsUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

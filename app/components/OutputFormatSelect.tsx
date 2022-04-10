@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   selectSettingsExport,
   settingsSetExport,
-} from '../model/SettingsSlice';
+} from '../slices/SettingsSlice';
 import ParserType from '../parser/ParserType';
 
 const OutputFormatSelect = () => {

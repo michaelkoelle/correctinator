@@ -1,6 +1,6 @@
 import Correction from '../model/Correction';
-import { overviewClearSelectedSheetWithId } from '../model/OverviewSlice';
-import { schemaClearSelectedSheetWithId } from '../model/SchemaSlice';
+import { overviewClearSelectedSheetWithId } from '../slices/OverviewSlice';
+import { schemaClearSelectedSheetWithId } from '../slices/SchemaSlice';
 import Sheet from '../model/Sheet';
 import {
   deleteCorrectionFromWorkspace,

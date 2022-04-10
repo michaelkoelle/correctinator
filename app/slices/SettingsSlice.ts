@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import ParserType from '../parser/ParserType';
-import ConditionalComment from './ConditionalComment';
-import InitializationMode from './InitializationMode';
-import { Theme } from './Theme';
+import ConditionalComment from '../model/ConditionalComment';
+import InitializationMode from '../model/InitializationMode';
+import { Theme } from '../model/Theme';
 
 export interface GeneralSettings {
   theme: Theme;

@@ -5,7 +5,7 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
-import SubmissionEntity from './SubmissionEntity';
+import SubmissionEntity from '../model/SubmissionEntity';
 
 const adapter = createEntityAdapter<SubmissionEntity>();
 
@@ -13,15 +13,15 @@ const slice = createSlice({
   name: 'submissions',
   initialState: adapter.getInitialState(),
   reducers: {
-    submissionsAddOne: adapter.addOne,
-    submissionsAddMany: adapter.addMany,
-    submissionsUpdateOne: adapter.updateOne,
-    submissionsUpdateMany: adapter.updateMany,
-    submissionsRemoveOne: adapter.removeOne,
-    submissionsRemoveMany: adapter.removeMany,
-    submissionsRemoveAll: adapter.removeAll,
-    submissionsUpsertOne: adapter.upsertOne,
-    submissionsUpsertMany: adapter.upsertMany,
+    submissionsAddOne: (state, action) => adapter.addOne(state, action),
+    submissionsAddMany: (state, action) => adapter.addMany(state, action),
+    submissionsUpdateOne: (state, action) => adapter.updateOne(state, action),
+    submissionsUpdateMany: (state, action) => adapter.updateMany(state, action),
+    submissionsRemoveOne: (state, action) => adapter.removeOne(state, action),
+    submissionsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    submissionsRemoveAll: (state) => adapter.removeAll(state),
+    submissionsUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    submissionsUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

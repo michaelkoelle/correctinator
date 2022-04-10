@@ -3,7 +3,7 @@ import TextField from '@material-ui/core/TextField';
 import { InputAdornment } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import styles from './TaskScheme.css';
-import { schemaUpdateTask } from '../../model/SchemaSlice';
+import { schemaUpdateTask } from '../../slices/SchemaSlice';
 import BaseTask from '../../model/BaseTask';
 
 type TaskNameInputProps = {

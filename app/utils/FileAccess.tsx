@@ -8,13 +8,13 @@ import { normalize } from 'normalizr';
 import _ from 'lodash';
 import Correction from '../model/Correction';
 import { CorrectionSchema } from '../model/NormalizationSchema';
-import { deleteEntities, loadCorrections } from '../model/CorrectionsSlice';
+import { deleteEntities, loadCorrections } from '../slices/CorrectionsSlice';
 import { selectAllCorrectionsDenormalized } from '../model/Selectors';
 import {
   selectWorkspacePath,
   workspaceSetPath,
-} from '../features/workspace/workspaceSlice';
-import { reportSaved } from '../model/SaveSlice';
+} from '../slices/WorkspaceSlice';
+import { reportSaved } from '../slices/SaveSlice';
 
 export function createDirectoryInWorkspace(dirName: string, workspace: string) {
   const zip = new AdmZip(workspace);

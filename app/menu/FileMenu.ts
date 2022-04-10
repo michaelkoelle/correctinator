@@ -13,7 +13,7 @@ import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
 import {
   workspaceRemoveOnePath,
   workspaceSetPath,
-} from '../features/workspace/workspaceSlice';
+} from '../slices/WorkspaceSlice';
 import ExportModal from '../modals/ExportModal';
 import ImportModal from '../modals/ImportModal';
 

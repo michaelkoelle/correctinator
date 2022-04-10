@@ -5,7 +5,7 @@ import {
   EntityState,
 } from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
-import Course from './Course';
+import Course from '../model/Course';
 
 const adapter = createEntityAdapter<Course>({
   sortComparer: (a, b) => a.name.localeCompare(b.name),
@@ -15,15 +15,15 @@ const slice = createSlice({
   name: 'courses',
   initialState: adapter.getInitialState(),
   reducers: {
-    coursesAddOne: adapter.addOne,
-    coursesAddMany: adapter.addMany,
-    coursesUpdateOne: adapter.updateOne,
-    coursesUpdateMany: adapter.updateMany,
-    coursesRemoveOne: adapter.removeOne,
-    coursesRemoveMany: adapter.removeMany,
-    coursesRemoveAll: adapter.removeAll,
-    coursesUpsertOne: adapter.upsertOne,
-    coursesUpsertMany: adapter.upsertMany,
+    coursesAddOne: (state, action) => adapter.addOne(state, action),
+    coursesAddMany: (state, action) => adapter.addMany(state, action),
+    coursesUpdateOne: (state, action) => adapter.updateOne(state, action),
+    coursesUpdateMany: (state, action) => adapter.updateMany(state, action),
+    coursesRemoveOne: (state, action) => adapter.removeOne(state, action),
+    coursesRemoveMany: (state, action) => adapter.removeMany(state, action),
+    coursesRemoveAll: (state) => adapter.removeAll(state),
+    coursesUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    coursesUpsertMany: (state, action) => adapter.upsertMany(state, action),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

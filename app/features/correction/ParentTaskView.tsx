@@ -16,10 +16,10 @@ import {
 } from '@material-ui/icons';
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { commentsUpdateOne } from '../../model/CommentSlice';
+import { commentsUpdateOne } from '../../slices/CommentSlice';
 import ParentTask from '../../model/ParentTask';
 import Rating from '../../model/Rating';
-import { ratingsUpdateOne } from '../../model/RatingSlice';
+import { ratingsUpdateOne } from '../../slices/RatingSlice';
 import {
   getMaxValueForTasks,
   getRatingValueForTasks,

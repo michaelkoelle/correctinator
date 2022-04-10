@@ -25,7 +25,7 @@ import {
 import { ipcRenderer, IpcRendererEvent, remote } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import { CloseIcon } from '@material-ui/data-grid';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import { selectWorkspacePath } from '../slices/WorkspaceSlice';
 import Sheet from '../model/Sheet';
 import DialogTitleWithCloseIcon from './DialogTitleWithCloseIcon';
 import { ModalProps } from './ModalProvider';
@@ -37,7 +37,7 @@ import Status from '../model/Status';
 import {
   selectSettingsExport,
   settingsSetExport,
-} from '../model/SettingsSlice';
+} from '../slices/SettingsSlice';
 import OutputFormatSelect from '../components/OutputFormatSelect';
 import ConditionalCommentSettings from '../components/ConditionalCommentSettings';
 import ParserType from '../parser/ParserType';

@@ -18,7 +18,7 @@ import {
   ExportSettings,
   selectSettingsExport,
   settingsSetExport,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 
 const ExportSettingsList = () => {
   const dispatch = useDispatch();

@@ -14,7 +14,7 @@ import {
   CorrectionSettings,
   selectSettingsCorrection,
   settingsSetCorrection,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 
 const CorrectionSettingsList = () => {
   const dispatch = useDispatch();

@@ -18,7 +18,7 @@ import {
   selectSettingsExport,
   settingsAddConditionalComment,
   settingsUpdateConditionalCommentValue,
-} from '../model/SettingsSlice';
+} from '../slices/SettingsSlice';
 
 function ValueLabelComponent(props: {
   children;

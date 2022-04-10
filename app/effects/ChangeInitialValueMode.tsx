@@ -2,7 +2,7 @@ import InitializationMode, {
   getInitialValue,
 } from '../model/InitializationMode';
 import RatingEntity from '../model/RatingEntity';
-import { schemaUpsertRating } from '../model/SchemaSlice';
+import { schemaUpsertRating } from '../slices/SchemaSlice';
 import TaskEntity from '../model/TaskEntity';
 import { isSingleChoiceTask, isRateableTask } from '../utils/TaskUtil';
 

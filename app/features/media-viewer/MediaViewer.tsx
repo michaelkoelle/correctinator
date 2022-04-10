@@ -10,8 +10,8 @@ import PDFViewer from './PDFViewer';
 import ImageViewer from './ImageViewer';
 import TextViewer from './TextViewer';
 import { loadFilesFromWorkspace } from '../../utils/FileAccess';
-import { selectWorkspacePath } from '../workspace/workspaceSlice';
-import { submissionsUpdateOne } from '../../model/SubmissionSlice';
+import { selectWorkspacePath } from '../../slices/WorkspaceSlice';
+import { submissionsUpdateOne } from '../../slices/SubmissionSlice';
 import File from '../../model/File';
 import ViewerToolbar from './ViewerToolbar';
 

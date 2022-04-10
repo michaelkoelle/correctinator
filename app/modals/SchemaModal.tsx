@@ -32,8 +32,8 @@ import {
   selectSchemaRatings,
   selectSchemaSelectedSheetId,
   selectSchemaTasks,
-} from '../model/SchemaSlice';
-import { selectAllSheets, selectSheetById } from '../model/SheetSlice';
+} from '../slices/SchemaSlice';
+import { selectAllSheets, selectSheetById } from '../slices/SheetSlice';
 import SchemaTaskList from '../features/schema-generator/SchemaTaskList';
 import { getTopLevelTasks, hasTasksWithZeroMax } from '../utils/TaskUtil';
 import { TasksSchema, RatingsSchema } from '../model/NormalizationSchema';
@@ -47,7 +47,7 @@ import { shouldUseDarkColors } from '../model/Theme';
 import {
   selectSettingsGeneral,
   selectSettingsSchema,
-} from '../model/SettingsSlice';
+} from '../slices/SettingsSlice';
 import OverwriteSchemaDialog, {
   onInitializeSheet,
 } from '../dialogs/OverwriteSchemaDialog';

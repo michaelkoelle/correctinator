@@ -11,14 +11,14 @@ import {
 import { CheckCircleOutline, HighlightOff } from '@material-ui/icons';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { commentsUpdateOne } from '../../model/CommentSlice';
+import { commentsUpdateOne } from '../../slices/CommentSlice';
 import RateableTask from '../../model/RateableTask';
 import Rating from '../../model/Rating';
-import { ratingsUpdateOne } from '../../model/RatingSlice';
+import { ratingsUpdateOne } from '../../slices/RatingSlice';
 import {
   CorrectionSettings,
   selectSettingsCorrection,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 import TaskCommentInput from './TaskCommentInput';
 
 type RateableTaskViewProps = {

@@ -6,14 +6,14 @@ import {
   selectAllCorrections,
   selectCorrectionById,
   selectCorrectionIds,
-} from './CorrectionsSlice';
+} from '../slices/CorrectionsSlice';
 import {
   CorrectionSchema,
   CorrectionsSchema,
   SheetsSchema,
 } from './NormalizationSchema';
 import Sheet from './Sheet';
-import { selectSheetIds } from './SheetSlice';
+import { selectSheetIds } from '../slices/SheetSlice';
 
 export const selectAllEntities = createSelector(
   [

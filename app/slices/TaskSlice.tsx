@@ -6,7 +6,7 @@ import {
   PayloadAction,
 } from '@reduxjs/toolkit';
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
-import TaskEntity from './TaskEntity';
+import TaskEntity from '../model/TaskEntity';
 
 const adapter = createEntityAdapter<TaskEntity>();
 
@@ -14,15 +14,15 @@ const slice = createSlice({
   name: 'tasks',
   initialState: adapter.getInitialState(),
   reducers: {
-    tasksAddOne: adapter.addOne,
-    tasksAddMany: adapter.addMany,
-    tasksUpdateOne: adapter.updateOne,
-    tasksUpdateMany: adapter.updateMany,
-    tasksRemoveOne: adapter.removeOne,
-    tasksRemoveMany: adapter.removeMany,
-    tasksRemoveAll: adapter.removeAll,
-    tasksUpsertOne: adapter.upsertOne,
-    tasksUpsertMany: adapter.upsertMany,
+    tasksAddOne: (state, action) => adapter.addOne(state, action),
+    tasksAddMany: (state, action) => adapter.addMany(state, action),
+    tasksUpdateOne: (state, action) => adapter.updateOne(state, action),
+    tasksUpdateMany: (state, action) => adapter.updateMany(state, action),
+    tasksRemoveOne: (state, action) => adapter.removeOne(state, action),
+    tasksRemoveMany: (state, action) => adapter.removeMany(state, action),
+    tasksRemoveAll: (state) => adapter.removeAll(state),
+    tasksUpsertOne: (state, action) => adapter.upsertOne(state, action),
+    tasksUpsertMany: (state, action) => adapter.upsertMany(state, action),
     tasksRemoveOneById: (state, action: PayloadAction<{ id: string }>) =>
       adapter.removeOne(state, action.payload.id),
     /* tasksAddOneSubtask: (

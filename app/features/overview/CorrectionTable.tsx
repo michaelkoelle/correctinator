@@ -13,8 +13,8 @@ import Correction from '../../model/Correction';
 import {
   correctionPageSetIndexOfCorrection,
   correctionPageSetSheetId,
-} from '../../model/CorrectionPageSlice';
-import { setTabIndex } from '../../model/HomeSlice';
+} from '../../slices/CorrectionPageSlice';
+import { setTabIndex } from '../../slices/HomeSlice';
 import Status, { statusToString } from '../../model/Status';
 import { getTotalValueOfRatings } from '../../utils/Formatter';
 import { msToTime } from '../../utils/TimeUtil';

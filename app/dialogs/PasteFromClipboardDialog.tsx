@@ -4,7 +4,7 @@ import {
   schemaSetClipboard,
   schemaSetEntities,
   schemaSetSelectedSheet,
-} from '../model/SchemaSlice';
+} from '../slices/SchemaSlice';
 import SingleChoiceTask from '../model/SingleChoiceTask';
 import TaskEntity from '../model/TaskEntity';
 import { parseSchemaTasks } from '../utils/SchemaUtil';

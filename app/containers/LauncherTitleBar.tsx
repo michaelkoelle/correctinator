@@ -6,9 +6,9 @@ import * as Path from 'path';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@material-ui/core';
 import { remote } from 'electron';
-import { selectSettings, SettingsState } from '../model/SettingsSlice';
+import { selectSettings, SettingsState } from '../slices/SettingsSlice';
 import { shouldUseDarkColors } from '../model/Theme';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
+import { selectWorkspacePath } from '../slices/WorkspaceSlice';
 
 const currentWindow = remote.getCurrentWindow();
 

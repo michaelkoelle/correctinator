@@ -11,7 +11,7 @@ import {
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import Rating from '../../model/Rating';
-import { ratingsUpdateOne } from '../../model/RatingSlice';
+import { ratingsUpdateOne } from '../../slices/RatingSlice';
 import SingleChoiceTask from '../../model/SingleChoiceTask';
 
 type SingleChoiceTaskViewProps = {

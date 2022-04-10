@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Tooltip } from '@material-ui/core';
 import { useSelector } from 'react-redux';
-import { selectSettingsSchema } from '../../model/SettingsSlice';
+import { selectSettingsSchema } from '../../slices/SettingsSlice';
 import InitializationMode from '../../model/InitializationMode';
 
 type InitModeTooltipProps = {

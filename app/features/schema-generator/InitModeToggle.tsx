@@ -9,7 +9,7 @@ import InitializationMode from '../../model/InitializationMode';
 import {
   selectSettingsSchema,
   settingsSetSchema,
-} from '../../model/SettingsSlice';
+} from '../../slices/SettingsSlice';
 
 export default function InitModeToggle() {
   const dispatch = useDispatch();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FormControl, InputLabel, MenuItem, Select } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
-import { convertTask } from '../../model/SchemaSlice';
+import { convertTask } from '../../slices/SchemaSlice';
 import TaskType from '../../model/TaskType';
 import { getTaskType } from '../../utils/TaskUtil';
 import TaskEntity from '../../model/TaskEntity';

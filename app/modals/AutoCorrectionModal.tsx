@@ -16,13 +16,13 @@ import { ipcRenderer, IpcRendererEvent } from 'electron';
 import { useDispatch, useSelector } from 'react-redux';
 import { ModalProps } from './ModalProvider';
 import * as AutoCorrectionIPC from '../constants/AutoCorrectionIPC';
-import { selectWorkspacePath } from '../features/workspace/workspaceSlice';
-import { correctionsUpdateMany } from '../model/CorrectionsSlice';
+import { selectWorkspacePath } from '../slices/WorkspaceSlice';
+import { correctionsUpdateMany } from '../slices/CorrectionsSlice';
 import CircularProgressWithLabel from '../components/CircularProgressWithLabel';
 import { save } from '../utils/FileAccess';
 import { AutoCorrectionProgress } from '../autocorrection';
-import { selectSettingsGeneral } from '../model/SettingsSlice';
-import { ratingsUpdateMany } from '../model/RatingSlice';
+import { selectSettingsGeneral } from '../slices/SettingsSlice';
+import { ratingsUpdateMany } from '../slices/RatingSlice';
 import Status from '../model/Status';
 import { selectCorrectionsBySheetId } from '../model/Selectors';
 
