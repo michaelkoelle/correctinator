@@ -42,7 +42,7 @@ function TaskCommentInput(props: TaskCommentInputProps) {
     );
   }
 
-  function onChangeAutocomplete(event, value, reason) {
+  function onChangeAutocomplete(_, value, reason) {
     dispatch(
       commentsUpdateOne({
         id: comment.id,
