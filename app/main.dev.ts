@@ -168,10 +168,9 @@ ipcMain.on(REQUEST_FILE_PATH, () => {
   }
 });
 
-ipcMain.on(OPEN_MAIN_WINDOW, (_event, p: string) => {
+ipcMain.on(OPEN_MAIN_WINDOW, (_event) => {
   launcherWindow?.hide();
   mainWindow?.show();
-  openWithFileHandler([p]);
 });
 
 ipcMain.on(OPEN_LAUNCHER, () => {

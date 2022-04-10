@@ -1,18 +1,19 @@
 import { Button, Grid, InputAdornment, TextField } from '@material-ui/core';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
-import {
-  SaveDialogReturnValue,
-  remote,
-  OpenDialogReturnValue,
-  ipcRenderer,
-} from 'electron';
-import { useDispatch } from 'react-redux';
+import { SaveDialogReturnValue, remote, OpenDialogReturnValue } from 'electron';
+import { useDispatch, useSelector } from 'react-redux';
 import * as Path from 'path';
-import { createNewCorFile } from '../utils/FileAccess';
+import { createNewCorFile, reloadState } from '../utils/FileAccess';
 import { projectsAddOne } from '../slices/ProjectsSlice';
 import UUID from '../utils/UUID';
-import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
+import LauncherTabs from '../model/LauncherTabs';
+import { launcherSetTabIndex } from '../slices/LauncherSlice';
+import ConfirmationDialog from '../dialogs/ConfirmationDialog';
+import UnsavedChangesDialog from '../dialogs/UnsavedChangesDialog';
+import { workspaceSetPath } from '../slices/WorkspaceSlice';
+import { useModal } from '../modals/ModalProvider';
+import { selectUnsavedChanges } from '../slices/SaveSlice';
 
 type ProjectsToolbarProps = {
   setSearchTerm: (search: string | undefined) => void;
@@ -21,6 +22,8 @@ type ProjectsToolbarProps = {
 export default function ProjectsToolbar(props: ProjectsToolbarProps) {
   const { setSearchTerm } = props;
   const dispatch = useDispatch();
+  const showModal = useModal();
+  const unsavedChanges = useSelector(selectUnsavedChanges);
 
   const handleOpenFile = async () => {
     const returnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog(
@@ -42,7 +45,13 @@ export default function ProjectsToolbar(props: ProjectsToolbarProps) {
         path,
       })
     );
-    ipcRenderer.send(OPEN_MAIN_WINDOW, path);
+    if (unsavedChanges) {
+      showModal(ConfirmationDialog, UnsavedChangesDialog(path));
+    } else {
+      dispatch(workspaceSetPath(path));
+      dispatch(reloadState());
+      dispatch(launcherSetTabIndex(LauncherTabs.SHEETS));
+    }
   };
 
   const handleNewFile = async () => {
@@ -66,7 +75,13 @@ export default function ProjectsToolbar(props: ProjectsToolbarProps) {
         path,
       })
     );
-    ipcRenderer.send(OPEN_MAIN_WINDOW, path);
+    if (unsavedChanges) {
+      showModal(ConfirmationDialog, UnsavedChangesDialog(path));
+    } else {
+      dispatch(workspaceSetPath(path));
+      dispatch(reloadState());
+      dispatch(launcherSetTabIndex(LauncherTabs.SHEETS));
+    }
   };
 
   return (

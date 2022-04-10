@@ -19,6 +19,7 @@ import React, { useState } from 'react';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import { useDispatch, useSelector } from 'react-redux';
 import { denormalize } from 'normalizr';
+import { ipcRenderer } from 'electron';
 import Correction from '../../model/Correction';
 import Sheet from '../../model/Sheet';
 import { setTabIndex } from '../../slices/HomeSlice';
@@ -41,6 +42,7 @@ import ConfirmationDialog from '../../dialogs/ConfirmationDialog';
 import ConfirmDeleteSheetDialog from '../../dialogs/ConfirmDeleteSheetDialog';
 import AutoCorrectionModal from '../../modals/AutoCorrectionModal';
 import SchemaModal from '../../modals/SchemaModal';
+import { OPEN_MAIN_WINDOW } from '../../constants/WindowIPC';
 
 export default function SheetCard(props: { sheet: SheetEntity }) {
   const dispatch = useDispatch();
@@ -77,12 +79,11 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   function onStartCorrection() {
     dispatch(correctionPageSetSheetId(sheet.id));
     dispatch(setTabIndex(3));
+    ipcRenderer.send(OPEN_MAIN_WINDOW);
   }
 
   function onCreateSchema() {
     dispatch(schemaSetSelectedSheet(sheet.id));
-    // dispatch(setTabIndex(2));
-    // dispatch(launcherSetTabIndex(LauncherTabs.SCHEMA));
     showModal(SchemaModal);
   }
 
