@@ -473,6 +473,41 @@ export function initializeSheet(
       state.corrections.entities
     ).filter((c) => state.submissions.entities[c.submission].sheet === sheetId);
 
+    dispatch(tasksUpsertMany(tasks));
+
+    if (sheet) {
+      const temp = { ...sheet };
+      temp.tasks = topLevelTaskIds;
+      dispatch(sheetsUpsertOne(temp));
+    }
+
+    const allComments: CommentEntity[] = [];
+    const allRatings: RatingEntity[] = [];
+
+    const allCorrections: CorrectionEntity[] = [];
+    correctionsOfSheet.forEach((c) => {
+      const ratingsForCorrection: RatingEntity[] = [];
+      ratings.forEach((r) => {
+        const newComment = comments.find((comment) => comment.id === r.comment);
+        const tempRating = { ...r };
+        if (newComment) {
+          const tempComment = { ...newComment };
+          tempComment.id = uuidv4();
+          allComments.push(tempComment);
+          tempRating.comment = tempComment.id;
+        }
+        tempRating.id = uuidv4();
+        ratingsForCorrection.push(tempRating);
+        allRatings.push(tempRating);
+      });
+      const tempCorrection = { ...c };
+      tempCorrection.ratings = ratingsForCorrection.map((r) => r.id);
+      allCorrections.push(tempCorrection);
+    });
+    dispatch(commentsUpsertMany(allComments));
+    dispatch(ratingsUpsertMany(allRatings));
+    dispatch(correctionsUpsertMany(allCorrections));
+
     // Delete all unused tasks and tasks that were previously a parent task
     const toDelete = tasksOfSheet
       .filter((t) => {
@@ -521,40 +556,5 @@ export function initializeSheet(
       dispatch(ratingsRemoveMany(ratingsToDelete));
       dispatch(commentsRemoveMany(commentsToDelete));
     }
-
-    dispatch(tasksUpsertMany(tasks));
-
-    if (sheet) {
-      const temp = { ...sheet };
-      temp.tasks = topLevelTaskIds;
-      dispatch(sheetsUpsertOne(temp));
-    }
-
-    const allComments: CommentEntity[] = [];
-    const allRatings: RatingEntity[] = [];
-
-    const allCorrections: CorrectionEntity[] = [];
-    correctionsOfSheet.forEach((c) => {
-      const ratingsForCorrection: RatingEntity[] = [];
-      ratings.forEach((r) => {
-        const newComment = comments.find((comment) => comment.id === r.comment);
-        const tempRating = { ...r };
-        if (newComment) {
-          const tempComment = { ...newComment };
-          tempComment.id = uuidv4();
-          allComments.push(tempComment);
-          tempRating.comment = tempComment.id;
-        }
-        tempRating.id = uuidv4();
-        ratingsForCorrection.push(tempRating);
-        allRatings.push(tempRating);
-      });
-      const tempCorrection = { ...c };
-      tempCorrection.ratings = ratingsForCorrection.map((r) => r.id);
-      allCorrections.push(tempCorrection);
-    });
-    dispatch(commentsUpsertMany(allComments));
-    dispatch(ratingsUpsertMany(allRatings));
-    dispatch(correctionsUpsertMany(allCorrections));
   };
 }
