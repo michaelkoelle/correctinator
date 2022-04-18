@@ -143,6 +143,7 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
     onInitializeSheet(
       dispatch,
       showModal,
+      close,
       autosave,
       selectedSheet,
       tasks,
@@ -157,6 +158,7 @@ const SchemaModal: FC<SchemaModalProps> = (props) => {
       ConfirmationDialog,
       OverwriteSchemaDialog(
         showModal,
+        close,
         autosave,
         selectedSheet,
         tasks,

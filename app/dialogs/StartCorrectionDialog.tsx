@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import { correctionPageSetSheetId } from '../slices/CorrectionPageSlice';
 import { setTabIndex } from '../slices/HomeSlice';
 import SheetEntity from '../model/SheetEntity';
@@ -5,9 +6,11 @@ import Task from '../model/Task';
 import { getRateableTasks, isSingleChoiceTask } from '../utils/TaskUtil';
 import ConfirmationDialog from './ConfirmationDialog';
 import SuggestAutoCorrectionDialog from './SuggestAutoCorrectionDialog';
+import { OPEN_MAIN_WINDOW } from '../constants/WindowIPC';
 
 const StartCorrectionDialog = (
   showModal,
+  close,
   selectedSheet: SheetEntity,
   tasks: Task[]
 ) => {
@@ -19,12 +22,16 @@ const StartCorrectionDialog = (
     if (selectedSheet?.id !== undefined) {
       dispatch(correctionPageSetSheetId(selectedSheet?.id));
       dispatch(setTabIndex(3));
+      ipcRenderer.send(OPEN_MAIN_WINDOW);
 
       if (autoCorrectionAvailiable) {
         showModal(
           ConfirmationDialog,
-          SuggestAutoCorrectionDialog(showModal, selectedSheet)
+          SuggestAutoCorrectionDialog(showModal, close, selectedSheet)
         );
+      } else {
+        // close parent modal
+        close();
       }
     }
   };

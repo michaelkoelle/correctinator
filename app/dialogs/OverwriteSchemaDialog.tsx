@@ -7,6 +7,7 @@ import StartCorrectionDialog from './StartCorrectionDialog';
 export function onInitializeSheet(
   dispatch,
   showModal,
+  close,
   autosave,
   selectedSheet,
   tasks,
@@ -28,14 +29,17 @@ export function onInitializeSheet(
     dispatch(save());
   }
 
+  // close parent modal
+  close();
   showModal(
     ConfirmationDialog,
-    StartCorrectionDialog(showModal, selectedSheet, tasks)
+    StartCorrectionDialog(showModal, close, selectedSheet, tasks)
   );
 }
 
 const OverwriteSchemaDialog = (
   showModal,
+  close,
   autosave,
   selectedSheet,
   tasks,
@@ -51,6 +55,7 @@ const OverwriteSchemaDialog = (
       onInitializeSheet(
         dispatch,
         showModal,
+        close,
         autosave,
         selectedSheet,
         tasks,

@@ -83,6 +83,7 @@ export default function SheetCard(props: { sheet: SheetEntity }) {
   }
 
   function onCreateSchema() {
+    setAnchorEl(null);
     dispatch(schemaSetSelectedSheet(sheet.id));
     showModal(SchemaModal);
   }
