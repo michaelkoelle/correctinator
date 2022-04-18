@@ -113,7 +113,7 @@ const createWindow = async () => {
     if (process.env.START_MINIMIZED) {
       // mainWindow.minimize();
     } else {
-      // mainWindow.show();
+      mainWindow.show();
       // mainWindow.focus();
     }
   });
@@ -169,13 +169,15 @@ ipcMain.on(REQUEST_FILE_PATH, () => {
 });
 
 ipcMain.on(OPEN_MAIN_WINDOW, (_event) => {
-  launcherWindow?.hide();
-  mainWindow?.show();
+  // launcherWindow?.hide();
+  // mainWindow?.show();
+  mainWindow?.focus();
 });
 
 ipcMain.on(OPEN_LAUNCHER, () => {
-  mainWindow?.hide();
-  launcherWindow?.show();
+  // mainWindow?.hide();
+  // launcherWindow?.show();
+  launcherWindow?.focus();
 });
 
 app.on('open-file', (_event, filePath) => {

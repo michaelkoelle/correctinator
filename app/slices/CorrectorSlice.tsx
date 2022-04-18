@@ -15,15 +15,22 @@ const slice = createSlice({
   name: 'correctors',
   initialState: adapter.getInitialState(),
   reducers: {
-    correctorsAddOne: (state, action) => adapter.addOne(state, action),
-    correctorsAddMany: (state, action) => adapter.addMany(state, action),
-    correctorsUpdateOne: (state, action) => adapter.updateOne(state, action),
-    correctorsUpdateMany: (state, action) => adapter.updateMany(state, action),
-    correctorsRemoveOne: (state, action) => adapter.removeOne(state, action),
-    correctorsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    correctorsAddOne: (state, action) => adapter.addOne(state, action.payload),
+    correctorsAddMany: (state, action) =>
+      adapter.addMany(state, action.payload),
+    correctorsUpdateOne: (state, action) =>
+      adapter.updateOne(state, action.payload),
+    correctorsUpdateMany: (state, action) =>
+      adapter.updateMany(state, action.payload),
+    correctorsRemoveOne: (state, action) =>
+      adapter.removeOne(state, action.payload),
+    correctorsRemoveMany: (state, action) =>
+      adapter.removeMany(state, action.payload),
     correctorsRemoveAll: (state) => adapter.removeAll(state),
-    correctorsUpsertOne: (state, action) => adapter.upsertOne(state, action),
-    correctorsUpsertMany: (state, action) => adapter.upsertMany(state, action),
+    correctorsUpsertOne: (state, action) =>
+      adapter.upsertOne(state, action.payload),
+    correctorsUpsertMany: (state, action) =>
+      adapter.upsertMany(state, action.payload),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

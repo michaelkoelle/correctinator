@@ -11,15 +11,21 @@ const slice = createSlice({
   name: 'projects',
   initialState: adapter.getInitialState(),
   reducers: {
-    projectsAddOne: (state, action) => adapter.addOne(state, action),
-    projectsAddMany: (state, action) => adapter.addMany(state, action),
-    projectsUpdateOne: (state, action) => adapter.updateOne(state, action),
-    projectsUpdateMany: (state, action) => adapter.updateMany(state, action),
-    projectsRemoveOne: (state, action) => adapter.removeOne(state, action),
-    projectsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    projectsAddOne: (state, action) => adapter.addOne(state, action.payload),
+    projectsAddMany: (state, action) => adapter.addMany(state, action.payload),
+    projectsUpdateOne: (state, action) =>
+      adapter.updateOne(state, action.payload),
+    projectsUpdateMany: (state, action) =>
+      adapter.updateMany(state, action.payload),
+    projectsRemoveOne: (state, action) =>
+      adapter.removeOne(state, action.payload),
+    projectsRemoveMany: (state, action) =>
+      adapter.removeMany(state, action.payload),
     projectsRemoveAll: (state) => adapter.removeAll(state),
-    projectsUpsertOne: (state, action) => adapter.upsertOne(state, action),
-    projectsUpsertMany: (state, action) => adapter.upsertMany(state, action),
+    projectsUpsertOne: (state, action) =>
+      adapter.upsertOne(state, action.payload),
+    projectsUpsertMany: (state, action) =>
+      adapter.upsertMany(state, action.payload),
   },
 });
 

@@ -92,6 +92,8 @@ export default function CorrectionViewPage() {
     if (openDialog !== true) {
       setOpenDialog(true);
     }
+  } else if (openDialog) {
+    setOpenDialog(false);
   }
 
   return (

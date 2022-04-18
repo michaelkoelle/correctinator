@@ -8,21 +8,26 @@ import {
 import { loadCorrections, deleteEntities } from './CorrectionsSlice';
 import TaskEntity from '../model/TaskEntity';
 
-const adapter = createEntityAdapter<TaskEntity>();
+const adapter = createEntityAdapter<TaskEntity>({
+  selectId: (instance) => instance.id,
+});
 
 const slice = createSlice({
   name: 'tasks',
   initialState: adapter.getInitialState(),
   reducers: {
-    tasksAddOne: (state, action) => adapter.addOne(state, action),
-    tasksAddMany: (state, action) => adapter.addMany(state, action),
-    tasksUpdateOne: (state, action) => adapter.updateOne(state, action),
-    tasksUpdateMany: (state, action) => adapter.updateMany(state, action),
-    tasksRemoveOne: (state, action) => adapter.removeOne(state, action),
-    tasksRemoveMany: (state, action) => adapter.removeMany(state, action),
+    tasksAddOne: (state, action) => adapter.addOne(state, action.payload),
+    tasksAddMany: (state, action) => adapter.addMany(state, action.payload),
+    tasksUpdateOne: (state, action) => adapter.updateOne(state, action.payload),
+    tasksUpdateMany: (state, action) =>
+      adapter.updateMany(state, action.payload),
+    tasksRemoveOne: (state, action) => adapter.removeOne(state, action.payload),
+    tasksRemoveMany: (state, action) =>
+      adapter.removeMany(state, action.payload),
     tasksRemoveAll: (state) => adapter.removeAll(state),
-    tasksUpsertOne: (state, action) => adapter.upsertOne(state, action),
-    tasksUpsertMany: (state, action) => adapter.upsertMany(state, action),
+    tasksUpsertOne: (state, action) => adapter.upsertOne(state, action.payload),
+    tasksUpsertMany: (state, action) =>
+      adapter.upsertMany(state, action.payload),
     tasksRemoveOneById: (state, action: PayloadAction<{ id: string }>) =>
       adapter.removeOne(state, action.payload.id),
     /* tasksAddOneSubtask: (

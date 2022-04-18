@@ -15,15 +15,21 @@ const slice = createSlice({
   name: 'schools',
   initialState: adapter.getInitialState(),
   reducers: {
-    schoolsAddOne: (state, action) => adapter.addOne(state, action),
-    schoolsAddMany: (state, action) => adapter.addMany(state, action),
-    schoolsUpdateOne: (state, action) => adapter.updateOne(state, action),
-    schoolsUpdateMany: (state, action) => adapter.updateMany(state, action),
-    schoolsRemoveOne: (state, action) => adapter.removeOne(state, action),
-    schoolsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    schoolsAddOne: (state, action) => adapter.addOne(state, action.payload),
+    schoolsAddMany: (state, action) => adapter.addMany(state, action.payload),
+    schoolsUpdateOne: (state, action) =>
+      adapter.updateOne(state, action.payload),
+    schoolsUpdateMany: (state, action) =>
+      adapter.updateMany(state, action.payload),
+    schoolsRemoveOne: (state, action) =>
+      adapter.removeOne(state, action.payload),
+    schoolsRemoveMany: (state, action) =>
+      adapter.removeMany(state, action.payload),
     schoolsRemoveAll: (state) => adapter.removeAll(state),
-    schoolsUpsertOne: (state, action) => adapter.upsertOne(state, action),
-    schoolsUpsertMany: (state, action) => adapter.upsertMany(state, action),
+    schoolsUpsertOne: (state, action) =>
+      adapter.upsertOne(state, action.payload),
+    schoolsUpsertMany: (state, action) =>
+      adapter.upsertMany(state, action.payload),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

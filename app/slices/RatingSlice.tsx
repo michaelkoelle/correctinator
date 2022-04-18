@@ -15,15 +15,21 @@ const slice = createSlice({
   name: 'ratings',
   initialState: adapter.getInitialState(),
   reducers: {
-    ratingsAddOne: (state, action) => adapter.addOne(state, action),
-    ratingsAddMany: (state, action) => adapter.addMany(state, action),
-    ratingsUpdateOne: (state, action) => adapter.updateOne(state, action),
-    ratingsUpdateMany: (state, action) => adapter.updateMany(state, action),
-    ratingsRemoveOne: (state, action) => adapter.removeOne(state, action),
-    ratingsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    ratingsAddOne: (state, action) => adapter.addOne(state, action.payload),
+    ratingsAddMany: (state, action) => adapter.addMany(state, action.payload),
+    ratingsUpdateOne: (state, action) =>
+      adapter.updateOne(state, action.payload),
+    ratingsUpdateMany: (state, action) =>
+      adapter.updateMany(state, action.payload),
+    ratingsRemoveOne: (state, action) =>
+      adapter.removeOne(state, action.payload),
+    ratingsRemoveMany: (state, action) =>
+      adapter.removeMany(state, action.payload),
     ratingsRemoveAll: (state) => adapter.removeAll(state),
-    ratingsUpsertOne: (state, action) => adapter.upsertOne(state, action),
-    ratingsUpsertMany: (state, action) => adapter.upsertMany(state, action),
+    ratingsUpsertOne: (state, action) =>
+      adapter.upsertOne(state, action.payload),
+    ratingsUpsertMany: (state, action) =>
+      adapter.upsertMany(state, action.payload),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

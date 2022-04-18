@@ -13,15 +13,18 @@ const slice = createSlice({
   name: 'notes',
   initialState: adapter.getInitialState(),
   reducers: {
-    notesAddOne: (state, action) => adapter.addOne(state, action),
-    notesAddMany: (state, action) => adapter.addMany(state, action),
-    notesUpdateOne: (state, action) => adapter.updateOne(state, action),
-    notesUpdateMany: (state, action) => adapter.updateMany(state, action),
-    notesRemoveOne: (state, action) => adapter.removeOne(state, action),
-    notesRemoveMany: (state, action) => adapter.removeMany(state, action),
+    notesAddOne: (state, action) => adapter.addOne(state, action.payload),
+    notesAddMany: (state, action) => adapter.addMany(state, action.payload),
+    notesUpdateOne: (state, action) => adapter.updateOne(state, action.payload),
+    notesUpdateMany: (state, action) =>
+      adapter.updateMany(state, action.payload),
+    notesRemoveOne: (state, action) => adapter.removeOne(state, action.payload),
+    notesRemoveMany: (state, action) =>
+      adapter.removeMany(state, action.payload),
     notesRemoveAll: (state) => adapter.removeAll(state),
-    notesUpsertOne: (state, action) => adapter.upsertOne(state, action),
-    notesUpsertMany: (state, action) => adapter.upsertMany(state, action),
+    notesUpsertOne: (state, action) => adapter.upsertOne(state, action.payload),
+    notesUpsertMany: (state, action) =>
+      adapter.upsertMany(state, action.payload),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

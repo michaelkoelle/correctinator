@@ -13,15 +13,22 @@ const slice = createSlice({
   name: 'annotations',
   initialState: adapter.getInitialState(),
   reducers: {
-    annotationsAddOne: (state, action) => adapter.addOne(state, action),
-    annotationsAddMany: (state, action) => adapter.addMany(state, action),
-    annotationsUpdateOne: (state, action) => adapter.updateOne(state, action),
-    annotationsUpdateMany: (state, action) => adapter.updateMany(state, action),
-    annotationsRemoveOne: (state, action) => adapter.removeOne(state, action),
-    annotationsRemoveMany: (state, action) => adapter.removeMany(state, action),
+    annotationsAddOne: (state, action) => adapter.addOne(state, action.payload),
+    annotationsAddMany: (state, action) =>
+      adapter.addMany(state, action.payload),
+    annotationsUpdateOne: (state, action) =>
+      adapter.updateOne(state, action.payload),
+    annotationsUpdateMany: (state, action) =>
+      adapter.updateMany(state, action.payload),
+    annotationsRemoveOne: (state, action) =>
+      adapter.removeOne(state, action.payload),
+    annotationsRemoveMany: (state, action) =>
+      adapter.removeMany(state, action.payload),
     annotationsRemoveAll: (state) => adapter.removeAll(state),
-    annotationsUpsertOne: (state, action) => adapter.upsertOne(state, action),
-    annotationsUpsertMany: (state, action) => adapter.upsertMany(state, action),
+    annotationsUpsertOne: (state, action) =>
+      adapter.upsertOne(state, action.payload),
+    annotationsUpsertMany: (state, action) =>
+      adapter.upsertMany(state, action.payload),
   },
   extraReducers: {
     [loadCorrections.type]: (state, action) => {

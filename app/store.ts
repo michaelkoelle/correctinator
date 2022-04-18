@@ -22,6 +22,10 @@ import {
 import storage from 'redux-persist/lib/storage';
 import { useDispatch } from 'react-redux';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
+import {
+  createStateSyncMiddleware,
+  initMessageListener,
+} from 'redux-state-sync';
 import createRootReducer from './rootReducer';
 import { reportChange } from './slices/SaveSlice';
 
@@ -47,7 +51,11 @@ const defMiddleware = (mid) =>
     },
   });
 
-const middleware = [...defMiddleware(getDefaultMiddleware), router];
+const middleware = [
+  ...defMiddleware(getDefaultMiddleware),
+  router,
+  createStateSyncMiddleware(),
+];
 
 const changeMiddleware = (store: MiddlewareAPI) => (next) => (action) => {
   const t: string = action.type;
@@ -98,6 +106,7 @@ export const configuredStore = (initialState?: RootState) => {
     );
   }
   const persistor = persistStore(store);
+  initMessageListener(store);
   return { store, persistor };
 };
 export type Store = ReturnType<typeof configuredStore>;

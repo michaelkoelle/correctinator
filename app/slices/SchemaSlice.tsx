@@ -474,23 +474,38 @@ export function initializeSheet(
     ).filter((c) => state.submissions.entities[c.submission].sheet === sheetId);
 
     // Delete all unused tasks and tasks that were previously a parent task
-    dispatch(
-      tasksRemoveMany(
-        tasksOfSheet
-          .filter((t) => {
-            const updatedTask = tasks.find((tsk) => tsk.id === t.id);
-            // Unused tasks
-            const unusedTask = updatedTask === undefined;
-            // Tasks that were previously a parent task
-            const previouslyParent =
-              updatedTask !== undefined &&
-              isParentTaskEntity(t) &&
-              !isParentTaskEntity(updatedTask);
-            return unusedTask || previouslyParent;
-          })
-          .map((t) => t.id)
-      )
-    );
+    const toDelete = tasksOfSheet
+      .filter((t) => {
+        const updatedTask = tasks.find((tsk) => tsk.id === t.id);
+        // Unused tasks
+        const unusedTask = updatedTask === undefined;
+        // Tasks that were previously a parent task
+        const previouslyParent =
+          updatedTask !== undefined &&
+          isParentTaskEntity(t) &&
+          !isParentTaskEntity(updatedTask);
+        return unusedTask || previouslyParent;
+      })
+      .map((t) => t.id);
+    if (toDelete.length > 0) {
+      dispatch(
+        tasksRemoveMany(
+          tasksOfSheet
+            .filter((t) => {
+              const updatedTask = tasks.find((tsk) => tsk.id === t.id);
+              // Unused tasks
+              const unusedTask = updatedTask === undefined;
+              // Tasks that were previously a parent task
+              const previouslyParent =
+                updatedTask !== undefined &&
+                isParentTaskEntity(t) &&
+                !isParentTaskEntity(updatedTask);
+              return unusedTask || previouslyParent;
+            })
+            .map((t) => t.id)
+        )
+      );
+    }
 
     // Delete all unused ratings and comments
     const ratingsToDelete: string[] = [];
